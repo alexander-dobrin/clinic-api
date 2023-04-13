@@ -1,0 +1,32 @@
+[
+    {
+        "id": "d5c6d5c6d5c6d5c6d5c6d5c6d5c6d5c6",
+        "firstName": "Alexander",
+        "speciality": "Dentist",
+        "availableAppointments": [
+            "2023-04-13T16:25:50.098Z",
+            "2023-04-11T12:25:50.098Z",
+            "2023-02-13T16:25:50.098Z"
+        ]
+    },
+    {
+        "id": "d5c6d5c6d5c6e943d5c6d5c6d5c6d5c6",
+        "firstName": "John",
+        "speciality": "Pediatrician",
+        "availableAppointments": [
+            "2023-04-14T09:00:00.000Z",
+            "2023-04-16T13:00:00.000Z",
+            "2023-04-18T16:00:00.000Z"
+        ]
+    },
+    {
+        "id": "e943e943e943e943e943e943e943e943",
+        "firstName": "Maria",
+        "speciality": "Cardiologist",
+        "availableAppointments": [
+            "2023-04-14T10:00:00.000Z",
+            "2023-04-17T14:00:00.000Z",
+            "2023-04-20T17:00:00.000Z"
+        ]
+    }
+]
