@@ -8,6 +8,6 @@ export class DoctorEntity {
         this.id = id;
         this.firstName = firstName;
         this.speciality = speciality;
-        this.availableAppointments = availableAppointments;
+        this.availableAppointments = availableAppointments.map(dateString => new Date(dateString));
       }
 }
