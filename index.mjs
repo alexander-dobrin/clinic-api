@@ -1,20 +1,44 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as http from 'http';
+import dotenv from 'dotenv';
 import { PatientEntity } from './entities/patient-entity.mjs';
 import { DoctorEntity } from './entities/doctors-entity.mjs';
 import { AppointmentEntity } from './entities/appointment-entity.mjs';
 
-const data = await fs.readFile(path.resolve('assets', 'patients.json'), {encoding: 'utf8'});
-const patients = JSON.parse(data).map(p => new PatientEntity(p.id, p.firstName, p.phone));
+const server = http.createServer(async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = 200;
 
-patients.forEach(patient => console.log(patient.firstName));
+    if (req.method === 'GET') {
+        if (req.url === '/patients') {
+            const patients = await getPatients();
+            res.end(patients);
+        } else if (req.url === '/doctors') {
+            const doctors = await getDoctors();
+            res.end(doctors);
+        }
+    } else if (req.method === 'POST') {
+        if (req.url === '/appointment') {
+            // TODO: parse url and call makeAppointment with params from url
+        }
+    }
+    
+    res.statusCode = 404;
+    res.end('unknown endpoint');
+});
 
-const data2 = await fs.readFile(path.resolve('assets', 'doctors.json'), {encoding: 'utf8'});
-const doctors = JSON.parse(data2).map(d => new DoctorEntity(d.id, d.firstName, d.speciality, d.availableAppointments));
+dotenv.config()
 
-doctors.forEach(doctor => console.log(doctor.availableAppointments));
+server.listen(process.env.PORT);
 
-console.log(makeAppointment(patients[0], doctors[0], new Date(doctors[0].availableAppointments[0])))
+async function getPatients() {
+    return fs.readFile(path.resolve('assets', 'patients.json'), { encoding: 'utf8' });
+}
+
+async function getDoctors() {
+    return fs.readFile(path.resolve('assets', 'doctors.json'), { encoding: 'utf8' });
+}
 
 function makeAppointment(patient, doctor, date) {
     const isSlotAvailable = doctor.availableAppointments.some(a => a.getTime() === date.getTime());
