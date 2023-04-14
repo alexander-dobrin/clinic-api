@@ -8,6 +8,7 @@ import { AppointmentEntity } from './entities/appointment-entity.mjs';
 
 const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
+
     res.statusCode = 200;
 
     if (req.method === 'GET') {
@@ -20,7 +21,22 @@ const server = http.createServer(async (req, res) => {
         }
     } else if (req.method === 'POST') {
         if (req.url === '/appointment') {
-            // TODO: parse url and call makeAppointment with params from url
+            let body = '';
+            
+            req.on('data', chunk => {
+                body += chunk.toString(); 
+            });
+
+            req.on('end', async () => {
+                const appointmentData = JSON.parse(body);
+                const patient = await getPatient(appointmentData.patientId);
+                const doctor = await getDoctor(appointmentData.doctorId);
+                
+                const appointment = makeAppointment(patient, doctor, new Date(appointmentData.startDate));
+                console.log(appointment);
+                res.end();
+                //const url = new URL(`http://localhost:3000${req.url}`);
+            });
         }
     }
     
@@ -33,11 +49,23 @@ dotenv.config()
 server.listen(process.env.PORT);
 
 async function getPatients() {
-    return fs.readFile(path.resolve('assets', 'patients.json'), { encoding: 'utf8' });
+    return JSON.parse(await fs.readFile(path.resolve('assets', 'patients.json'), { encoding: 'utf8' }))
+        .map(p => new PatientEntity(p.id, p.firstName, p.phone));
+}
+
+async function getPatient(id) {
+    const patients = await getPatients();
+    return patients.find(p => p.id === id);
 }
 
 async function getDoctors() {
-    return fs.readFile(path.resolve('assets', 'doctors.json'), { encoding: 'utf8' });
+    return JSON.parse(await fs.readFile(path.resolve('assets', 'doctors.json'), { encoding: 'utf8' }))
+        .map(d => new DoctorEntity(d.id, d.firstName, d.speciality, d.availableAppointments));
+}
+
+async function getDoctor(id) {
+    const doctors = await getDoctors();
+    return doctors.find(d => d.id === id);
 }
 
 function makeAppointment(patient, doctor, date) {
