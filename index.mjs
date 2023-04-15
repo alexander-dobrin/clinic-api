@@ -1,72 +1,61 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import * as http from 'http';
 import dotenv from 'dotenv';
-import { PatientEntity } from './entities/patient-entity.mjs';
-import { DoctorEntity } from './entities/doctors-entity.mjs';
 import { AppointmentEntity } from './entities/appointment-entity.mjs';
+import { PatientsController } from './controllers/patients-controller.mjs';
+import { DoctorsController } from './controllers/doctors-controller.mjs';
 
 const server = http.createServer(async (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-
-    res.statusCode = 200;
-
-    if (req.method === 'GET') {
-        if (req.url === '/patients') {
-            const patients = await getPatients();
-            res.end(patients);
-        } else if (req.url === '/doctors') {
-            const doctors = await getDoctors();
-            res.end(doctors);
-        }
-    } else if (req.method === 'POST') {
-        if (req.url === '/appointment') {
-            let body = '';
-            
-            req.on('data', chunk => {
-                body += chunk.toString(); 
-            });
-
-            req.on('end', async () => {
-                const appointmentData = JSON.parse(body);
-                const patient = await getPatient(appointmentData.patientId);
-                const doctor = await getDoctor(appointmentData.doctorId);
-                
-                const appointment = makeAppointment(patient, doctor, new Date(appointmentData.startDate));
-                console.log(appointment);
-                res.end();
-                //const url = new URL(`http://localhost:3000${req.url}`);
-            });
-        }
-    }
+    const url = new URL(req.url, `http://${req.headers.host}`);
     
+    if (url.pathname === '/patients') {
+        const patientsController = new PatientsController();
+        
+        if (url.searchParams.get('id')) {
+            patientsController.getOne(req, res);
+            return;
+        }
+        patientsController.getAll(req, res);
+    } else if (url.pathname === '/doctors') {
+        const doctorsController = new DoctorsController();
+
+        if (url.searchParams.get('id')) {
+            doctorsController.getOne(req, res);
+            return;
+        }
+        doctorsController.getAll(req, res);
+    }
+
     res.statusCode = 404;
-    res.end('unknown endpoint');
+    res.end();
+
+    // if (req.method === 'POST') {
+    //     if (req.url === '/appointment') {
+    //         let body = '';
+            
+    //         req.on('data', chunk => {
+    //             body += chunk.toString(); 
+    //         });
+
+    //         req.on('end', async () => {
+    //             const appointmentData = JSON.parse(body);
+    //             const patient = await getPatient(appointmentData.patientId);
+    //             const doctor = await getDoctor(appointmentData.doctorId);
+                
+    //             const appointment = makeAppointment(patient, doctor, new Date(appointmentData.startDate));
+    //             console.log(appointment);
+    //             res.end();
+    //             //const url = new URL(`http://localhost:3000${req.url}`);
+    //         });
+    //     }
+    // }
+    
+    // res.statusCode = 404;
+    // res.end('unknown endpoint');
 });
 
 dotenv.config()
 
 server.listen(process.env.PORT);
-
-async function getPatients() {
-    return JSON.parse(await fs.readFile(path.resolve('assets', 'patients.json'), { encoding: 'utf8' }))
-        .map(p => new PatientEntity(p.id, p.firstName, p.phone));
-}
-
-async function getPatient(id) {
-    const patients = await getPatients();
-    return patients.find(p => p.id === id);
-}
-
-async function getDoctors() {
-    return JSON.parse(await fs.readFile(path.resolve('assets', 'doctors.json'), { encoding: 'utf8' }))
-        .map(d => new DoctorEntity(d.id, d.firstName, d.speciality, d.availableAppointments));
-}
-
-async function getDoctor(id) {
-    const doctors = await getDoctors();
-    return doctors.find(d => d.id === id);
-}
 
 function makeAppointment(patient, doctor, date) {
     const isSlotAvailable = doctor.availableAppointments.some(a => a.getTime() === date.getTime());
