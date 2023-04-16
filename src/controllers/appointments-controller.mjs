@@ -1,24 +1,23 @@
-import { AppointmentEntity } from "../entities/appointment-entity.mjs";
-
 export class AppointmentsController {
-    constructor(patientsRepository, doctorsRepository) {
-        this.patientsRepository = patientsRepository;
-        this.doctorsRepository = doctorsRepository;
+    constructor(appointmentService) {
+        this.appointmentService = appointmentService;
     }
 
     schedule(req, res) {
-        res.setHeader('Content-Type', 'application/json');
         const url = new URL(req.url, `http://${req.headers.host}`);
         
-        const patient = this.patientsRepository.getOne(url.searchParams.get('patientid'));
-        const doctor = this.doctorsRepository.getOne(url.searchParams.get('doctorid'));
+        const patientId = url.searchParams.get('patientid');
+        const doctorId = url.searchParams.get('doctorid');
+        const date = url.searchParams.get('date');
         
-        const appointment = new AppointmentEntity(
-            patient.id, 
-            doctor.id, 
-            new Date(url.searchParams.get('date'))
-        );
-        
-        res.end(JSON.stringify(appointment));
+        try {
+            this.appointmentService.schedule(patientId, doctorId, date);
+            res.statusCode = 200;
+        } catch (err) {
+            res.statusCode = err.statusCode;
+            res.end();
+        }
+
+        res.end();
     }
 }
