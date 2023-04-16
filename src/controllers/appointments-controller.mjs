@@ -20,4 +20,9 @@ export class AppointmentsController {
 
         res.end();
     }
+
+    getAll(req, res) {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(this.appointmentService.getAll()));
+    }
 }

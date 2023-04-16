@@ -43,6 +43,11 @@ export class Server {
 
             } else if (url.pathname === '/appointments') {
 
+                if (!url.search) {
+                    this.appointmentsController.getAll(req, res);
+                    return;
+                }
+
                 this.appointmentsController.schedule(req, res);
 
             }

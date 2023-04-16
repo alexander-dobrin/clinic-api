@@ -9,12 +9,21 @@ export class AppointmentsRepository {
             fs.writeFileSync(dataFilePath, JSON.stringify(this.appointments));
             return;
         }
-        const data = fs.readFileSync(dataFilePath, { encoding: 'utf-8' });
-        this.appointments = JSON.parse(data.toString());
+        this.appointments = this.pullData();
+    }
+
+    pullData() {
+        const data = fs.readFileSync(this.dataFilePath, { encoding: 'utf-8' });
+        return JSON.parse(data.toString());
     }
 
     addOne(appointment) {
         this.appointments.push(appointment);
         fs.writeFileSync(this.dataFilePath, JSON.stringify(this.appointments, null, 2));
+    }
+
+    getAll() {
+        this.appointments = this.pullData();
+        return this.appointments;
     }
 }

@@ -29,4 +29,8 @@ export class AppointmentsService {
         const appointment = new AppointmentEntity(patientId, doctorId, new Date(date));
         this.appointmentsRepository.addOne(appointment);
     }
+
+    getAll() {
+        return this.appointmentsRepository.getAll();
+    }
 }
