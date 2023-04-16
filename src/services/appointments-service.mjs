@@ -21,7 +21,7 @@ export class AppointmentsService {
             throw new AppointmentCreationException(`Appointment can not be in the past [${date}]`);
         }
 
-        const isDoctorSlotAvailable = doctor.availableAppointments.some(a => a.toISOString() === date)
+        const isDoctorSlotAvailable = doctor.availableSlots.some(s => s.toISOString() === date)
         if (!isDoctorSlotAvailable) {
             throw new AppointmentCreationException(`Doctor [${doctorId}] is not available at [${date}]`);
         }        
