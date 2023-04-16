@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { DoctorEntity } from '../entities/doctors-entity.mjs';
+import { DoctorEntity } from '../entities/doctor-entity.mjs';
 
 export class DoctorsRepository {
     constructor() {
