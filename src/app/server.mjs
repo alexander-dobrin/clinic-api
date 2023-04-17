@@ -27,33 +27,53 @@ export class Server {
 
             if (url.pathname === '/patients') {
 
-                if (url.searchParams.get('id')) {
-                    this.patientsController.getOne(req, res);
-                    return;
-                }
-                this.patientsController.getAll(req, res);
+                this.handlePatients(req, res);
 
             } else if (url.pathname === '/doctors') {
 
-                if (url.searchParams.get('id')) {
-                    this.doctorsController.getOne(req, res);
-                    return;
-                }
-                this.doctorsController.getAll(req, res);
+                this.handleDoctors(req, res);
 
             } else if (url.pathname === '/appointments') {
 
-                if (!url.search) {
-                    this.appointmentsController.getAll(req, res);
-                    return;
-                }
-
-                this.appointmentsController.schedule(req, res);
+                this.handleAppointments(req, res);
 
             }
 
             res.statusCode = 404;
             res.end();
         });
+    }
+
+    handlePatients(req, res) {
+        if (req.method === 'GET') {
+            if (url.searchParams.get('id')) {
+                this.patientsController.getOne(req, res);
+                return;
+            }
+            this.patientsController.getAll(req, res);
+            return;
+        }
+    }
+
+    handleDoctors(req, res) {
+        if (req.method === 'GET') {
+            if (url.searchParams.get('id')) {
+                this.doctorsController.getOne(req, res);
+                return;
+            }
+            this.doctorsController.getAll(req, res);
+            return;
+        }
+    }
+
+    handleAppointments(req, res) {
+        if (req.method === 'GET') {
+            this.appointmentsController.getAll(req, res);
+            return;
+        }
+
+        if (req.method === 'POST') {
+            this.appointmentsController.schedule(req, res);
+        }
     }
 }
