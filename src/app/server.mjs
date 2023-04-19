@@ -22,20 +22,20 @@ export class Server {
     }
 
     getServer() {
-        return http.createServer((req, res) => {
+        return http.createServer(async (req, res) => {
             const url = new URL(req.url, `http://${req.headers.host}`);
 
             if (url.pathname === '/patients') {
 
-                this.handlePatients(req, res);
+                await this.handlePatients(req, res);
 
             } else if (url.pathname === '/doctors') {
 
-                this.handleDoctors(req, res);
+                await this.handleDoctors(req, res);
 
             } else if (url.pathname === '/appointments') {
 
-                this.handleAppointments(req, res);
+                await this.handleAppointments(req, res);
 
             }
 
@@ -44,7 +44,8 @@ export class Server {
         });
     }
 
-    handlePatients(req, res) {
+    async handlePatients(req, res) {
+        const url = new URL(req.url, `http://${req.headers.host}`);
         if (req.method === 'GET') {
             if (url.searchParams.get('id')) {
                 this.patientsController.getOne(req, res);
@@ -55,7 +56,8 @@ export class Server {
         }
     }
 
-    handleDoctors(req, res) {
+    async handleDoctors(req, res) {
+        const url = new URL(req.url, `http://${req.headers.host}`);
         if (req.method === 'GET') {
             if (url.searchParams.get('id')) {
                 this.doctorsController.getOne(req, res);
@@ -66,7 +68,7 @@ export class Server {
         }
     }
 
-    handleAppointments(req, res) {
+    async handleAppointments(req, res) {
         if (req.method === 'GET') {
             this.appointmentsController.getAll(req, res);
             return;
