@@ -1,3 +1,5 @@
+import { STATUS_CODES } from '../enums.mjs';
+
 export class AppointmentsController {
     constructor(appointmentService) {
         this.appointmentService = appointmentService;
@@ -9,7 +11,7 @@ export class AppointmentsController {
                 req.body.patientId,
                 req.body.doctorId,
                 req.body.date);
-            res.status(201).json(appointment);
+            res.status(STATUS_CODES.CREATED).json(appointment);
         } catch (err) {
             res.sendStatus(err.statusCode);
         }

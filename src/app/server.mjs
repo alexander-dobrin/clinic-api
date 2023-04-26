@@ -1,4 +1,5 @@
 import express from 'express';
+import { STATUS_CODES } from '../enums.mjs';
 
 export class Server {
     constructor(patientsRoutes, doctorsRoutes, appointmentsRoutes) {
@@ -23,12 +24,12 @@ export class Server {
 
         this.app.use((req, res, next) => {
             const error = new Error('Not found');
-            error.status = 404;
+            error.status = STATUS_CODES.NOT_FOUND;
             next(error);
         });
 
         this.app.use((error, req, res, next) => {
-            res.status(error.status || 500);
+            res.status(error.status || STATUS_CODES.INTERNAL_SERVER_ERROR);
             res.json({
                 error: {
                     message: error.message
