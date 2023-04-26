@@ -1,28 +1,16 @@
-import * as http from 'http';
-import * as path from 'path';
-import { PatientsController } from '../controllers/patients-controller.mjs';
-import { DoctorsController } from '../controllers/doctors-controller.mjs';
-import { AppointmentsController } from '../controllers/appointments-controller.mjs';
-import { PatientsRepository } from '../repositories/patients-repository.mjs';
-import { DoctorsRepository } from '../repositories/doctors-repository.mjs';
-import { AppointmentsRepository } from '../repositories/appointments-repository.mjs';
-import { AppointmentsService } from '../services/appointments-service.mjs';
+import express from 'express';
 
 export class Server {
-    constructor() {
-        const patientsRepository = new PatientsRepository();
-        const doctorsRepository = new DoctorsRepository();
-        const apointmentsRepository = new AppointmentsRepository(path.resolve('assets', 'appointments.json'));
+    constructor(patientsController, doctorsController, appointmentsController) {
+        this.patientsController = patientsController;
+        this.doctorsController = doctorsController;
+        this.appointmentsController = appointmentsController;
 
-        const appointmentsService = new AppointmentsService(apointmentsRepository, patientsRepository, doctorsRepository)
-
-        this.patientsController = new PatientsController(patientsRepository);
-        this.doctorsController = new DoctorsController(doctorsRepository);
-        this.appointmentsController = new AppointmentsController(appointmentsService);
+        this.app = express();
     }
 
-    getServer() {
-        return http.createServer(async (req, res) => {
+    listen(port) {
+        this.app.use(async (req, res) => {
             const url = new URL(req.url, `http://${req.headers.host}`);
 
             if (url.pathname === '/patients') {
@@ -39,9 +27,10 @@ export class Server {
 
             }
 
-            res.statusCode = 404;
-            res.end();
+            res.sendStatus(404);
         });
+        
+        this.app.listen(port);
     }
 
     async handlePatients(req, res) {

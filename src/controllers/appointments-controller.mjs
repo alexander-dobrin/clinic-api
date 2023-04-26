@@ -11,18 +11,14 @@ export class AppointmentsController {
         const date = url.searchParams.get('date');
         
         try {
-            this.appointmentService.schedule(patientId, doctorId, date);
-            res.statusCode = 200;
+            const appointment = this.appointmentService.schedule(patientId, doctorId, date);
+            res.status(201).json(appointment);
         } catch (err) {
-            res.statusCode = err.statusCode;
-            res.end();
+            res.sendStatus(err.statusCode);
         }
-
-        res.end();
     }
 
     getAll(req, res) {
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(this.appointmentService.getAll()));
+        res.json(this.appointmentService.getAll());
     }
 }
