@@ -7,7 +7,7 @@ export class AppointmentsRoutes {
 
         this._router.route('/')
             .get((req, res) => appointmentsController.get(req, res))
-            //.post((req, res) => appointmentsController.post(req, res));
+            .post((req, res) => appointmentsController.post(req, res));
 
         this._router.route('/:id')
             //.get((req, res) => appointmentsController.getById(req, res));

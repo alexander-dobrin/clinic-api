@@ -9,6 +9,7 @@ export class AppointmentsService {
     }
 
     schedule(patientId, doctorId, date) {
+        console.log(patientId, doctorId, date);
         const patient = this.patientsRepository.getOne(patientId);
         const doctor = this.doctorsRepository.getOne(doctorId);
         

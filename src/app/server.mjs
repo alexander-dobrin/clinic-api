@@ -7,7 +7,13 @@ export class Server {
         this.appointmentsRoutes = appointmentsRoutes;
 
         this.app = express();
+
+        this.useMiddlewares();
         this.useRoutes();
+    }
+
+    useMiddlewares() {
+        this.app.use(express.urlencoded({ extended: true }));
     }
 
     useRoutes() {
