@@ -3,13 +3,12 @@ export class PatientsController {
         this.patientsRepository = patientsRepository;
     }
 
-    getAll(req, res) {
+    get(req, res) {
         res.json(this.patientsRepository.getAll());
     }
 
-    getOne(req, res) {
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const one = this.patientsRepository.getOne(url.searchParams.get('id'));
-        res.json((one));
+    getById(req, res) {
+        const patient = this.patientsRepository.getOne(req.params.id);
+        res.json((patient));
     }
 }

@@ -7,6 +7,9 @@ import { DoctorsRepository } from './src/repositories/doctors-repository.mjs';
 import { AppointmentsRepository } from './src/repositories/appointments-repository.mjs';
 import { AppointmentsService } from './src/services/appointments-service.mjs';
 import { Server } from './src/app/server.mjs';
+import { PatientsRoutes } from './src/routes/patients-routes.mjs';
+import { DoctorsRoutes } from './src/routes/doctors-routes.mjs';
+import { AppointmentsRoutes } from './src/routes/appointments-routes.mjs';
 
 const patientsRepository = new PatientsRepository();
 const doctorsRepository = new DoctorsRepository();
@@ -18,7 +21,11 @@ const patientsController = new PatientsController(patientsRepository);
 const doctorsController = new DoctorsController(doctorsRepository);
 const appointmentsController = new AppointmentsController(appointmentsService);
 
-const server = new Server(patientsController, doctorsController, appointmentsController);
+const patientsRoutes = new PatientsRoutes(patientsController);
+const doctorsRoutes = new DoctorsRoutes(doctorsController);
+const appointmentsRoutes = new AppointmentsRoutes(appointmentsController);
+
+const server = new Server(patientsRoutes, doctorsRoutes, appointmentsRoutes);
 
 dotenv.config()
 
