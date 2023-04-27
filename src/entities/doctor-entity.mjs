@@ -6,10 +6,10 @@ export class DoctorEntity {
     speciality;
     availableSlots;
 
-    constructor(id, firstName, speciality, availableAppointments) {
+    constructor(id, firstName, speciality, availableSlots) {
         this.id = id;
         this.firstName = firstName;
         this.speciality = speciality;
-        this.availableSlots = availableAppointments.map(dateString => DateTime.fromISO(dateString, { zone: 'utc' }));
+        this.availableSlots = availableSlots?.map(dateString => DateTime.fromISO(dateString, { zone: 'utc' }));
       }
 }

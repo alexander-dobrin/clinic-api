@@ -11,6 +11,7 @@ import { PatientsRoutes } from './src/routes/patients-routes.mjs';
 import { DoctorsRoutes } from './src/routes/doctors-routes.mjs';
 import { AppointmentsRoutes } from './src/routes/appointments-routes.mjs';
 import { PatientsService } from './src/services/patients-service.mjs';
+import { DoctorsService } from './src/services/doctors-service.mjs';
 
 const patientsRepository = new PatientsRepository();
 const doctorsRepository = new DoctorsRepository();
@@ -18,9 +19,10 @@ const apointmentsRepository = new AppointmentsRepository();
 
 const appointmentsService = new AppointmentsService(apointmentsRepository, patientsRepository, doctorsRepository);
 const patientsService = new PatientsService(patientsRepository);
+const doctorsService = new DoctorsService(doctorsRepository);
 
 const patientsController = new PatientsController(patientsService);
-const doctorsController = new DoctorsController(doctorsRepository);
+const doctorsController = new DoctorsController(doctorsService);
 const appointmentsController = new AppointmentsController(appointmentsService);
 
 const patientsRoutes = new PatientsRoutes(patientsController);

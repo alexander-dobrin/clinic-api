@@ -2,13 +2,17 @@ import { Router } from 'express';
 
 export class DoctorsRoutes {
     constructor(doctorsController) {
-        this.patientsController = doctorsController;
+        this.doctorsController = doctorsController;
         this._router = Router();
 
-        this._router.get('/', (req, res) => doctorsController.get(req, res));
+        this._router.route('/')
+            .get((req, res) => doctorsController.get(req, res))
+            .post((req, res) => doctorsController.post(req, res));
 
         this._router.route('/:id')
-            .get((req, res) => doctorsController.getById(req, res));
+            .get((req, res) => doctorsController.getById(req, res))
+            .put((req, res) => doctorsController.put(req, res))
+            .delete((req, res) => doctorsController.delete(req, res));
     }
 
     get router() {
