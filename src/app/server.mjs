@@ -29,12 +29,8 @@ export class Server {
         });
 
         this.app.use((error, req, res, next) => {
-            res.status(error.status || STATUS_CODES.INTERNAL_SERVER_ERROR);
-            res.json({
-                error: {
-                    message: error.message
-                }
-            });
+            console.log(error);
+            res.sendStatus(error.status ?? STATUS_CODES.INTERNAL_SERVER_ERROR);
         });
     }
 

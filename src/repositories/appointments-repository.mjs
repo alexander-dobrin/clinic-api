@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import { AppointmentEntity } from '../entities/appointment-entity.mjs';
 
 export class AppointmentsRepository {
     appointments = [];
@@ -10,12 +11,13 @@ export class AppointmentsRepository {
             fs.writeFileSync(this.dataFilePath, JSON.stringify(this.appointments));
             return;
         }
-        this.appointments = this.pullData();
+        this.pullData();
     }
 
     pullData() {
         const data = fs.readFileSync(this.dataFilePath, { encoding: 'utf-8' });
-        return JSON.parse(data.toString());
+        this.appointments = JSON.parse(data.toString())
+            .map(obj => new AppointmentEntity(obj.patientId, obj.doctorId, obj.startDate));
     }
 
     addOne(appointment) {
@@ -24,7 +26,7 @@ export class AppointmentsRepository {
     }
 
     getAll() {
-        this.appointments = this.pullData();
+        this.pullData();
         return this.appointments;
     }
 }

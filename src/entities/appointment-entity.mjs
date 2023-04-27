@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+
 export class AppointmentEntity {
     patientId;
     doctorId;
@@ -6,6 +8,6 @@ export class AppointmentEntity {
     constructor(patientId, doctorId, startDate) {
         this.patientId = patientId;
         this.doctorId = doctorId;
-        this.startDate = startDate;
+        this.startDate = DateTime.fromISO(startDate, { zone: 'utc' });
     }
 }

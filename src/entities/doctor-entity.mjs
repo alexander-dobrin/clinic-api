@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+
 export class DoctorEntity {
     id;
     firstName;
@@ -8,6 +10,6 @@ export class DoctorEntity {
         this.id = id;
         this.firstName = firstName;
         this.speciality = speciality;
-        this.availableSlots = availableAppointments.map(dateString => new Date(dateString));
+        this.availableSlots = availableAppointments.map(dateString => DateTime.fromISO(dateString, { zone: 'utc' }));
       }
 }
