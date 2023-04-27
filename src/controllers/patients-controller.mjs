@@ -30,6 +30,14 @@ export class PatientsController {
         } catch (err) {
             res.sendStatus(err.statusCode);            
         }
+    }
 
+    put(req, res) {
+        try {
+            const updated = this.patientsService.update(req.params.phone, req.body);
+            res.json(updated);
+        } catch (err) {
+            res.status(STATUS_CODES.BAD_REQUEST).send(err.message);
+        }
     }
 }

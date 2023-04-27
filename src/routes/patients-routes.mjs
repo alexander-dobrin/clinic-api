@@ -10,7 +10,8 @@ export class PatientsRoutes {
             .post((req, res) => patientsController.post(req, res));
 
         this._router.route('/:phone')
-            .get((req, res) => patientsController.getByPhone(req, res));
+            .get((req, res) => patientsController.getByPhone(req, res))
+            .put((req, res) => patientsController.put(req, res));
     }
 
     get router() {

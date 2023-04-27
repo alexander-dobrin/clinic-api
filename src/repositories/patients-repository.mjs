@@ -26,6 +26,18 @@ export class PatientsRepository {
 
     addOne(patient) {
         this.patients.push(patient);
+        this.saveData();
+    }
+
+    saveData() {
         fs.writeFileSync(this.dataPath, JSON.stringify(this.patients, null, 2));
+    }
+
+    update(oldPhone, patient) {
+        this.pullData();
+        const patientIdx = this.patients.findIndex(p => p.phone === oldPhone);
+        this.patients[patientIdx] = patient;
+        this.saveData();
+        return patient;
     }
 }

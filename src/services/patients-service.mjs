@@ -29,4 +29,24 @@ export class PatientsService {
     getAll() {
         return this.patientsRepository.getAll();
     }
+
+    update(oldPhone, newData) {
+        const patient = this.patientsRepository.getOne(oldPhone);
+        
+        if (!patient) {
+            throw new Error(`patient with phone [${oldPhone}] not exists`);
+        }
+
+        const isValidPhone = this.PHONE_REGEX.test(patient.phone);
+        if (!isValidPhone) {
+            throw new Error(`invalid phone format [${patient.phone}], E.164 expected`);
+        }        
+
+        patient.firstName = newData.firstName ?? patient.firstName;
+        patient.phone = newData.phone ?? patient.phone;
+
+        const updated = this.patientsRepository.update(oldPhone, patient);
+
+        return updated;
+    }
 }
