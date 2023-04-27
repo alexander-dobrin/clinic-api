@@ -49,4 +49,14 @@ export class PatientsService {
 
         return updated;
     }
+
+    delete(phone) {
+        const deleted = this.patientsRepository.delete(phone);
+
+        if (!deleted) {
+            throw new Error(`Patient with phone ${phone} not found`);
+        }
+
+        return deleted;
+    }
 }

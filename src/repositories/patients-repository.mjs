@@ -40,4 +40,19 @@ export class PatientsRepository {
         this.saveData();
         return patient;
     }
+
+    delete(phone) {
+        this.pullData();
+
+        const patientIdx = this.patients.findIndex((patient) => patient.phone === phone);
+
+        if (patientIdx === -1) {
+            return null;
+        }
+
+        const deletedPatient = this.patients.splice(patientIdx, 1)[0];
+        this.saveData();
+
+        return deletedPatient;
+    }
 }

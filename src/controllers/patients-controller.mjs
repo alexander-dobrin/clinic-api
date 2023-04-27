@@ -40,4 +40,13 @@ export class PatientsController {
             res.status(STATUS_CODES.BAD_REQUEST).send(err.message);
         }
     }
+
+    delete(req, res) {
+        try {
+            const deleted = this.patientsService.delete(req.params.phone);
+            res.json(deleted);
+        } catch (err) {
+            res.status(STATUS_CODES.BAD_REQUEST).send(err.message);
+        }
+    }
 }
