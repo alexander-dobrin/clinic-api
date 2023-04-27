@@ -5,10 +5,12 @@ export class PatientsRoutes {
         this.patientsController = patientsController;
         this._router = Router();
 
-        this._router.get('/', (req, res) => patientsController.get(req, res));
+        this.router.route('/')
+            .get((req, res) => patientsController.get(req, res))
+            .post((req, res) => patientsController.post(req, res));
 
-        this._router.route('/:id')
-            .get((req, res) => patientsController.getById(req, res));
+        this._router.route('/:phone')
+            .get((req, res) => patientsController.getByPhone(req, res));
     }
 
     get router() {
