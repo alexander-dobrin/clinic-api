@@ -6,8 +6,10 @@ export class DoctorsService {
         this.doctorsRepository = doctorsRepository;
     }
 
-    add(doctorData) {
-        const doctor = new DoctorEntity(v4(), doctorData.firstName, doctorData.speciality, doctorData.availableSlots ?? []);
+    create(doctorData) {
+        const { firstName, speciality, availableSlots } = doctorData;
+
+        const doctor = new DoctorEntity(v4(), firstName, speciality, availableSlots ?? []);
         this.doctorsRepository.addOne(doctor);
         return doctor;
     }
@@ -20,27 +22,26 @@ export class DoctorsService {
         return this.doctorsRepository.getOne(id);
     }
 
-    update(id, data) {
+    update(newData) {
+        const { id, ...data } = newData;
         const doctor = this.doctorsRepository.getOne(id);
 
         if (!doctor) {
-            throw new Error(`doctor [${id}] not found`);
+            return;
         }
+        
+        Object.keys(data).forEach(key => {
+            if (data[key] !== undefined) {
+                doctor[key] = data[key];
+            }
+        });
 
-        doctor.firstName = data.firstName;
-        doctor.speciality = data.speciality;
-        doctor.availableSlots = data.availableSlots;
         const updated = this.doctorsRepository.update(doctor);
         return updated;
     }
 
-    delete(id) {
+    deleteById(id) {
         const deleted = this.doctorsRepository.delete(id);
-
-        if (!deleted) {
-            throw new Error(`Doctor with id ${id} not found`);
-        }
-
         return deleted;
     }
 }

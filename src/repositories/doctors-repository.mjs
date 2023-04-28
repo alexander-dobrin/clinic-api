@@ -37,7 +37,7 @@ export class DoctorsRepository {
         this.pullData();
         const doctorIdx = this.doctors.findIndex(d => d.id === doctor.id);
 
-        if (!doctorIdx) {
+        if (doctorIdx === -1) {
             return;
         }
 
@@ -52,7 +52,7 @@ export class DoctorsRepository {
         const doctorIdx = this.doctors.findIndex(d => d.id === id);
 
         if (doctorIdx === -1) {
-            return null;
+            return;
         }
 
         const deletedDoctor = this.doctors.splice(doctorIdx, 1)[0];
