@@ -1,4 +1,5 @@
 import { STATUS_CODES } from "../enums.mjs";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
 
 export class DoctorsController {
     constructor(doctorsService) {
@@ -23,18 +24,36 @@ export class DoctorsController {
     }
 
     post(req, res) {
-        const added = this.doctorsService.create(req.body);
-        res.status(STATUS_CODES.CREATED).json(added);
+        try {
+            const added = this.doctorsService.create(req.body);
+            res.status(STATUS_CODES.CREATED).json(added);
+        } catch (err) {
+            if (err instanceof InvalidParameterError) {
+                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
+                return;
+            }
+            console.log(err);
+            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
+        }
     }
 
     put(req, res) {
-        req.body.id = req.params.id;
-        const updated = this.doctorsService.update(req.body);
-        if (!updated) {
-            res.sendStatus(STATUS_CODES.NOT_FOUND);
-            return;
+        try {
+            req.body.id = req.params.id;
+            const updated = this.doctorsService.update(req.body);
+            if (!updated) {
+                res.sendStatus(STATUS_CODES.NOT_FOUND);
+                return;
+            }
+            res.json(updated);
+        } catch (err) {
+            if (err instanceof InvalidParameterError) {
+                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
+                return;
+            }
+            console.log(err);
+            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
         }
-        res.json(updated);
     }
 
     delete(req, res) {

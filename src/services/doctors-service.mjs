@@ -1,5 +1,8 @@
 import { v4 } from "uuid";
 import { DoctorEntity } from "../entities/doctor-entity.mjs";
+import { REGEXPRESSIONS } from "../regular-expressions.mjs";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
+import { ERRORS } from "../error-messages.mjs";
 
 export class DoctorsService {
     constructor(doctorsRepository) {
@@ -8,6 +11,11 @@ export class DoctorsService {
 
     create(doctorData) {
         const { firstName, speciality, availableSlots } = doctorData;
+
+        const isValidDates = availableSlots.every(slot => REGEXPRESSIONS.ISO_DATE.test(slot));
+        if (!isValidDates) {
+            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
+        }
 
         const doctor = new DoctorEntity(v4(), firstName, speciality, availableSlots ?? []);
         this.doctorsRepository.addOne(doctor);
@@ -29,6 +37,11 @@ export class DoctorsService {
         if (!doctor) {
             return;
         }
+
+        const isValidDates = data.availableSlots.every(slot => REGEXPRESSIONS.ISO_DATE.test(slot));
+        if (!isValidDates) {
+            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
+        }        
         
         Object.keys(data).forEach(key => {
             if (data[key] !== undefined) {
