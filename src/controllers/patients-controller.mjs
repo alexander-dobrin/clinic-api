@@ -1,5 +1,7 @@
-import { PatientEntity } from '../entities/patient-entity.mjs';
 import { STATUS_CODES } from '../enums.mjs';
+import { DuplicateEntityError } from '../exceptions/duplicate-entity-error.mjs';
+import { InvalidParameterError } from '../exceptions/invalid-parameter-error.mjs';
+import { MissingParameterError } from '../exceptions/missing-parameter-error.mjs';
 
 export class PatientsController {
     constructor(patientsService) {
@@ -18,17 +20,30 @@ export class PatientsController {
         const patient = this.patientsService.getByPhone(req.params.phone);
         if (!patient) {
             res.sendStatus(STATUS_CODES.NOT_FOUND);
+            return;
         }
-        res.json((patient));
+        res.json(patient);
     }
 
     post(req, res) {
-        const patient = new PatientEntity(req.body.firstName, req.body.phone);
         try {
-            this.patientsService.add(patient);
-            res.status(STATUS_CODES.CREATED).json(patient);
+            const created = this.patientsService.create(req.body);
+            res.status(STATUS_CODES.CREATED).json(created);
         } catch (err) {
-            res.sendStatus(err.statusCode);            
+            if (err instanceof InvalidParameterError) {
+                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
+                return;
+            }
+            if (err instanceof DuplicateEntityError) {
+                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
+                return;
+            }
+            if (err instanceof MissingParameterError) {
+                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
+                return;
+            }
+            console.log(err);
+            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
         }
     }
 

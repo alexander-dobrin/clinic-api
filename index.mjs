@@ -6,7 +6,7 @@ import { PatientsRepository } from './src/repositories/patients-repository.mjs';
 import { DoctorsRepository } from './src/repositories/doctors-repository.mjs';
 import { AppointmentsRepository } from './src/repositories/appointments-repository.mjs';
 import { AppointmentsService } from './src/services/appointments-service.mjs';
-import { Server } from './src/app/server.mjs';
+import { Server } from './src/server.mjs';
 import { PatientsRoutes } from './src/routes/patients-routes.mjs';
 import { DoctorsRoutes } from './src/routes/doctors-routes.mjs';
 import { AppointmentsRoutes } from './src/routes/appointments-routes.mjs';

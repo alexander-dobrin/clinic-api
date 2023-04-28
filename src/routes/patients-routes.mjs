@@ -19,19 +19,3 @@ export class PatientsRoutes {
         return this._router;
     }
 }
-
-// patientsRouter.get('/', () => {
-//     this.patientsController.getAll(req, res);
-// });
-
-// patientsRouter.get('/:id', () => {
-//     this.patientsController.getOne(req, res);
-// });
-
-// patientsRouter.route('/:id')
-//     .get()
-//     .put();
-
-// patientsRouter.param('id', (res, req, next, id) => {
-
-// });

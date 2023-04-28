@@ -1,5 +1,5 @@
 import express from 'express';
-import { STATUS_CODES } from '../enums.mjs';
+import { STATUS_CODES } from './enums.mjs';
 
 export class Server {
     constructor(patientsRoutes, doctorsRoutes, appointmentsRoutes) {
@@ -15,6 +15,7 @@ export class Server {
 
     useMiddlewares() {
         this.app.use(express.urlencoded({ extended: true }));
+        this.app.use(express.json());
     }
 
     useRoutes() {

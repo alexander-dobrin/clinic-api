@@ -1,24 +1,36 @@
-import { PatientCreationException } from "../exceptions/patient-creation-exception.mjs";
+import { PatientEntity } from "../entities/patient-entity.mjs";
+import { DuplicateEntityError } from "../exceptions/duplicate-entity-error.mjs";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
+import { ERRORS } from "../error-messages.mjs";
+import { MissingParameterError } from "../exceptions/missing-parameter-error.mjs";
 
 export class PatientsService {
-    PHONE_REGEX = /^\+?[1-9]\d{1,14}$/;
+    PHONE_REGEX = /^\+[1-9]\d{1,14}$/;
 
     constructor(patientsRepository) {
         this.patientsRepository = patientsRepository;
     }
 
-    add(patient) {
-        const isValidPhone = this.PHONE_REGEX.test(patient.phone);
+    create(patientData) {
+        const { firstName, phone } = patientData;
+
+        if (!phone) {
+            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone'))
+        }
+
+        const isValidPhone = this.PHONE_REGEX.test(phone);
         if (!isValidPhone) {
-            throw new PatientCreationException(`invalid phone format [${patient.phone}], E.164 expected`);
+            throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', phone));
         }
-
-        const isPatientExists = this.patientsRepository.getAll().some(p => p.phone === patient.phone);
+        
+        const isPatientExists = this.patientsRepository.getAll().some(p => p.phone === phone);
         if (isPatientExists) {
-            throw new PatientCreationException(`patient with phone [${patient.phone}] allready exists`);
+            throw new DuplicateEntityError(ERRORS.ENTITY_ALREADY_EXISTS.replace('%s', phone));
         }
 
+        const patient = new PatientEntity(firstName, phone)
         this.patientsRepository.addOne(patient);
+        
         return patient;
     }
 
