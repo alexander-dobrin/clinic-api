@@ -3,10 +3,9 @@ import { DuplicateEntityError } from "../exceptions/duplicate-entity-error.mjs";
 import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
 import { ERRORS } from "../error-messages.mjs";
 import { MissingParameterError } from "../exceptions/missing-parameter-error.mjs";
+import { REGEXPRESSIONS } from '../regular-expressions.mjs';
 
 export class PatientsService {
-    PHONE_REGEX = /^\+[1-9]\d{1,14}$/;
-
     constructor(patientsRepository) {
         this.patientsRepository = patientsRepository;
     }
@@ -18,7 +17,7 @@ export class PatientsService {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone'));
         }
 
-        const isValidPhone = this.PHONE_REGEX.test(phone);
+        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(phone);
         if (!isValidPhone) {
             throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', phone));
         }
@@ -55,7 +54,7 @@ export class PatientsService {
             return;
         }        
 
-        const isValidPhone = this.PHONE_REGEX.test(oldPhone) && this.PHONE_REGEX.test(phone);
+        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(oldPhone) && REGEXPRESSIONS.PHONE_NUMBER.test(phone);
         if (!isValidPhone) {
             throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', `${oldPhone} or ${phone}`));
         }
@@ -78,7 +77,7 @@ export class PatientsService {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone'));
         }
 
-        const isValidPhone = this.PHONE_REGEX.test(phone);
+        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(phone);
         if (!isValidPhone) {
             throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', phone));
         }
