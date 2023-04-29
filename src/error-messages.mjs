@@ -4,5 +4,6 @@ export const ERRORS = {
     MISSING_PARAMETER: 'Missing [%s]',
     INVALID_DATE_FORMAT: 'Date  format does not follow ISO standart',
     PAST_DATE: 'Date [%s] can not be in the past',
-    DOCTOR_NOT_AVAILABLE: 'Doctor [%s] is not available at [%s]'
+    DOCTOR_NOT_AVAILABLE: 'Doctor [%s] is not available at [%s]',
+    ENTITY_NOT_EXISTS: 'Entity [%s] not exists'
 }

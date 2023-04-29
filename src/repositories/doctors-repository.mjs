@@ -10,7 +10,6 @@ export class DoctorsRepository {
 
     pullData() {
         const data = fs.readFileSync(this.dataPath, { encoding: 'utf8' }).toString();
-        console.log(data);
         this.doctors = JSON.parse(data)
             .map(d => new DoctorEntity(d.id, d.firstName, d.speciality, d.availableSlots, d.appointments));
     }

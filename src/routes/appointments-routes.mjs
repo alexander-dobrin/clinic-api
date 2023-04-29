@@ -10,7 +10,9 @@ export class AppointmentsRoutes {
             .post((req, res) => appointmentsController.post(req, res));
 
         this._router.route('/:id')
-            //.get((req, res) => appointmentsController.getById(req, res));
+            .get((req, res) => appointmentsController.getById(req, res))
+            .put((req, res) => this.appointmentsController.put(req, res))
+            .delete((req, res) => appointmentsController.delete(req, res));
     }
 
     get router() {
