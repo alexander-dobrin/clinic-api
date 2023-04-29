@@ -7,10 +7,10 @@ import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs
 import { MissingParameterError } from "../exceptions/missing-parameter-error.mjs";
 
 export class AppointmentsService {
-    constructor(appointmentsRepository, patientsRepository, doctorsRepository) {
+    constructor(appointmentsRepository, patientsService, doctorsService) {
         this.appointmentsRepository = appointmentsRepository;
-        this.patientsRepository = patientsRepository;
-        this.doctorsRepository = doctorsRepository;
+        this.patientsRepository = patientsService;
+        this.doctorsRepository = doctorsService;
     }
 
     create(appointmentData) {
@@ -20,8 +20,8 @@ export class AppointmentsService {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
         }
 
-        const patient = this.patientsRepository.getOne(patientId);
-        const doctor = this.doctorsRepository.getOne(doctorId);
+        const patient = this.patientsRepository.getByPhone(patientId);
+        const doctor = this.doctorsRepository.getById(doctorId);
         
         if (!doctor || !patient) {
             return;

@@ -17,9 +17,9 @@ const patientsRepository = new PatientsRepository();
 const doctorsRepository = new DoctorsRepository();
 const apointmentsRepository = new AppointmentsRepository();
 
-const appointmentsService = new AppointmentsService(apointmentsRepository, patientsRepository, doctorsRepository);
 const patientsService = new PatientsService(patientsRepository);
 const doctorsService = new DoctorsService(doctorsRepository);
+const appointmentsService = new AppointmentsService(apointmentsRepository, patientsService, doctorsService);
 
 const patientsController = new PatientsController(patientsService);
 const doctorsController = new DoctorsController(doctorsService);
