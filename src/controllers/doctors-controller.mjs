@@ -7,7 +7,7 @@ export class DoctorsController {
     }
 
     get(req, res) {
-        const doctors = this.doctorsService.getAll();
+        const doctors = this.doctorsService.getAll(req.query.orderBy);
         if(doctors.length < 1) {
             res.status(STATUS_CODES.NO_CONTENT);
         }

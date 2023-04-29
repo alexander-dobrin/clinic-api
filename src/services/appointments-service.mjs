@@ -42,10 +42,14 @@ export class AppointmentsService {
         if (doctorSlotIdx === -1) {
             throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date.toISO()));
         }
-        doctor.availableSlots.splice(doctorSlotIdx, 1);
-        this.doctorsRepository.update(doctor);
 
         const appointment = new AppointmentEntity(patientId, doctorId, utcDateString);
+
+        doctor.availableSlots.splice(doctorSlotIdx, 1);
+        doctor.appointments.push(appointment);
+
+        this.doctorsRepository.update(doctor);
+
         this.appointmentsRepository.addOne(appointment);
         return appointment;
     }

@@ -3,6 +3,7 @@ import { DoctorEntity } from "../entities/doctor-entity.mjs";
 import { REGEXPRESSIONS } from "../regular-expressions.mjs";
 import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
 import { ERRORS } from "../error-messages.mjs";
+import { ORDERED_BY } from "../enums.mjs";
 
 export class DoctorsService {
     constructor(doctorsRepository) {
@@ -22,8 +23,12 @@ export class DoctorsService {
         return doctor;
     }
 
-    getAll() {
-        return this.doctorsRepository.getAll();
+    getAll(orderBy) {
+        const doctors = this.doctorsRepository.getAll();
+        if (orderBy === ORDERED_BY.APPOINTMENTS_COUNT) {
+            doctors.sort((a, b) => b.appointments.length - a.appointments.length);
+        }
+        return doctors;
     }
 
     getById(id) {
