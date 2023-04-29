@@ -120,6 +120,9 @@ export class AppointmentsService {
 
     deleteById(id) {
         const appointment = this.appointmentsRepository.getOne(id);
+        if (!appointment) {
+            return;
+        }
         const responsibleDoctor = this.doctorsService.getById(appointment.doctorId);
         const idxToRemove = responsibleDoctor.appointments.findIndex(a => a.id === id);
         responsibleDoctor.appointments.splice(idxToRemove, 1);
