@@ -1,6 +1,10 @@
 import { AppointmentEntity } from "../entities/appointment-entity.mjs";
-import { AppointmentCreationException } from "../exceptions/appointment-creation-exception.mjs";
+import { AppointmentConflictError } from "../exceptions/appointment-conflict-error.mjs";
 import { DateTime } from "luxon";
+import { REGEXPRESSIONS } from "../regular-expressions.mjs";
+import { ERRORS } from "../error-messages.mjs";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
+import { MissingParameterError } from "../exceptions/missing-parameter-error.mjs";
 
 export class AppointmentsService {
     constructor(appointmentsRepository, patientsRepository, doctorsRepository) {
@@ -9,24 +13,37 @@ export class AppointmentsService {
         this.doctorsRepository = doctorsRepository;
     }
 
-    schedule(patientId, doctorId, utcDateString) {
+    create(appointmentData) {
+        const { patientId, doctorId, date: utcDateString } = appointmentData;
+
+        if (!patientId || !doctorId || !utcDateString) {
+            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
+        }
+
         const patient = this.patientsRepository.getOne(patientId);
         const doctor = this.doctorsRepository.getOne(doctorId);
         
         if (!doctor || !patient) {
-            throw new AppointmentCreationException(`Information about one of the participants [${patientId} | ${doctorId}] does not exist`);
+            return;
+        }
+
+        const isValidDate = REGEXPRESSIONS.ISO_DATE.test(utcDateString);
+        if (!isValidDate) {
+            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
         }
         
         const date = DateTime.fromISO(utcDateString, { zone: 'utc'});
         const isDateInThePast = date.diffNow().milliseconds < 0;
         if (isDateInThePast) {
-            throw new AppointmentCreationException(`Appointment can not be in the past [${utcDateString}]`);
+            throw new InvalidParameterError(ERRORS.PAST_DATE.replace('%s', date.toISO()));
         }
 
-        const isDoctorSlotAvailable = doctor.availableSlots.some(s => s.toISO() === date.toISO())
-        if (!isDoctorSlotAvailable) {
-            throw new AppointmentCreationException(`Doctor [${doctorId}] is not available at [${utcDateString}]`);
-        }        
+        const doctorSlotIdx = doctor.availableSlots.findIndex(s => s.toISO() === date.toISO())
+        if (doctorSlotIdx === -1) {
+            throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date.toISO()));
+        }
+        doctor.availableSlots.splice(doctorSlotIdx, 1);
+        this.doctorsRepository.update(doctor);
 
         const appointment = new AppointmentEntity(patientId, doctorId, utcDateString);
         this.appointmentsRepository.addOne(appointment);
