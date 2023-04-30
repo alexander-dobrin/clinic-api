@@ -1,36 +1,134 @@
 import { AppointmentEntity } from "../entities/appointment-entity.mjs";
-import { AppointmentCreationException } from "../exceptions/appointment-creation-exception.mjs";
+import { AppointmentConflictError } from "../exceptions/appointment-conflict-error.mjs";
+import { DateTime } from "luxon";
+import { REGEXPRESSIONS } from "../regular-expressions.mjs";
+import { ERRORS } from "../error-messages.mjs";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
+import { MissingParameterError } from "../exceptions/missing-parameter-error.mjs";
+import { v4 } from "uuid";
 
 export class AppointmentsService {
-    constructor(appointmentsRepository, patientsRepository, doctorsRepository) {
+    constructor(appointmentsRepository, patientsService, doctorsService) {
         this.appointmentsRepository = appointmentsRepository;
-        this.patientsRepository = patientsRepository;
-        this.doctorsRepository = doctorsRepository;
+        this.patientsService = patientsService;
+        this.doctorsService = doctorsService;
     }
 
-    schedule(patientId, doctorId, date) {
-        const patient = this.patientsRepository.getOne(patientId);
-        const doctor = this.doctorsRepository.getOne(doctorId);
+    create(appointmentData) {
+        const { patientId, doctorId, date: utcDateString } = appointmentData;
+
+        if (!patientId || !doctorId || !utcDateString) {
+            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
+        }
+
+        const patient = this.patientsService.getByPhone(patientId);
+        const doctor = this.doctorsService.getById(doctorId);
         
         if (!doctor || !patient) {
-            throw new AppointmentCreationException(`Information about one of the participants [${patientId} | ${doctorId}] does not exist`);
+            return;
+        }
+
+        const isValidDate = REGEXPRESSIONS.ISO_DATE.test(utcDateString);
+        if (!isValidDate) {
+            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
         }
         
-        const isDateInThePast = (new Date(date).getTime() - Date.now()) < 0;
+        const date = DateTime.fromISO(utcDateString, { zone: 'utc'});
+        const isDateInThePast = date.diffNow().milliseconds < 0;
         if (isDateInThePast) {
-            throw new AppointmentCreationException(`Appointment can not be in the past [${date}]`);
+            throw new InvalidParameterError(ERRORS.PAST_DATE.replace('%s', date.toISO()));
         }
 
-        const isDoctorSlotAvailable = doctor.availableSlots.some(s => s.toISOString() === date)
-        if (!isDoctorSlotAvailable) {
-            throw new AppointmentCreationException(`Doctor [${doctorId}] is not available at [${date}]`);
-        }        
+        const doctorSlotIdx = doctor.availableSlots.findIndex(s => s.toISO() === date.toISO())
+        if (doctorSlotIdx === -1) {
+            throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date.toISO()));
+        }
 
-        const appointment = new AppointmentEntity(patientId, doctorId, new Date(date));
+        const appointment = new AppointmentEntity(v4(), patientId, doctorId, utcDateString);
+
+        doctor.availableSlots.splice(doctorSlotIdx, 1);
+        doctor.appointments.push(appointment);
+
+        this.doctorsService.update(doctor);
+
         this.appointmentsRepository.addOne(appointment);
+        return appointment;
     }
 
     getAll() {
         return this.appointmentsRepository.getAll();
+    }
+
+    getById(id) {
+        return this.appointmentsRepository.getAll()
+            .find(a => a.id === id);
+    }
+
+    put(newData) {
+        const { id, patientId, doctorId, startDate: utcDateString } = newData;
+
+        if (!patientId || !doctorId || !utcDateString) {
+            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
+        }
+
+        const appointment = this.appointmentsRepository.getOne(id)
+        if (!appointment) {
+            return;
+        }
+        
+        const patient = this.patientsService.getByPhone(patientId);
+        const doctor = this.doctorsService.getById(doctorId);
+
+
+        if (!doctor || !patient) {
+            throw new InvalidParameterError(ERRORS.ENTITY_NOT_EXISTS.replace('%s', `${doctorId} or ${patientId}`));
+        }
+
+        const isValidDate = REGEXPRESSIONS.ISO_DATE.test(utcDateString);
+        if (!isValidDate) {
+            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
+        }
+        
+        const date = DateTime.fromISO(utcDateString, { zone: 'utc'});
+        const isDateInThePast = date.diffNow().milliseconds < 0;
+        if (isDateInThePast) {
+            throw new InvalidParameterError(ERRORS.PAST_DATE.replace('%s', date.toISO()));
+        }
+
+        const doctorSlotIdx = doctor.availableSlots.findIndex(s => s.toISO() === date.toISO())
+        if (doctorSlotIdx === -1) {
+            throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date.toISO()));
+        }
+        doctor.availableSlots.splice(doctorSlotIdx, 1);
+        
+        const oldAppointmentIdx = doctor.appointments.findIndex(a => a.startDate === appointment.startDate);
+        doctor.appointments.splice(oldAppointmentIdx, 1);
+
+        Object.keys(newData).forEach(key => {
+            if (newData[key] !== undefined) {
+                appointment[key] = newData[key];
+            }
+        });
+
+        const updated = this.appointmentsRepository.update(appointment);
+        
+        doctor.appointments.push(updated);
+        this.doctorsService.update(doctor);
+
+        return updated;
+    }
+
+    deleteById(id) {
+        const appointment = this.appointmentsRepository.getOne(id);
+        if (!appointment) {
+            return;
+        }
+        const responsibleDoctor = this.doctorsService.getById(appointment.doctorId);
+        const idxToRemove = responsibleDoctor.appointments.findIndex(a => a.id === id);
+        responsibleDoctor.appointments.splice(idxToRemove, 1);
+        this.doctorsService.update(responsibleDoctor);
+
+        const deleted = this.appointmentsRepository.delete(id);
+        return deleted;
     }
 }

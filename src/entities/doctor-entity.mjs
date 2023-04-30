@@ -1,13 +1,22 @@
-export class DoctorEntity {
-    id;
-    firstName;
-    speciality;
-    availableSlots;
+import { DateTime } from "luxon";
+import { AppointmentEntity } from "./appointment-entity.mjs";
 
-    constructor(id, firstName, speciality, availableAppointments) {
+export class DoctorEntity {
+    constructor(
+        id,
+        firstName,
+        speciality,
+        availableSlots,
+        appointments = []) {
         this.id = id;
         this.firstName = firstName;
         this.speciality = speciality;
-        this.availableSlots = availableAppointments.map(dateString => new Date(dateString));
-      }
+        this.availableSlots = availableSlots?.map(dateString => DateTime.fromISO(dateString, { zone: 'utc' }));
+        this.appointments = appointments.map(a => new AppointmentEntity(
+            a.id,
+            a.patientId,
+            a.doctorId,
+            a.startDate
+        ));
+    }
 }
