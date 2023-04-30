@@ -1,9 +1,11 @@
-import { STATUS_CODES } from '../enums.mjs';
-import { DuplicateEntityError } from '../exceptions/duplicate-entity-error.mjs';
-import { InvalidParameterError } from '../exceptions/invalid-parameter-error.mjs';
-import { MissingParameterError } from '../exceptions/missing-parameter-error.mjs';
+import { STATUS_CODES } from '../enums';
+import { DuplicateEntityError } from '../exceptions/duplicate-entity-error';
+import { InvalidParameterError } from '../exceptions/invalid-parameter-error';
+import { MissingParameterError } from '../exceptions/missing-parameter-error';
 
 export class PatientsController {
+    patientsService;
+
     constructor(patientsService) {
         this.patientsService = patientsService;
     }

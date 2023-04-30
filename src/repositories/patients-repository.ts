@@ -1,8 +1,11 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { PatientEntity } from '../entities/patient-entity.mjs';
+import { PatientEntity } from '../entities/patient-entity';
 
 export class PatientsRepository {
+    dataPath;
+    patients;
+
     constructor() {
         this.dataPath = path.resolve('assets', 'patients.json');
         this.pullData();

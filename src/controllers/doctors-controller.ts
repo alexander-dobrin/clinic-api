@@ -1,7 +1,9 @@
-import { STATUS_CODES } from "../enums.mjs";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
+import { STATUS_CODES } from "../enums";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
 
 export class DoctorsController {
+    doctorsService;
+
     constructor(doctorsService) {
         this.doctorsService = doctorsService;
     }

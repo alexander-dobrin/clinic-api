@@ -1,13 +1,17 @@
-import { AppointmentEntity } from "../entities/appointment-entity.mjs";
-import { AppointmentConflictError } from "../exceptions/appointment-conflict-error.mjs";
+import { AppointmentEntity } from "../entities/appointment-entity";
+import { AppointmentConflictError } from "../exceptions/appointment-conflict-error";
 import { DateTime } from "luxon";
-import { REGEXPRESSIONS } from "../regular-expressions.mjs";
-import { ERRORS } from "../error-messages.mjs";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
-import { MissingParameterError } from "../exceptions/missing-parameter-error.mjs";
+import { REGEXPRESSIONS } from "../regular-expressions";
+import { ERRORS } from "../error-messages";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
+import { MissingParameterError } from "../exceptions/missing-parameter-error";
 import { v4 } from "uuid";
 
 export class AppointmentsService {
+    appointmentsRepository;
+    patientsService
+    doctorsService;
+
     constructor(appointmentsRepository, patientsService, doctorsService) {
         this.appointmentsRepository = appointmentsRepository;
         this.patientsService = patientsService;

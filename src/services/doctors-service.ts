@@ -1,11 +1,13 @@
 import { v4 } from "uuid";
-import { DoctorEntity } from "../entities/doctor-entity.mjs";
-import { REGEXPRESSIONS } from "../regular-expressions.mjs";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
-import { ERRORS } from "../error-messages.mjs";
-import { ORDERED_BY } from "../enums.mjs";
+import { DoctorEntity } from "../entities/doctor-entity";
+import { REGEXPRESSIONS } from "../regular-expressions";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
+import { ERRORS } from "../error-messages";
+import { ORDERED_BY } from "../enums";
 
 export class DoctorsService {
+    doctorsRepository;
+    
     constructor(doctorsRepository) {
         this.doctorsRepository = doctorsRepository;
     }

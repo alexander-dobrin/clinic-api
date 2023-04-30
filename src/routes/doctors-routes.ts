@@ -1,6 +1,9 @@
 import { Router } from 'express';
 
 export class DoctorsRoutes {
+    doctorsController;
+    _router;
+    
     constructor(doctorsController) {
         this.doctorsController = doctorsController;
         this._router = Router();

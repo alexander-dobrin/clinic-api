@@ -1,13 +1,13 @@
 import { DateTime } from "luxon";
-import { AppointmentEntity } from "./appointment-entity.mjs";
+import { AppointmentEntity } from "./appointment-entity";
 
 export class DoctorEntity {
     constructor(
-        id,
-        firstName,
-        speciality,
-        availableSlots,
-        appointments = []) {
+        public id,
+        public firstName,
+        public speciality,
+        public availableSlots,
+        public appointments = []) {
         this.id = id;
         this.firstName = firstName;
         this.speciality = speciality;

@@ -1,9 +1,11 @@
-import { STATUS_CODES } from '../enums.mjs';
-import { AppointmentConflictError } from '../exceptions/appointment-conflict-error.mjs';
-import { InvalidParameterError } from '../exceptions/invalid-parameter-error.mjs';
-import { MissingParameterError } from '../exceptions/missing-parameter-error.mjs';
+import { STATUS_CODES } from '../enums';
+import { AppointmentConflictError } from '../exceptions/appointment-conflict-error';
+import { InvalidParameterError } from '../exceptions/invalid-parameter-error';
+import { MissingParameterError } from '../exceptions/missing-parameter-error';
 
 export class AppointmentsController {
+    appointmentService;
+
     constructor(appointmentService) {
         this.appointmentService = appointmentService;
     }

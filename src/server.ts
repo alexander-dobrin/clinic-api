@@ -1,7 +1,12 @@
 import express from 'express';
-import { STATUS_CODES } from './enums.mjs';
+import { STATUS_CODES } from './enums';
 
 export class Server {
+    patientsRoutes;
+    doctorsRoutes;
+    appointmentsRoutes;
+    app;
+
     constructor(patientsRoutes, doctorsRoutes, appointmentsRoutes) {
         this.patientsRoutes = patientsRoutes;
         this.doctorsRoutes = doctorsRoutes;
@@ -25,7 +30,7 @@ export class Server {
 
         this.app.use((req, res, next) => {
             const error = new Error('Not found');
-            error.status = STATUS_CODES.NOT_FOUND;
+            error['status'] = STATUS_CODES.NOT_FOUND;
             next(error);
         });
 

@@ -1,9 +1,10 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { AppointmentEntity } from '../entities/appointment-entity.mjs';
+import { AppointmentEntity } from '../entities/appointment-entity';
 
 export class AppointmentsRepository {
     appointments = [];
+    dataFilePath;
 
     constructor() {
         this.dataFilePath = path.resolve('assets', 'appointments.json');

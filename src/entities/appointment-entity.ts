@@ -2,10 +2,10 @@ import { DateTime } from "luxon";
 
 export class AppointmentEntity {
     constructor(
-        id, 
-        patientId, 
-        doctorId, 
-        startDate
+        public id, 
+        public patientId, 
+        public doctorId, 
+        public startDate
     ) {
         this.id = id;
         this.patientId = patientId;

@@ -1,11 +1,13 @@
-import { PatientEntity } from "../entities/patient-entity.mjs";
-import { DuplicateEntityError } from "../exceptions/duplicate-entity-error.mjs";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error.mjs";
-import { ERRORS } from "../error-messages.mjs";
-import { MissingParameterError } from "../exceptions/missing-parameter-error.mjs";
-import { REGEXPRESSIONS } from '../regular-expressions.mjs';
+import { PatientEntity } from "../entities/patient-entity";
+import { DuplicateEntityError } from "../exceptions/duplicate-entity-error";
+import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
+import { ERRORS } from "../error-messages";
+import { MissingParameterError } from "../exceptions/missing-parameter-error";
+import { REGEXPRESSIONS } from '../regular-expressions';
 
 export class PatientsService {
+    patientsRepository;
+
     constructor(patientsRepository) {
         this.patientsRepository = patientsRepository;
     }
