@@ -16,8 +16,8 @@ import { DoctorsService } from './services/doctors-service';
 import FileDataProvider from './providers/file-data-provider';
 
 const patientsRepository = new PatientsRepository(new FileDataProvider(path.resolve('assets', 'patients.json')));
-const doctorsRepository = new DoctorsRepository();
-const apointmentsRepository = new AppointmentsRepository();
+const doctorsRepository = new DoctorsRepository(new FileDataProvider(path.resolve('assets', 'doctors.json')));
+const apointmentsRepository = new AppointmentsRepository(new FileDataProvider(path.resolve('assets', 'appointments.json')));
 
 const patientsService = new PatientsService(patientsRepository);
 const doctorsService = new DoctorsService(doctorsRepository);

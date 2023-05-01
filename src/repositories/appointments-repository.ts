@@ -1,70 +1,30 @@
-import * as path from 'path';
-import * as fs from 'fs';
 import { AppointmentEntity } from '../entities/appointment-entity';
+import IDataProvider from '../providers/data-provider-interface';
 
 export class AppointmentsRepository {
-    appointments = [];
-    dataFilePath;
+    constructor(
+        private readonly provider: IDataProvider<AppointmentEntity>
+    ) {
 
-    constructor() {
-        this.dataFilePath = path.resolve('assets', 'appointments.json');
-        if (!fs.existsSync(this.dataFilePath)) {
-            fs.writeFileSync(this.dataFilePath, JSON.stringify(this.appointments));
-            return;
-        }
-        this.pullData();
     }
 
-    pullData() {
-        const data = fs.readFileSync(this.dataFilePath, { encoding: 'utf-8' });
-        this.appointments = JSON.parse(data.toString())
-            .map(obj => new AppointmentEntity(obj.id, obj.patientId, obj.doctorId, obj.startDate));
+    public async add(patient: AppointmentEntity): Promise<AppointmentEntity> {
+        return this.provider.create(patient);
     }
 
-    addOne(appointment) {
-        this.appointments.push(appointment);
-        this.saveData();
+    public async getAll(): Promise<AppointmentEntity[]> {
+        return this.provider.read();
     }
 
-    getAll() {
-        this.pullData();
-        return this.appointments;
+    public async get(id: string): Promise<AppointmentEntity | undefined> {
+        return this.provider.readById(id);
     }
 
-    getOne(id) {
-        this.pullData();
-        return this.appointments.find(d => d.id === id);
+    public async update(patient: AppointmentEntity): Promise<AppointmentEntity | undefined> {
+        return this.provider.updateById(patient.id, patient);
     }
 
-    saveData() {
-        fs.writeFileSync(this.dataFilePath, JSON.stringify(this.appointments, null, 2));
-    }
-
-    update(appointment) {
-        this.pullData();
-        const idx = this.appointments.findIndex(a => a.id === appointment.id);
-
-        if (idx === -1) {
-            return;
-        }
-
-        this.appointments[idx] = appointment;
-        this.saveData();
-        return appointment;
-    }
-
-    delete(id) {
-        this.pullData();
-
-        const idx = this.appointments.findIndex(a => a.id === id);
-
-        if (id === -1) {
-            return;
-        }
-
-        const deleted = this.appointments.splice(id, 1)[0];
-        this.saveData();
-
-        return deleted;
+    public async remove(patient: AppointmentEntity): Promise<AppointmentEntity | undefined> {
+        return this.provider.deleteById(patient.id);
     }
 }

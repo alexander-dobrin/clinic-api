@@ -6,27 +6,30 @@ import { ERRORS } from "../error-messages";
 import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
 import { MissingParameterError } from "../exceptions/missing-parameter-error";
 import { v4 } from "uuid";
+import { AppointmentsRepository } from "../repositories/appointments-repository";
+import { PatientsService } from "./patients-service";
+import { DoctorsService } from "./doctors-service";
 
 export class AppointmentsService {
-    appointmentsRepository;
-    patientsService
-    doctorsService;
-
-    constructor(appointmentsRepository, patientsService, doctorsService) {
-        this.appointmentsRepository = appointmentsRepository;
+    constructor(
+        private readonly repository: AppointmentsRepository, 
+        private readonly patientsService: PatientsService, 
+        private readonly doctorsService: DoctorsService
+    ) {
+        this.repository = repository;
         this.patientsService = patientsService;
         this.doctorsService = doctorsService;
     }
 
-    create(appointmentData) {
+    async create(appointmentData) {
         const { patientId, doctorId, date: utcDateString } = appointmentData;
 
         if (!patientId || !doctorId || !utcDateString) {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
         }
 
-        const patient = this.patientsService.getByPhone(patientId);
-        const doctor = this.doctorsService.getById(doctorId);
+        const patient = await this.patientsService.getByPhone(patientId);
+        const doctor = await this.doctorsService.getById(doctorId);
         
         if (!doctor || !patient) {
             return;
@@ -53,35 +56,35 @@ export class AppointmentsService {
         doctor.availableSlots.splice(doctorSlotIdx, 1);
         doctor.appointments.push(appointment);
 
-        this.doctorsService.update(doctor);
+        await this.doctorsService.update(doctor);
 
-        this.appointmentsRepository.addOne(appointment);
+        await this.repository.add(appointment);
         return appointment;
     }
 
-    getAll() {
-        return this.appointmentsRepository.getAll();
+    async getAll() {
+        return this.repository.getAll();
     }
 
-    getById(id) {
-        return this.appointmentsRepository.getAll()
+    async getById(id) {
+        return (await this.repository.getAll())
             .find(a => a.id === id);
     }
 
-    put(newData) {
+    async put(newData) {
         const { id, patientId, doctorId, startDate: utcDateString } = newData;
 
         if (!patientId || !doctorId || !utcDateString) {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
         }
 
-        const appointment = this.appointmentsRepository.getOne(id)
+        const appointment = await this.repository.get(id)
         if (!appointment) {
             return;
         }
         
-        const patient = this.patientsService.getByPhone(patientId);
-        const doctor = this.doctorsService.getById(doctorId);
+        const patient = await this.patientsService.getByPhone(patientId);
+        const doctor = await this.doctorsService.getById(doctorId);
 
 
         if (!doctor || !patient) {
@@ -114,25 +117,25 @@ export class AppointmentsService {
             }
         });
 
-        const updated = this.appointmentsRepository.update(appointment);
+        const updated = await this.repository.update(appointment);
         
         doctor.appointments.push(updated);
-        this.doctorsService.update(doctor);
+        await this.doctorsService.update(doctor);
 
         return updated;
     }
 
-    deleteById(id) {
-        const appointment = this.appointmentsRepository.getOne(id);
+    async deleteById(id) {
+        const appointment = await this.repository.get(id);
         if (!appointment) {
             return;
         }
-        const responsibleDoctor = this.doctorsService.getById(appointment.doctorId);
+        const responsibleDoctor = await this.doctorsService.getById(appointment.doctorId);
         const idxToRemove = responsibleDoctor.appointments.findIndex(a => a.id === id);
         responsibleDoctor.appointments.splice(idxToRemove, 1);
         this.doctorsService.update(responsibleDoctor);
 
-        const deleted = this.appointmentsRepository.delete(id);
+        const deleted = await this.repository.remove(id);
         return deleted;
     }
 }

@@ -10,9 +10,9 @@ export class AppointmentsController {
         this.appointmentService = appointmentService;
     }
 
-    post(req, res) {
+    async post(req, res) {
         try {
-            const created = this.appointmentService.create(req.body);
+            const created = await this.appointmentService.create(req.body);
             if (!created) {
                 res.sendStatus(STATUS_CODES.NOT_FOUND);
                 return;
@@ -36,16 +36,16 @@ export class AppointmentsController {
         }
     }
 
-    get(req, res) {
-        const appointments = this.appointmentService.getAll();
+    async get(req, res) {
+        const appointments = await this.appointmentService.getAll();
         if(appointments.length < 1) {
             res.status(STATUS_CODES.NO_CONTENT);
         }
         res.json(appointments);
     }
 
-    getById(req, res) {
-        const appointment = this.appointmentService.getById(req.params.id);
+    async getById(req, res) {
+        const appointment = await this.appointmentService.getById(req.params.id);
         if (!appointment) {
             res.sendStatus(STATUS_CODES.NOT_FOUND);
             return;
@@ -53,10 +53,10 @@ export class AppointmentsController {
         res.json(appointment);
     }
 
-    put(req, res) {
+    async put(req, res) {
         try {
             req.body.id = req.params.id;
-            const updated = this.appointmentService.put(req.body);
+            const updated = await this.appointmentService.put(req.body);
             if (!updated) {
                 res.sendStatus(STATUS_CODES.NOT_FOUND);
                 return;
@@ -80,8 +80,8 @@ export class AppointmentsController {
         }
     }
 
-    delete(req, res) {
-        const removed = this.appointmentService.deleteById(req.params.id);
+    async delete(req, res) {
+        const removed = await this.appointmentService.deleteById(req.params.id);
         if (!removed) {
             res.sendStatus(STATUS_CODES.NOT_FOUND);
             return;

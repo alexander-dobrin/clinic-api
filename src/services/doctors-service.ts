@@ -4,15 +4,16 @@ import { REGEXPRESSIONS } from "../regular-expressions";
 import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
 import { ERRORS } from "../error-messages";
 import { ORDERED_BY } from "../enums";
+import { DoctorsRepository } from "../repositories/doctors-repository";
 
-export class DoctorsService {
-    doctorsRepository;
-    
-    constructor(doctorsRepository) {
-        this.doctorsRepository = doctorsRepository;
+export class DoctorsService {    
+    constructor(
+        private readonly doctorsRepository: DoctorsRepository
+    ) {
+        
     }
 
-    create(doctorData) {
+    async create(doctorData) {
         const { firstName, speciality, availableSlots } = doctorData;
 
         const isValidDates = availableSlots.every(slot => REGEXPRESSIONS.ISO_DATE.test(slot));
@@ -21,25 +22,25 @@ export class DoctorsService {
         }
 
         const doctor = new DoctorEntity(v4(), firstName, speciality, availableSlots ?? []);
-        this.doctorsRepository.addOne(doctor);
+        await this.doctorsRepository.add(doctor);
         return doctor;
     }
 
-    getAll(orderBy) {
-        const doctors = this.doctorsRepository.getAll();
+    async getAll(orderBy) {
+        const doctors = await this.doctorsRepository.getAll();
         if (orderBy === ORDERED_BY.APPOINTMENTS_COUNT) {
             doctors.sort((a, b) => b.appointments.length - a.appointments.length);
         }
         return doctors;
     }
 
-    getById(id) {
-        return this.doctorsRepository.getOne(id);
+    async getById(id) {
+        return this.doctorsRepository.get(id);
     }
 
-    update(newData) {
+    async update(newData) {
         const { id, ...data } = newData;
-        const doctor = this.doctorsRepository.getOne(id);
+        const doctor = await this.doctorsRepository.get(id);
 
         if (!doctor) {
             return;
@@ -60,8 +61,8 @@ export class DoctorsService {
         return updated;
     }
 
-    deleteById(id) {
-        const deleted = this.doctorsRepository.delete(id);
+    async deleteById(id) {
+        const deleted = await this.doctorsRepository.remove(id);
         return deleted;
     }
 }
