@@ -1,61 +1,30 @@
-import * as path from 'path';
-import * as fs from 'fs';
 import { PatientEntity } from '../entities/patient-entity';
+import IDataProvider from '../providers/data-provider-interface';
 
-export class PatientsRepository {
-    dataPath;
-    patients;
+export default class PatientsRepository {
+    constructor(
+        private readonly provider: IDataProvider<PatientEntity>
+    ) {
 
-    constructor() {
-        this.dataPath = path.resolve('assets', 'patients.json');
-        this.pullData();
     }
 
-    pullData() {
-        const data = fs.readFileSync(this.dataPath, { encoding: 'utf8' });
-        this.patients = JSON.parse(data.toString())
-            .map(p => new PatientEntity(p.firstName, p.phone));
+    public async add(patient: PatientEntity): Promise<PatientEntity> {
+        return this.provider.create(patient);
     }
 
-    getAll() {
-        this.pullData();
-        return this.patients;
+    public async getAll(): Promise<PatientEntity[]> {
+        return this.provider.read();
     }
 
-    getOne(phone) {
-        this.pullData();
-        return this.patients.find(p => p.phone === phone);
+    public async get(id: string): Promise<PatientEntity | undefined> {
+        return this.provider.readById(id);
     }
 
-    addOne(patient) {
-        this.patients.push(patient);
-        this.saveData();
+    public async update(patient: PatientEntity): Promise<PatientEntity | undefined> {
+        return this.provider.updateById(patient.id, patient);
     }
 
-    saveData() {
-        fs.writeFileSync(this.dataPath, JSON.stringify(this.patients, null, 2));
-    }
-
-    update(oldPhone, patient) {
-        this.pullData();
-        const patientIdx = this.patients.findIndex(p => p.phone === oldPhone);
-        this.patients[patientIdx] = patient;
-        this.saveData();
-        return patient;
-    }
-
-    delete(phone) {
-        this.pullData();
-
-        const patientIdx = this.patients.findIndex((patient) => patient.phone === phone);
-
-        if (patientIdx === -1) {
-            return null;
-        }
-
-        const deletedPatient = this.patients.splice(patientIdx, 1)[0];
-        this.saveData();
-
-        return deletedPatient;
+    public async remove(patient: PatientEntity): Promise<PatientEntity | undefined> {
+        return this.provider.deleteById(patient.id);
     }
 }

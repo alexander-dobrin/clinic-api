@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
+        "dev": "nodemon src/index.ts",
         "prod": "tsc -p ./tsconfig.json && node dist/index.js"
     },
     "dependencies": {

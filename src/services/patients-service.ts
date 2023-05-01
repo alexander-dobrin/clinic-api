@@ -4,15 +4,15 @@ import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
 import { ERRORS } from "../error-messages";
 import { MissingParameterError } from "../exceptions/missing-parameter-error";
 import { REGEXPRESSIONS } from '../regular-expressions';
+import PatientsRepository from "../repositories/patients-repository";
 
 export class PatientsService {
-    patientsRepository;
-
-    constructor(patientsRepository) {
-        this.patientsRepository = patientsRepository;
+    constructor(
+        private readonly repository: PatientsRepository) {
+        
     }
 
-    create(patientData) {
+    public async create(patientData): Promise<PatientEntity> {
         const { firstName, phone } = patientData;
 
         if (!phone) {
@@ -24,57 +24,58 @@ export class PatientsService {
             throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', phone));
         }
         
-        const isPatientExists = this.patientsRepository.getAll().some(p => p.phone === phone);
+        const isPatientExists = (await this.repository.getAll()).some(p => p.phone === phone);
         if (isPatientExists) {
             throw new DuplicateEntityError(ERRORS.ENTITY_ALREADY_EXISTS.replace('%s', phone));
         }
 
         const patient = new PatientEntity(firstName, phone)
-        this.patientsRepository.addOne(patient);
+        const added = await this.repository.add(patient);
         
-        return patient;
+        return added;
     }
 
-    getByPhone(phone) {
-        return this.patientsRepository.getOne(phone);
+    async getByPhone(phone): Promise<PatientEntity> {
+        return this.repository.get(phone);
     }
 
-    getAll() {
-        return this.patientsRepository.getAll();
+    async getAll(): Promise<PatientEntity[]> {
+        return this.repository.getAll();
     }
 
-    update(newData) {
+    async update(newData) {
         const { oldPhone, phone, firstName } = newData;
 
-        if (!oldPhone || !phone) {
+        if (!oldPhone && !phone) {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone or oldPhone'));
         }
 
-        const patient = this.patientsRepository.getOne(oldPhone);
+        const patient = await this.repository.get(oldPhone);
 
         if (!patient) {
             return;
         }        
 
-        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(oldPhone) && REGEXPRESSIONS.PHONE_NUMBER.test(phone);
+        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(oldPhone) || REGEXPRESSIONS.PHONE_NUMBER.test(phone);
         if (!isValidPhone) {
             throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', `${oldPhone} or ${phone}`));
         }
 
-        const isPatientExists = this.patientsRepository.getAll().some(p => p.phone === phone);
+        const isPatientExists = (await this.repository.getAll()).some(p => p.phone === phone);
         if (isPatientExists) {
             throw new DuplicateEntityError(ERRORS.ENTITY_ALREADY_EXISTS.replace('%s', phone));
         }
 
         patient.firstName = firstName ?? patient.firstName;
-        patient.phone = phone;
+        patient.phone = phone ?? patient.phone;
+        patient.id = patient.phone;
 
-        const updated = this.patientsRepository.update(oldPhone, patient);
+        const updated = await this.repository.update(patient);
 
         return updated;
     }
 
-    deleteByPhone(phone) {
+    async deleteByPhone(phone) {
         if (!phone) {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone'));
         }
@@ -84,7 +85,8 @@ export class PatientsService {
             throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', phone));
         }
 
-        const deleted = this.patientsRepository.delete(phone);
+        const patientToDelete = await this.repository.get(phone);
+        const deleted = await this.repository.remove(patientToDelete);
         return deleted;
     }
 }

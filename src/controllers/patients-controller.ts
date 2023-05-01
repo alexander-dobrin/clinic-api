@@ -10,16 +10,16 @@ export class PatientsController {
         this.patientsService = patientsService;
     }
 
-    get(req, res) {
-        const patients = this.patientsService.getAll();
+    async get(req, res) {
+        const patients = await this.patientsService.getAll();
         if (patients.length < 1) {
             res.status(STATUS_CODES.NO_CONTENT);
         }
         res.json(patients);
     }
 
-    getByPhone(req, res) {
-        const patient = this.patientsService.getByPhone(req.params.phone);
+    async getByPhone(req, res) {
+        const patient = await this.patientsService.getByPhone(req.params.phone);
         if (!patient) {
             res.sendStatus(STATUS_CODES.NOT_FOUND);
             return;
@@ -27,9 +27,9 @@ export class PatientsController {
         res.json(patient);
     }
 
-    post(req, res) {
+    async post(req, res) {
         try {
-            const created = this.patientsService.create(req.body);
+            const created = await this.patientsService.create(req.body);
             res.status(STATUS_CODES.CREATED).json(created);
         } catch (err) {
             if (err instanceof MissingParameterError) {
@@ -49,10 +49,10 @@ export class PatientsController {
         }
     }
 
-    put(req, res) {
+    async put(req, res) {
         try {
             req.body.oldPhone = req.params.phone;
-            const updated = this.patientsService.update(req.body);
+            const updated = await this.patientsService.update(req.body);
             if (!updated) {
                 res.sendStatus(STATUS_CODES.NOT_FOUND);
                 return;
