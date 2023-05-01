@@ -2,9 +2,11 @@ import { STATUS_CODES } from '../enums';
 import { DuplicateEntityError } from '../exceptions/duplicate-entity-error';
 import { InvalidParameterError } from '../exceptions/invalid-parameter-error';
 import { MissingParameterError } from '../exceptions/missing-parameter-error';
+import PatientsService from '../services/patients-service';
+import { Request, Response } from 'express';
 
 export class PatientsController {
-    patientsService;
+    patientsService: PatientsService;
 
     constructor(patientsService) {
         this.patientsService = patientsService;
@@ -27,7 +29,7 @@ export class PatientsController {
         res.json(patient);
     }
 
-    async post(req, res) {
+    async post(req: Request, res: Response) {
         try {
             const created = await this.patientsService.create(req.body);
             res.status(STATUS_CODES.CREATED).json(created);
@@ -51,8 +53,7 @@ export class PatientsController {
 
     async put(req, res) {
         try {
-            req.body.oldPhone = req.params.phone;
-            const updated = await this.patientsService.update(req.body);
+            const updated = await this.patientsService.update(req.params.phone, req.body);
             if (!updated) {
                 res.sendStatus(STATUS_CODES.NOT_FOUND);
                 return;

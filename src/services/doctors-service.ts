@@ -4,16 +4,16 @@ import { REGEXPRESSIONS } from "../regular-expressions";
 import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
 import { ERRORS } from "../error-messages";
 import { ORDERED_BY } from "../enums";
-import { DoctorsRepository } from "../repositories/doctors-repository";
+import DoctorsRepository from "../repositories/doctors-repository";
 
-export class DoctorsService {    
+export default class DoctorsService {    
     constructor(
         private readonly doctorsRepository: DoctorsRepository
     ) {
         
     }
 
-    async create(doctorData) {
+    public async create(doctorData): Promise<DoctorEntity> {
         const { firstName, speciality, availableSlots } = doctorData;
 
         const isValidDates = availableSlots.every(slot => REGEXPRESSIONS.ISO_DATE.test(slot));
@@ -26,7 +26,7 @@ export class DoctorsService {
         return doctor;
     }
 
-    async getAll(orderBy) {
+    public async getAll(orderBy): Promise<DoctorEntity[]> {
         const doctors = await this.doctorsRepository.getAll();
         if (orderBy === ORDERED_BY.APPOINTMENTS_COUNT) {
             doctors.sort((a, b) => b.appointments.length - a.appointments.length);
@@ -34,11 +34,11 @@ export class DoctorsService {
         return doctors;
     }
 
-    async getById(id) {
+    public async getById(id): Promise<DoctorEntity> {
         return this.doctorsRepository.get(id);
     }
 
-    async update(newData) {
+    public async update(newData): Promise<DoctorEntity> {
         const { id, ...data } = newData;
         const doctor = await this.doctorsRepository.get(id);
 
@@ -61,7 +61,7 @@ export class DoctorsService {
         return updated;
     }
 
-    async deleteById(id) {
+    public async deleteById(id): Promise<DoctorEntity> {
         const deleted = await this.doctorsRepository.remove(id);
         return deleted;
     }

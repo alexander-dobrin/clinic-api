@@ -6,11 +6,12 @@ import { ERRORS } from "../error-messages";
 import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
 import { MissingParameterError } from "../exceptions/missing-parameter-error";
 import { v4 } from "uuid";
-import { AppointmentsRepository } from "../repositories/appointments-repository";
-import { PatientsService } from "./patients-service";
-import { DoctorsService } from "./doctors-service";
+import AppointmentsRepository from "../repositories/appointments-repository";
+import PatientsService from "./patients-service";
+import DoctorsService from "./doctors-service";
+import AppointmentDto from "../dto/appointment-dto";
 
-export class AppointmentsService {
+export default class AppointmentsService {
     constructor(
         private readonly repository: AppointmentsRepository, 
         private readonly patientsService: PatientsService, 
@@ -21,7 +22,7 @@ export class AppointmentsService {
         this.doctorsService = doctorsService;
     }
 
-    async create(appointmentData) {
+    public async create(appointmentData: AppointmentDto): Promise<AppointmentEntity | undefined> {
         const { patientId, doctorId, date: utcDateString } = appointmentData;
 
         if (!patientId || !doctorId || !utcDateString) {
@@ -62,16 +63,16 @@ export class AppointmentsService {
         return appointment;
     }
 
-    async getAll() {
+    public async getAll(): Promise<AppointmentEntity[]> {
         return this.repository.getAll();
     }
 
-    async getById(id) {
+    public async getById(id): Promise<AppointmentEntity | undefined> {
         return (await this.repository.getAll())
             .find(a => a.id === id);
     }
 
-    async put(newData) {
+    public async put(newData): Promise<AppointmentEntity | undefined> {
         const { id, patientId, doctorId, startDate: utcDateString } = newData;
 
         if (!patientId || !doctorId || !utcDateString) {
@@ -125,7 +126,7 @@ export class AppointmentsService {
         return updated;
     }
 
-    async deleteById(id) {
+    public async deleteById(id): Promise<AppointmentEntity | undefined> {
         const appointment = await this.repository.get(id);
         if (!appointment) {
             return;

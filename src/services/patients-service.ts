@@ -6,13 +6,14 @@ import { MissingParameterError } from "../exceptions/missing-parameter-error";
 import { REGEXPRESSIONS } from '../regular-expressions';
 import PatientsRepository from "../repositories/patients-repository";
 
-export class PatientsService {
+export default class PatientsService {
     constructor(
-        private readonly repository: PatientsRepository) {
+        private readonly repository: PatientsRepository
+        ) {
         
     }
 
-    public async create(patientData): Promise<PatientEntity> {
+    public async create(patientData: PatientEntity): Promise<PatientEntity> {
         const { firstName, phone } = patientData;
 
         if (!phone) {
@@ -35,16 +36,16 @@ export class PatientsService {
         return added;
     }
 
-    async getByPhone(phone): Promise<PatientEntity> {
+    public async getByPhone(phone: string): Promise<PatientEntity | undefined> {
         return this.repository.get(phone);
     }
 
-    async getAll(): Promise<PatientEntity[]> {
+    public async getAll(): Promise<PatientEntity[]> {
         return this.repository.getAll();
     }
 
-    async update(newData) {
-        const { oldPhone, phone, firstName } = newData;
+    public async update(oldPhone: string, newData: PatientEntity): Promise<PatientEntity | undefined> {
+        const { phone, firstName } = newData;
 
         if (!oldPhone && !phone) {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone or oldPhone'));
@@ -75,7 +76,7 @@ export class PatientsService {
         return updated;
     }
 
-    async deleteByPhone(phone) {
+    public async deleteByPhone(phone: string): Promise<PatientEntity | undefined> {
         if (!phone) {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone'));
         }
@@ -86,6 +87,10 @@ export class PatientsService {
         }
 
         const patientToDelete = await this.repository.get(phone);
+        if (!patientToDelete) {
+            return;
+        }
+        
         const deleted = await this.repository.remove(patientToDelete);
         return deleted;
     }

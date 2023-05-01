@@ -1,7 +1,7 @@
 import { DoctorEntity } from '../entities/doctor-entity';
 import IDataProvider from '../providers/data-provider-interface';
 
-export class DoctorsRepository {
+export default class DoctorsRepository {
     constructor(
         private readonly provider: IDataProvider<DoctorEntity>
     ) {

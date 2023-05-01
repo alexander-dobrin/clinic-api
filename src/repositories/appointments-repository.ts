@@ -1,7 +1,7 @@
 import { AppointmentEntity } from '../entities/appointment-entity';
 import IDataProvider from '../providers/data-provider-interface';
 
-export class AppointmentsRepository {
+export default class AppointmentsRepository {
     constructor(
         private readonly provider: IDataProvider<AppointmentEntity>
     ) {
