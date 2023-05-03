@@ -10,16 +10,31 @@ import AppointmentsRepository from "../repositories/appointments-repository";
 import PatientsService from "./patients-service";
 import DoctorsService from "./doctors-service";
 import AppointmentDto from "../dto/appointment-dto";
+import { ServiceEventEmitter } from "./service-event-emitter";
+import { ServiceEvent } from "../enums/service-event";
 
 export default class AppointmentsService {
+    private readonly repository: AppointmentsRepository;
+    private readonly patientsService: PatientsService;
+    private readonly doctorsService: DoctorsService;
+    private readonly eventEmitter: ServiceEventEmitter;
+
     constructor(
-        private readonly repository: AppointmentsRepository, 
-        private readonly patientsService: PatientsService, 
-        private readonly doctorsService: DoctorsService
+        repository: AppointmentsRepository, 
+        patientsService: PatientsService, 
+        doctorsService: DoctorsService,
+        eventEmitter: ServiceEventEmitter
     ) {
         this.repository = repository;
         this.patientsService = patientsService;
         this.doctorsService = doctorsService;
+        this.eventEmitter = eventEmitter;
+
+        this.eventEmitter.on(ServiceEvent.DOCTOR_DELETED, this.onDoctorDeleted.bind(this));
+    }
+
+    private onDoctorDeleted(id: string) {
+        console.log('deleted');
     }
 
     public async create(appointmentData: AppointmentDto): Promise<AppointmentEntity | undefined> {

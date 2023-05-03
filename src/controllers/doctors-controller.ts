@@ -49,7 +49,7 @@ export default class DoctorsController {
     }
 
     public async delete(req: Request, res: Response): Promise<void> {
-        const doctor = await this.doctorsService.deleteById(req.params.id);
+        const doctor = await this.doctorsService.deleteDoctorById(req.params.id);
         if (!doctor) {
             res.sendStatus(StatusCodes.NOT_FOUND);
             return;

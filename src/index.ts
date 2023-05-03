@@ -14,14 +14,17 @@ import { AppointmentsRoutes } from './routes/appointments-routes';
 import PatientsService from './services/patients-service';
 import DoctorsService from './services/doctors-service';
 import FileDataProvider from './providers/file-data-provider';
+import { ServiceEventEmitter } from './services/service-event-emitter';
 
 const patientsRepository = new PatientsRepository(new FileDataProvider(path.resolve('assets', 'patients.json')));
 const doctorsRepository = new DoctorsRepository(new FileDataProvider(path.resolve('assets', 'doctors.json')));
 const apointmentsRepository = new AppointmentsRepository(new FileDataProvider(path.resolve('assets', 'appointments.json')));
 
+const serviceCommonEvents = new ServiceEventEmitter();
+
 const patientsService = new PatientsService(patientsRepository);
-const doctorsService = new DoctorsService(doctorsRepository);
-const appointmentsService = new AppointmentsService(apointmentsRepository, patientsService, doctorsService);
+const doctorsService = new DoctorsService(doctorsRepository, serviceCommonEvents);
+const appointmentsService = new AppointmentsService(apointmentsRepository, patientsService, doctorsService, serviceCommonEvents);
 
 const patientsController = new PatientsController(patientsService);
 const doctorsController = new DoctorsController(doctorsService);
