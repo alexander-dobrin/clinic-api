@@ -1,68 +1,55 @@
 import { v4 } from "uuid";
-import { DoctorEntity } from "../entities/doctor-entity";
-import { REGEXPRESSIONS } from "../regular-expressions";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
-import { ERRORS } from "../error-messages";
-import { ORDERED_BY } from "../enums";
+import DoctorModel from "../entities/doctor-model";
 import DoctorsRepository from "../repositories/doctors-repository";
+import { IGetOptions } from "./abstract/get-options-interface";
+import CreateDoctorDto from "../dto/doctors/create-doctor-dto";
+import { plainToClass } from "class-transformer";
+import UpdateDoctorDto from "../dto/doctors/update-doctor-dto";
+import { merge } from "lodash";
 
 export default class DoctorsService {    
     constructor(
-        private readonly doctorsRepository: DoctorsRepository
+        private readonly repository: DoctorsRepository
     ) {
         
     }
 
-    public async create(doctorData): Promise<DoctorEntity> {
-        const { firstName, speciality, availableSlots } = doctorData;
-
-        const isValidDates = availableSlots.every(slot => REGEXPRESSIONS.ISO_DATE.test(slot));
-        if (!isValidDates) {
-            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
-        }
-
-        const doctor = new DoctorEntity(v4(), firstName, speciality, availableSlots ?? []);
-        await this.doctorsRepository.add(doctor);
-        return doctor;
+    public async createDoctor(doctorDto: CreateDoctorDto): Promise<DoctorModel> {
+        const doctor =  plainToClass(DoctorModel, { id: v4(), ...doctorDto });
+        return await this.repository.add(doctor);
     }
 
-    public async getAll(orderBy): Promise<DoctorEntity[]> {
-        const doctors = await this.doctorsRepository.getAll();
-        if (orderBy === ORDERED_BY.APPOINTMENTS_COUNT) {
+    public async getAllDoctors(options: IGetOptions): Promise<DoctorModel[]> {
+        const doctors = await this.repository.getAll();
+
+        if (options.sortBy === sortBy.APPOINTMENTS_COUNT) {
             doctors.sort((a, b) => b.appointments.length - a.appointments.length);
         }
+        
         return doctors;
     }
 
-    public async getById(id): Promise<DoctorEntity> {
-        return this.doctorsRepository.get(id);
+    public async geDoctortById(id: string): Promise<DoctorModel | undefined> {
+        return this.repository.get(id);
     }
 
-    public async update(newData): Promise<DoctorEntity> {
-        const { id, ...data } = newData;
-        const doctor = await this.doctorsRepository.get(id);
-
+    public async updateDoctorById(id: string, doctorDto: UpdateDoctorDto): Promise<DoctorModel | undefined> {
+        const doctor = await this.repository.get(id);
+        
         if (!doctor) {
             return;
-        }
-
-        const isValidDates = data.availableSlots.every(slot => REGEXPRESSIONS.ISO_DATE.test(slot));
-        if (!isValidDates) {
-            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
         }        
-        
-        Object.keys(data).forEach(key => {
-            if (data[key] !== undefined) {
-                doctor[key] = data[key];
-            }
-        });
+        merge(doctor, doctorDto);
 
-        const updated = this.doctorsRepository.update(doctor);
-        return updated;
+        return this.repository.update(doctor);
     }
 
-    public async deleteById(id): Promise<DoctorEntity> {
-        const deleted = await this.doctorsRepository.remove(id);
-        return deleted;
+    public async deleteById(id: string): Promise<DoctorModel | undefined> {
+        const doctor = await this.repository.get(id);
+        return await this.repository.remove(doctor);
     }
+}
+
+enum sortBy {
+    APPOINTMENTS_COUNT = 'appointmentsCount',
 }

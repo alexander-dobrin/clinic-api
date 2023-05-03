@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import * as path from 'path';
 import PatientsController from './controllers/patients-controller';
-import { DoctorsController } from './controllers/doctors-controller';
+import DoctorsController from './controllers/doctors-controller';
 import { AppointmentsController } from './controllers/appointments-controller';
 import PatientsRepository from './repositories/patients-repository';
 import DoctorsRepository from './repositories/doctors-repository';
@@ -9,7 +9,7 @@ import AppointmentsRepository from './repositories/appointments-repository';
 import AppointmentsService from './services/appointments-service';
 import Server from './server';
 import PatientsRoutes from './routes/patients-routes';
-import { DoctorsRoutes } from './routes/doctors-routes';
+import DoctorsRoutes from './routes/doctors-routes';
 import { AppointmentsRoutes } from './routes/appointments-routes';
 import PatientsService from './services/patients-service';
 import DoctorsService from './services/doctors-service';

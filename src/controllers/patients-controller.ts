@@ -9,7 +9,7 @@ export default class PatientsController {
         this.patientsService = patientsService;
     }
 
-    public async get(req: Request, res: Response) {
+    public async get(req: Request, res: Response): Promise<void> {
         const patients = await this.patientsService.getAllPatients();
         if (patients.length < 1) {
             res.status(StatusCodes.NO_CONTENT);
@@ -17,7 +17,7 @@ export default class PatientsController {
         res.json(patients);
     }
 
-    public async getById(req: Request, res: Response) {
+    public async getById(req: Request, res: Response): Promise<void> {
         const patient = await this.patientsService.getPatientById(req.params.id);
         if (!patient) {
             res.sendStatus(StatusCodes.NOT_FOUND);
@@ -26,7 +26,7 @@ export default class PatientsController {
         res.json(patient);
     }
 
-    public async post(req: Request, res: Response, next: NextFunction) {
+    public async post(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const patient = await this.patientsService.createPatient(req.body);
             res.status(StatusCodes.CREATED).json(patient);
@@ -35,7 +35,7 @@ export default class PatientsController {
         }
     }
 
-    public async put(req: Request, res: Response, next: NextFunction) {
+    public async put(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const patient = await this.patientsService.updatePatientById(req.params.id, req.body);
             if (!patient) {
@@ -48,7 +48,7 @@ export default class PatientsController {
         }
     }
 
-    public async delete(req: Request, res: Response, next: NextFunction) {
+    public async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const patient = await this.patientsService.deletePatientById(req.params.id);
             if (!patient) {

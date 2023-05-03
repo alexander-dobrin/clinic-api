@@ -30,7 +30,7 @@ export default class AppointmentsService {
         }
 
         const patient = await this.patientsService.getPatientById(patientId);
-        const doctor = await this.doctorsService.getById(doctorId);
+        const doctor = await this.doctorsService.geDoctortById(doctorId);
         
         if (!doctor || !patient) {
             return;
@@ -57,7 +57,7 @@ export default class AppointmentsService {
         doctor.availableSlots.splice(doctorSlotIdx, 1);
         doctor.appointments.push(appointment);
 
-        await this.doctorsService.update(doctor);
+        //await this.doctorsService.updateDoctorById(doctor.id, doctor);
 
         await this.repository.add(appointment);
         return appointment;
@@ -85,7 +85,7 @@ export default class AppointmentsService {
         }
         
         const patient = await this.patientsService.getPatientById(patientId);
-        const doctor = await this.doctorsService.getById(doctorId);
+        const doctor = await this.doctorsService.geDoctortById(doctorId);
 
 
         if (!doctor || !patient) {
@@ -121,7 +121,7 @@ export default class AppointmentsService {
         const updated = await this.repository.update(appointment);
         
         doctor.appointments.push(updated);
-        await this.doctorsService.update(doctor);
+        //await this.doctorsService.updateDoctorById(doctor);
 
         return updated;
     }
@@ -131,10 +131,10 @@ export default class AppointmentsService {
         if (!appointment) {
             return;
         }
-        const responsibleDoctor = await this.doctorsService.getById(appointment.doctorId);
+        const responsibleDoctor = await this.doctorsService.geDoctortById(appointment.doctorId);
         const idxToRemove = responsibleDoctor.appointments.findIndex(a => a.id === id);
         responsibleDoctor.appointments.splice(idxToRemove, 1);
-        this.doctorsService.update(responsibleDoctor);
+        //this.doctorsService.updateDoctorById(responsibleDoctor);
 
         const deleted = await this.repository.remove(id);
         return deleted;

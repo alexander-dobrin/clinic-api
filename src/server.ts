@@ -4,7 +4,7 @@ import { MissingParameterError } from './exceptions/missing-parameter-error';
 import { InvalidParameterError } from './exceptions/invalid-parameter-error';
 import { DuplicateEntityError } from './exceptions/duplicate-entity-error';
 import PatientsRoutes from './routes/patients-routes';
-import { DoctorsRoutes } from './routes/doctors-routes';
+import DoctorsRoutes from './routes/doctors-routes';
 import { AppointmentsRoutes } from './routes/appointments-routes';
 
 export default class Server {

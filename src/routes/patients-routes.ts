@@ -33,7 +33,7 @@ export default class PatientsRoutes {
             .delete(this.patientsController.delete.bind(this.patientsController));
     }
 
-    get router() {
+    get router(): Router {
         return this._router;
     }
 }

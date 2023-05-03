@@ -1,69 +1,59 @@
-import { STATUS_CODES } from "../enums";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
+import { StatusCodes } from "../enums/status-codes";
+import DoctorsService from "../services/doctors-service";
+import { Request, Response, NextFunction } from "express";
 
-export class DoctorsController {
-    doctorsService;
+export default class DoctorsController {
+    private readonly doctorsService: DoctorsService;
 
-    constructor(doctorsService) {
+    constructor(doctorsService: DoctorsService) {
         this.doctorsService = doctorsService;
     }
 
-    async get(req, res) {
-        const doctors = await this.doctorsService.getAll(req.query.orderBy);
+    public async get(req: Request, res: Response): Promise<void> {
+        const doctors = await this.doctorsService.getAllDoctors({ sortBy: req.query.sortBy as string });
         if(doctors.length < 1) {
-            res.status(STATUS_CODES.NO_CONTENT);
+            res.status(StatusCodes.NO_CONTENT);
         }
         res.json(doctors);
     }
 
-    async getById(req, res) {
-        const doctor = await this.doctorsService.getById(req.params.id);
+    public async getById(req: Request, res: Response): Promise<void> {
+        const doctor = await this.doctorsService.geDoctortById(req.params.id);
         if (!doctor) {
-            res.sendStatus(STATUS_CODES.NOT_FOUND);
+            res.sendStatus(StatusCodes.NOT_FOUND);
             return;
         }
         res.json(doctor);
     }
 
-    async post(req, res) {
+    public async post(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const added = await this.doctorsService.create(req.body);
-            res.status(STATUS_CODES.CREATED).json(added);
+            const doctor = await this.doctorsService.createDoctor(req.body);
+            res.status(StatusCodes.CREATED).json(doctor);
         } catch (err) {
-            if (err instanceof InvalidParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            console.log(err);
-            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
+            next(err);
         }
     }
 
-    async put(req, res) {
+    public async put(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            req.body.id = req.params.id;
-            const updated = await this.doctorsService.update(req.body);
-            if (!updated) {
-                res.sendStatus(STATUS_CODES.NOT_FOUND);
+            const doctor = await this.doctorsService.updateDoctorById(req.params.id, req.body);
+            if (!doctor) {
+                res.sendStatus(StatusCodes.NOT_FOUND);
                 return;
             }
-            res.json(updated);
+            res.json(doctor);
         } catch (err) {
-            if (err instanceof InvalidParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            console.log(err);
-            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
+            next(err);
         }
     }
 
-    async delete(req, res) {
-        const removed = await this.doctorsService.deleteById(req.params.id);
-        if (!removed) {
-            res.sendStatus(STATUS_CODES.NOT_FOUND);
+    public async delete(req: Request, res: Response): Promise<void> {
+        const doctor = await this.doctorsService.deleteById(req.params.id);
+        if (!doctor) {
+            res.sendStatus(StatusCodes.NOT_FOUND);
             return;
         }
-        res.json(removed);
+        res.json(doctor);
     }
 }
