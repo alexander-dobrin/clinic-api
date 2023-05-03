@@ -1,5 +1,5 @@
 import { DoctorEntity } from '../entities/doctor-entity';
-import IDataProvider from '../providers/data-provider-interface';
+import IDataProvider from '../providers/abstract/data-provider-interface';
 
 export default class DoctorsRepository {
     constructor(
@@ -8,8 +8,8 @@ export default class DoctorsRepository {
 
     }
 
-    public async add(patient: DoctorEntity): Promise<DoctorEntity> {
-        return this.provider.create(patient);
+    public async add(doctor: DoctorEntity): Promise<DoctorEntity> {
+        return this.provider.create(doctor);
     }
 
     public async getAll(): Promise<DoctorEntity[]> {
@@ -20,11 +20,11 @@ export default class DoctorsRepository {
         return this.provider.readById(id);
     }
 
-    public async update(patient: DoctorEntity): Promise<DoctorEntity | undefined> {
-        return this.provider.updateById(patient.id, patient);
+    public async update(doctor: DoctorEntity): Promise<DoctorEntity | undefined> {
+        return this.provider.updateById(doctor.id, doctor);
     }
 
-    public async remove(patient: DoctorEntity): Promise<DoctorEntity | undefined> {
-        return this.provider.deleteById(patient.id);
+    public async remove(doctor: DoctorEntity): Promise<DoctorEntity | undefined> {
+        return this.provider.deleteById(doctor.id);
     }
 }

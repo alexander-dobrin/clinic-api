@@ -1,5 +1,5 @@
 import { AppointmentEntity } from '../entities/appointment-entity';
-import IDataProvider from '../providers/data-provider-interface';
+import IDataProvider from '../providers/abstract/data-provider-interface';
 
 export default class AppointmentsRepository {
     constructor(
@@ -8,8 +8,8 @@ export default class AppointmentsRepository {
 
     }
 
-    public async add(patient: AppointmentEntity): Promise<AppointmentEntity> {
-        return this.provider.create(patient);
+    public async add(appointment: AppointmentEntity): Promise<AppointmentEntity> {
+        return this.provider.create(appointment);
     }
 
     public async getAll(): Promise<AppointmentEntity[]> {
@@ -20,11 +20,11 @@ export default class AppointmentsRepository {
         return this.provider.readById(id);
     }
 
-    public async update(patient: AppointmentEntity): Promise<AppointmentEntity | undefined> {
-        return this.provider.updateById(patient.id, patient);
+    public async update(appointment: AppointmentEntity): Promise<AppointmentEntity | undefined> {
+        return this.provider.updateById(appointment.id, appointment);
     }
 
-    public async remove(patient: AppointmentEntity): Promise<AppointmentEntity | undefined> {
-        return this.provider.deleteById(patient.id);
+    public async remove(appointment: AppointmentEntity): Promise<AppointmentEntity | undefined> {
+        return this.provider.deleteById(appointment.id);
     }
 }

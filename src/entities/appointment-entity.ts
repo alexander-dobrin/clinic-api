@@ -1,15 +1,14 @@
 import { DateTime } from "luxon";
 
 export class AppointmentEntity {
+    public date: DateTime;
+    
     constructor(
-        public id, 
-        public patientId, 
-        public doctorId, 
-        public startDate
+        public id: string, 
+        public patientId: string, 
+        public doctorId: string, 
+        date: string
     ) {
-        this.id = id;
-        this.patientId = patientId;
-        this.doctorId = doctorId;
-        this.startDate = DateTime.fromISO(startDate, { zone: 'utc' });
+        this.date = DateTime.fromISO(date, { zone: 'utc' });
     }
 }

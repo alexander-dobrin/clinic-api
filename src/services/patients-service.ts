@@ -1,97 +1,64 @@
-import { PatientEntity } from "../entities/patient-entity";
+import PatientModel from "../entities/patient-model";
 import { DuplicateEntityError } from "../exceptions/duplicate-entity-error";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
-import { ERRORS } from "../error-messages";
-import { MissingParameterError } from "../exceptions/missing-parameter-error";
-import { REGEXPRESSIONS } from '../regular-expressions';
 import PatientsRepository from "../repositories/patients-repository";
+import CreatePatientDto from "../dto/patients/create-patient-dto";
+import { v4 } from "uuid";
+import { merge } from "lodash";
+import UpdatePatientDto from "../dto/patients/update-patient-dto";
+import { ErrorMessages } from "../enums/error-messages";
 
 export default class PatientsService {
-    constructor(
-        private readonly repository: PatientsRepository
-        ) {
-        
+    private readonly repository: PatientsRepository;
+
+    constructor(repository: PatientsRepository) {
+        this.repository = repository;
     }
 
-    public async create(patientData: PatientEntity): Promise<PatientEntity> {
-        const { firstName, phone } = patientData;
+    public async createPatient(patientDto: CreatePatientDto): Promise<PatientModel> {
+        const { firstName, phoneNumber } = patientDto;
 
-        if (!phone) {
-            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone'));
-        }
-
-        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(phone);
-        if (!isValidPhone) {
-            throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', phone));
-        }
+        await this.throwIfPhoneTaken(phoneNumber);
+        const patient = new PatientModel(v4(), firstName, phoneNumber);
         
-        const isPatientExists = (await this.repository.getAll()).some(p => p.phone === phone);
-        if (isPatientExists) {
-            throw new DuplicateEntityError(ERRORS.ENTITY_ALREADY_EXISTS.replace('%s', phone));
-        }
-
-        const patient = new PatientEntity(firstName, phone)
-        const added = await this.repository.add(patient);
-        
-        return added;
+        return await this.repository.add(patient);
     }
 
-    public async getByPhone(phone: string): Promise<PatientEntity | undefined> {
-        return this.repository.get(phone);
-    }
-
-    public async getAll(): Promise<PatientEntity[]> {
+    public async getAllPatients(): Promise<PatientModel[]> {
         return this.repository.getAll();
     }
 
-    public async update(oldPhone: string, newData: PatientEntity): Promise<PatientEntity | undefined> {
-        const { phone, firstName } = newData;
+    public async getPatientById(id: string): Promise<PatientModel | undefined> {
+        return this.repository.get(id);
+    }
 
-        if (!oldPhone && !phone) {
-            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone or oldPhone'));
+    public async updatePatientById(id: string, patientDto: UpdatePatientDto): Promise<PatientModel | undefined> {
+        if (patientDto.phoneNumber) {
+            await this.throwIfPhoneTaken(patientDto.phoneNumber);
         }
 
-        const patient = await this.repository.get(oldPhone);
-
+        const patient = await this.repository.get(id);
         if (!patient) {
             return;
         }        
+        merge(patient, patientDto);
 
-        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(oldPhone) || REGEXPRESSIONS.PHONE_NUMBER.test(phone);
-        if (!isValidPhone) {
-            throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', `${oldPhone} or ${phone}`));
-        }
-
-        const isPatientExists = (await this.repository.getAll()).some(p => p.phone === phone);
-        if (isPatientExists) {
-            throw new DuplicateEntityError(ERRORS.ENTITY_ALREADY_EXISTS.replace('%s', phone));
-        }
-
-        patient.firstName = firstName ?? patient.firstName;
-        patient.phone = phone ?? patient.phone;
-        patient.id = patient.phone;
-
-        const updated = await this.repository.update(patient);
-
-        return updated;
+        return await this.repository.update(patient);
     }
 
-    public async deleteByPhone(phone: string): Promise<PatientEntity | undefined> {
-        if (!phone) {
-            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', 'phone'));
-        }
-
-        const isValidPhone = REGEXPRESSIONS.PHONE_NUMBER.test(phone);
-        if (!isValidPhone) {
-            throw new InvalidParameterError(ERRORS.INVALID_PHONE_FORMAT.replace('%s', phone));
-        }
-
-        const patientToDelete = await this.repository.get(phone);
-        if (!patientToDelete) {
+    public async deletePatientById(id: string): Promise<PatientModel | undefined> {
+        const patient = await this.repository.get(id);
+        if (!patient) {
             return;
         }
-        
-        const deleted = await this.repository.remove(patientToDelete);
-        return deleted;
+
+        return await this.repository.remove(patient);;
+    }
+
+    private async throwIfPhoneTaken(phone: string) {
+        const patients = await this.repository.getAll();
+        const isTaken = patients.some(p => p.phoneNumber === phone);
+        if (isTaken) {
+            throw new DuplicateEntityError(ErrorMessages.PHONE_IS_TAKEN.replace('%s', phone));
+        }
     }
 }

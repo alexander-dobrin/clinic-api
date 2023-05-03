@@ -1,30 +1,30 @@
-import { PatientEntity } from '../entities/patient-entity';
-import IDataProvider from '../providers/data-provider-interface';
+import PatientModel from '../entities/patient-model';
+import IDataProvider from '../providers/abstract/data-provider-interface';
 
 export default class PatientsRepository {
-    constructor(
-        private readonly provider: IDataProvider<PatientEntity>
-    ) {
+    private readonly provider: IDataProvider<PatientModel>;
 
+    constructor(provider: IDataProvider<PatientModel>) {
+        this.provider = provider;
     }
 
-    public async add(patient: PatientEntity): Promise<PatientEntity> {
+    public async add(patient: PatientModel): Promise<PatientModel> {
         return this.provider.create(patient);
     }
 
-    public async getAll(): Promise<PatientEntity[]> {
+    public async getAll(): Promise<PatientModel[]> {
         return this.provider.read();
     }
 
-    public async get(id: string): Promise<PatientEntity | undefined> {
+    public async get(id: string): Promise<PatientModel | undefined> {
         return this.provider.readById(id);
     }
 
-    public async update(patient: PatientEntity): Promise<PatientEntity | undefined> {
+    public async update(patient: PatientModel): Promise<PatientModel | undefined> {
         return this.provider.updateById(patient.id, patient);
     }
 
-    public async remove(patient: PatientEntity): Promise<PatientEntity | undefined> {
+    public async remove(patient: PatientModel): Promise<PatientModel | undefined> {
         return this.provider.deleteById(patient.id);
     }
 }

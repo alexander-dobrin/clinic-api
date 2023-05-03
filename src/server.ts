@@ -1,46 +1,54 @@
-import express from 'express';
+import express, { Express, Request, Response, ErrorRequestHandler, NextFunction } from 'express';
 import { STATUS_CODES } from './enums';
+import { MissingParameterError } from './exceptions/missing-parameter-error';
+import { InvalidParameterError } from './exceptions/invalid-parameter-error';
+import { DuplicateEntityError } from './exceptions/duplicate-entity-error';
+import PatientsRoutes from './routes/patients-routes';
+import { DoctorsRoutes } from './routes/doctors-routes';
+import { AppointmentsRoutes } from './routes/appointments-routes';
 
-export class Server {
-    patientsRoutes;
-    doctorsRoutes;
-    appointmentsRoutes;
-    app;
+export default class Server {
+    private readonly patientsRoutes: PatientsRoutes;
+    private readonly doctorsRoutes: DoctorsRoutes;
+    private readonly appointmentsRoutes: AppointmentsRoutes;
+    private readonly app: express.Express;
 
-    constructor(patientsRoutes, doctorsRoutes, appointmentsRoutes) {
+    constructor(patientsRoutes: PatientsRoutes, doctorsRoutes: DoctorsRoutes, appointmentsRoutes: AppointmentsRoutes) {
         this.patientsRoutes = patientsRoutes;
         this.doctorsRoutes = doctorsRoutes;
         this.appointmentsRoutes = appointmentsRoutes;
 
         this.app = express();
 
-        this.useMiddlewares();
-        this.useRoutes();
+        this.setupMiddlewares();
+        this.setupRoutes();
     }
 
-    useMiddlewares() {
+    private setupMiddlewares(): void {
         this.app.use(express.urlencoded({ extended: true }));
         this.app.use(express.json());
     }
 
-    useRoutes() {
+    private setupRoutes(): void {
         this.app.use('/patients', this.patientsRoutes.router);
         this.app.use('/doctors', this.doctorsRoutes.router);
         this.app.use('/appointments', this.appointmentsRoutes.router);
 
-        this.app.use((req, res, next) => {
-            const error = new Error('Not found');
-            error['status'] = STATUS_CODES.NOT_FOUND;
-            next(error);
-        });
-
-        this.app.use((error, req, res, next) => {
-            console.log(error);
-            res.sendStatus(error.status ?? STATUS_CODES.INTERNAL_SERVER_ERROR);
+        this.app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
+            if (
+                err instanceof MissingParameterError ||
+                err instanceof InvalidParameterError ||
+                err instanceof DuplicateEntityError
+            ) {
+                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
+                return;
+            }
+            console.log(err);
+            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
         });
     }
 
-    listen(port) {
+    public listen(port): void {
         this.app.listen(port);
     }
 }

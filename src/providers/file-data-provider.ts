@@ -1,12 +1,12 @@
-import IDataProvider from "./data-provider-interface";
+import IDataProvider from "./abstract/data-provider-interface";
 import { readFile, writeFile } from "fs/promises";
-import IFindable from "./findable-interface";
+import IFindable from "./abstract/findable-interface";
 
 export default class FileDataProvider<TModel extends IFindable> implements IDataProvider<TModel> {
-    constructor(
-        private readonly filePath: string
-    ) {
+    private readonly filePath: string;
 
+    constructor(filePath: string) {
+        this.filePath = filePath;
     }
 
     public async create(model: TModel): Promise<TModel> {

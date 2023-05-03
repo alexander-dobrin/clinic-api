@@ -29,7 +29,7 @@ export default class AppointmentsService {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
         }
 
-        const patient = await this.patientsService.getByPhone(patientId);
+        const patient = await this.patientsService.getPatientById(patientId);
         const doctor = await this.doctorsService.getById(doctorId);
         
         if (!doctor || !patient) {
@@ -72,8 +72,8 @@ export default class AppointmentsService {
             .find(a => a.id === id);
     }
 
-    public async put(newData): Promise<AppointmentEntity | undefined> {
-        const { id, patientId, doctorId, startDate: utcDateString } = newData;
+    public async put(newData: AppointmentDto): Promise<AppointmentEntity | undefined> {
+        const { id, patientId, doctorId, date: utcDateString } = newData;
 
         if (!patientId || !doctorId || !utcDateString) {
             throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
@@ -84,7 +84,7 @@ export default class AppointmentsService {
             return;
         }
         
-        const patient = await this.patientsService.getByPhone(patientId);
+        const patient = await this.patientsService.getPatientById(patientId);
         const doctor = await this.doctorsService.getById(doctorId);
 
 
@@ -109,7 +109,7 @@ export default class AppointmentsService {
         }
         doctor.availableSlots.splice(doctorSlotIdx, 1);
         
-        const oldAppointmentIdx = doctor.appointments.findIndex(a => a.startDate === appointment.startDate);
+        const oldAppointmentIdx = doctor.appointments.findIndex(a => a.date === appointment.date);
         doctor.appointments.splice(oldAppointmentIdx, 1);
 
         Object.keys(newData).forEach(key => {

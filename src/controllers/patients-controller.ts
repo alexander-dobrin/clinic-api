@@ -1,101 +1,63 @@
-import { STATUS_CODES } from '../enums';
-import { DuplicateEntityError } from '../exceptions/duplicate-entity-error';
-import { InvalidParameterError } from '../exceptions/invalid-parameter-error';
-import { MissingParameterError } from '../exceptions/missing-parameter-error';
+import { StatusCodes } from '../enums/status-codes';
 import PatientsService from '../services/patients-service';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
-export class PatientsController {
-    patientsService: PatientsService;
+export default class PatientsController {
+    private readonly patientsService: PatientsService;
 
-    constructor(patientsService) {
+    constructor(patientsService: PatientsService) {
         this.patientsService = patientsService;
     }
 
-    async get(req, res) {
-        const patients = await this.patientsService.getAll();
+    public async get(req: Request, res: Response) {
+        const patients = await this.patientsService.getAllPatients();
         if (patients.length < 1) {
-            res.status(STATUS_CODES.NO_CONTENT);
+            res.status(StatusCodes.NO_CONTENT);
         }
         res.json(patients);
     }
 
-    async getByPhone(req, res) {
-        const patient = await this.patientsService.getByPhone(req.params.phone);
+    public async getById(req: Request, res: Response) {
+        const patient = await this.patientsService.getPatientById(req.params.id);
         if (!patient) {
-            res.sendStatus(STATUS_CODES.NOT_FOUND);
+            res.sendStatus(StatusCodes.NOT_FOUND);
             return;
         }
         res.json(patient);
     }
 
-    async post(req: Request, res: Response) {
+    public async post(req: Request, res: Response, next: NextFunction) {
         try {
-            const created = await this.patientsService.create(req.body);
-            res.status(STATUS_CODES.CREATED).json(created);
+            const patient = await this.patientsService.createPatient(req.body);
+            res.status(StatusCodes.CREATED).json(patient);
         } catch (err) {
-            if (err instanceof MissingParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            if (err instanceof InvalidParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            if (err instanceof DuplicateEntityError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            console.log(err);
-            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
+            next(err);
         }
     }
 
-    async put(req, res) {
+    public async put(req: Request, res: Response, next: NextFunction) {
         try {
-            const updated = await this.patientsService.update(req.params.phone, req.body);
-            if (!updated) {
-                res.sendStatus(STATUS_CODES.NOT_FOUND);
+            const patient = await this.patientsService.updatePatientById(req.params.id, req.body);
+            if (!patient) {
+                res.sendStatus(StatusCodes.NOT_FOUND);
                 return;
             }
-            res.json(updated);
+            res.json(patient);
         } catch (err) {
-            if (err instanceof MissingParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            if (err instanceof InvalidParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            if (err instanceof DuplicateEntityError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            console.log(err);
-            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
+            next(err);
         }
     }
 
-    delete(req, res) {
+    public async delete(req: Request, res: Response, next: NextFunction) {
         try {
-            const deleted = this.patientsService.deleteByPhone(req.params.phone);
-            if (!deleted) {
-                res.sendStatus(STATUS_CODES.NOT_FOUND);
+            const patient = await this.patientsService.deletePatientById(req.params.id);
+            if (!patient) {
+                res.sendStatus(StatusCodes.NOT_FOUND);
                 return;
             }
-            res.json(deleted);
+            res.json(patient);
         } catch (err) {
-            if (err instanceof MissingParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            if (err instanceof InvalidParameterError) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
-                return;
-            }
-            console.log(err);
-            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
+            next(err);
         }
     }
 }
