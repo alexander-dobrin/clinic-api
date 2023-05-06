@@ -1,4 +1,4 @@
-import PatientModel from '../entities/patient-model';
+import PatientModel from '../models/patient-model';
 import IDataProvider from '../providers/abstract/data-provider-interface';
 
 export default class PatientsRepository {

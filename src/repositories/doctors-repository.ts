@@ -1,4 +1,4 @@
-import DoctorModel from '../entities/doctor-model';
+import DoctorModel from '../models/doctor-model';
 import IDataProvider from '../providers/abstract/data-provider-interface';
 
 export default class DoctorsRepository {

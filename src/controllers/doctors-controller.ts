@@ -18,7 +18,7 @@ export default class DoctorsController {
     }
 
     public async getById(req: Request, res: Response): Promise<void> {
-        const doctor = await this.doctorsService.geDoctortById(req.params.id);
+        const doctor = await this.doctorsService.getDoctortById(req.params.id);
         if (!doctor) {
             res.sendStatus(StatusCodes.NOT_FOUND);
             return;

@@ -1,4 +1,4 @@
-import { AppointmentEntity } from "../entities/appointment-entity";
+import AppointmentModel from "../models/appointment-model";
 import { AppointmentConflictError } from "../exceptions/appointment-conflict-error";
 import { DateTime } from "luxon";
 import { REGEXPRESSIONS } from "../regular-expressions";
@@ -9,9 +9,12 @@ import { v4 } from "uuid";
 import AppointmentsRepository from "../repositories/appointments-repository";
 import PatientsService from "./patients-service";
 import DoctorsService from "./doctors-service";
-import AppointmentDto from "../dto/appointment-dto";
 import { ServiceEventEmitter } from "./service-event-emitter";
-import { ServiceEvent } from "../enums/service-event";
+import { CreateAppointmentDto } from "../dto/appointments/create-appointment-dto";
+import { plainToClass } from "class-transformer";
+import { UpdateAppointmentDto } from "../dto/appointments/update-appointment-dto";
+import { ErrorMessages } from "../enums/error-messages";
+import { merge } from "lodash";
 
 export default class AppointmentsService {
     private readonly repository: AppointmentsRepository;
@@ -29,129 +32,83 @@ export default class AppointmentsService {
         this.patientsService = patientsService;
         this.doctorsService = doctorsService;
         this.eventEmitter = eventEmitter;
-
-        this.eventEmitter.on(ServiceEvent.DOCTOR_DELETED, this.onDoctorDeleted.bind(this));
     }
 
-    private onDoctorDeleted(id: string) {
-        console.log('deleted');
-    }
-
-    public async create(appointmentData: AppointmentDto): Promise<AppointmentEntity | undefined> {
-        const { patientId, doctorId, date: utcDateString } = appointmentData;
-
-        if (!patientId || !doctorId || !utcDateString) {
-            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
-        }
+    public async createAppointment(appointmentDto: CreateAppointmentDto): Promise<AppointmentModel | undefined> {
+        const { patientId, doctorId, date } = appointmentDto;
 
         const patient = await this.patientsService.getPatientById(patientId);
-        const doctor = await this.doctorsService.geDoctortById(doctorId);
-        
-        if (!doctor || !patient) {
+        const doctor = await this.doctorsService.getDoctortById(doctorId);
+
+        if (!patient || !doctor) {
             return;
-        }
-
-        const isValidDate = REGEXPRESSIONS.ISO_DATE.test(utcDateString);
-        if (!isValidDate) {
-            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
+        }        
+        const isAvailable = await this.doctorsService.isDoctorAvailable(doctorId, DateTime.fromISO(date, { zone: 'utc' }))
+        if (!isAvailable) {
+            throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date));
         }
         
-        const date = DateTime.fromISO(utcDateString, { zone: 'utc'});
-        const isDateInThePast = date.diffNow().milliseconds < 0;
-        if (isDateInThePast) {
-            throw new InvalidParameterError(ERRORS.PAST_DATE.replace('%s', date.toISO()));
-        }
-
-        const doctorSlotIdx = doctor.availableSlots.findIndex(s => s.toISO() === date.toISO())
-        if (doctorSlotIdx === -1) {
-            throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date.toISO()));
-        }
-
-        const appointment = new AppointmentEntity(v4(), patientId, doctorId, utcDateString);
-
-        doctor.availableSlots.splice(doctorSlotIdx, 1);
-        doctor.appointments.push(appointment);
-
-        //await this.doctorsService.updateDoctorById(doctor.id, doctor);
-
-        await this.repository.add(appointment);
-        return appointment;
+        const appointment = plainToClass(AppointmentModel, { id: v4(), ...appointmentDto });
+        await this.doctorsService.addAppointmentToDoctor(doctorId, appointment);
+        
+        return this.repository.add(appointment);
     }
 
-    public async getAll(): Promise<AppointmentEntity[]> {
+    public async getAllAppointments(): Promise<AppointmentModel[]> {
         return this.repository.getAll();
     }
 
-    public async getById(id): Promise<AppointmentEntity | undefined> {
-        return (await this.repository.getAll())
-            .find(a => a.id === id);
+    public async getAppointmentById(id: string): Promise<AppointmentModel | undefined> {
+        return this.repository.get(id);
     }
 
-    public async put(newData: AppointmentDto): Promise<AppointmentEntity | undefined> {
-        const { id, patientId, doctorId, date: utcDateString } = newData;
-
-        if (!patientId || !doctorId || !utcDateString) {
-            throw new MissingParameterError(ERRORS.MISSING_PARAMETER.replace('%s', `patientId or doctorId or utcDateString`))
-        }
-
-        const appointment = await this.repository.get(id)
+    public async updateAppointmentById(id: string, appointmentDto: UpdateAppointmentDto): Promise<AppointmentModel | undefined> {
+        let appointment = await this.repository.get(id)
         if (!appointment) {
             return;
         }
+
+        const { 
+            patientId = appointment.patientId, 
+            doctorId = appointment.doctorId, 
+            date = appointment.date.toISO() 
+        } = appointmentDto;
         
         const patient = await this.patientsService.getPatientById(patientId);
-        const doctor = await this.doctorsService.geDoctortById(doctorId);
+        const doctor = await this.doctorsService.getDoctortById(doctorId);
 
-
-        if (!doctor || !patient) {
-            throw new InvalidParameterError(ERRORS.ENTITY_NOT_EXISTS.replace('%s', `${doctorId} or ${patientId}`));
+        if (!doctor) {
+            throw new InvalidParameterError(ErrorMessages.UNKNOWN_ID.replace('%s', doctorId));
+        }
+        if (!patient) {
+            throw new InvalidParameterError(ErrorMessages.UNKNOWN_ID.replace('%s', patientId));
+        }
+        const isAvailable = await this.doctorsService.isDoctorAvailable(doctorId, DateTime.fromISO(date, { zone: 'utc' }))
+        if (!isAvailable) {
+            throw new AppointmentConflictError(ErrorMessages.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date));
         }
 
-        const isValidDate = REGEXPRESSIONS.ISO_DATE.test(utcDateString);
-        if (!isValidDate) {
-            throw new InvalidParameterError(ERRORS.INVALID_DATE_FORMAT);
-        }
-        
-        const date = DateTime.fromISO(utcDateString, { zone: 'utc'});
-        const isDateInThePast = date.diffNow().milliseconds < 0;
-        if (isDateInThePast) {
-            throw new InvalidParameterError(ERRORS.PAST_DATE.replace('%s', date.toISO()));
-        }
+        await this.doctorsService.removeAppointmentFromDoctor(doctorId, appointment.id);
+        merge(appointment, appointmentDto);
+        appointment = plainToClass(AppointmentModel, appointment);
+        await this.doctorsService.addAppointmentToDoctor(doctorId, appointment);
 
-        const doctorSlotIdx = doctor.availableSlots.findIndex(s => s.toISO() === date.toISO())
-        if (doctorSlotIdx === -1) {
-            throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date.toISO()));
-        }
-        doctor.availableSlots.splice(doctorSlotIdx, 1);
-        
-        const oldAppointmentIdx = doctor.appointments.findIndex(a => a.date === appointment.date);
-        doctor.appointments.splice(oldAppointmentIdx, 1);
-
-        Object.keys(newData).forEach(key => {
-            if (newData[key] !== undefined) {
-                appointment[key] = newData[key];
-            }
-        });
-
-        const updated = await this.repository.update(appointment);
-        
-        doctor.appointments.push(updated);
-        //await this.doctorsService.updateDoctorById(doctor);
-
-        return updated;
+        return this.repository.update(appointment);
     }
 
-    public async deleteById(id): Promise<AppointmentEntity | undefined> {
+    public async deleteAppointmentById(id: string): Promise<AppointmentModel | undefined> {
         const appointment = await this.repository.get(id);
         if (!appointment) {
             return;
         }
-        const responsibleDoctor = await this.doctorsService.geDoctortById(appointment.doctorId);
-        const idxToRemove = responsibleDoctor.appointments.findIndex(a => a.id === id);
-        responsibleDoctor.appointments.splice(idxToRemove, 1);
-        //this.doctorsService.updateDoctorById(responsibleDoctor);
+        const removed = this.doctorsService.removeAppointmentFromDoctor(appointment.doctorId, id);
+        if (!removed) {
+            return;
+        }
+        return this.repository.remove(appointment);
+    }
 
-        const deleted = await this.repository.remove(id);
-        return deleted;
+    public async deleteAllAppointmentsById(ids: string[]): Promise<void> {
+        await Promise.all(ids.map(id => this.deleteAppointmentById(id)));
     }
 }

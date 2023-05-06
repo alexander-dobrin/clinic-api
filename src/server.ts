@@ -1,11 +1,12 @@
 import express, { Express, Request, Response, ErrorRequestHandler, NextFunction } from 'express';
-import { STATUS_CODES } from './enums';
 import { MissingParameterError } from './exceptions/missing-parameter-error';
 import { InvalidParameterError } from './exceptions/invalid-parameter-error';
 import { DuplicateEntityError } from './exceptions/duplicate-entity-error';
 import PatientsRoutes from './routes/patients-routes';
 import DoctorsRoutes from './routes/doctors-routes';
-import { AppointmentsRoutes } from './routes/appointments-routes';
+import AppointmentsRoutes from './routes/appointments-routes';
+import { AppointmentConflictError } from './exceptions/appointment-conflict-error';
+import { StatusCodes } from './enums/status-codes';
 
 export default class Server {
     private readonly patientsRoutes: PatientsRoutes;
@@ -40,11 +41,14 @@ export default class Server {
                 err instanceof InvalidParameterError ||
                 err instanceof DuplicateEntityError
             ) {
-                res.status(STATUS_CODES.BAD_REQUEST).json({ error: { message: err.message } });
+                res.status(StatusCodes.BAD_REQUEST).json({ error: { message: err.message } });
+                return;
+            } else if (err instanceof AppointmentConflictError) {
+                res.status(StatusCodes.CONFLICT).json({ error: { message: err.message } });
                 return;
             }
             console.log(err);
-            res.sendStatus(STATUS_CODES.INTERNAL_SERVER_ERROR);
+            res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
         });
     }
 

@@ -1,4 +1,4 @@
-import PatientModel from "../entities/patient-model";
+import PatientModel from "../models/patient-model";
 import { DuplicateEntityError } from "../exceptions/duplicate-entity-error";
 import PatientsRepository from "../repositories/patients-repository";
 import CreatePatientDto from "../dto/patients/create-patient-dto";

@@ -1,13 +1,13 @@
-import { IsDateString, IsNotEmpty, IsOptional } from "class-validator";
+import { IsDateString, IsOptional, MinDate } from "class-validator";
 
 export default class UpdateDoctorDto {
-    public firstName?: string;
+    public readonly firstName?: string;
 
-    public speciality?: string;
+    public readonly speciality?: string;
 
     @IsOptional()
     @IsDateString({}, { each: true })
-    public availableSlots: string[];
+    public readonly availableSlots: string[];
 
     constructor(
         firstName?: string,
