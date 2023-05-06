@@ -1,10 +1,7 @@
 import AppointmentModel from "../models/appointment-model";
-import { AppointmentConflictError } from "../exceptions/appointment-conflict-error";
+import { AppointmentConflictError } from "../errors/appointment-conflict-error";
 import { DateTime } from "luxon";
-import { REGEXPRESSIONS } from "../regular-expressions";
-import { ERRORS } from "../error-messages";
-import { InvalidParameterError } from "../exceptions/invalid-parameter-error";
-import { MissingParameterError } from "../exceptions/missing-parameter-error";
+import { InvalidParameterError } from "../errors/invalid-parameter-error";
 import { v4 } from "uuid";
 import AppointmentsRepository from "../repositories/appointments-repository";
 import PatientsService from "./patients-service";
@@ -45,7 +42,7 @@ export default class AppointmentsService {
         }        
         const isAvailable = await this.doctorsService.isDoctorAvailable(doctorId, DateTime.fromISO(date, { zone: 'utc' }))
         if (!isAvailable) {
-            throw new AppointmentConflictError(ERRORS.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date));
+            throw new AppointmentConflictError(ErrorMessages.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date));
         }
         
         const appointment = plainToClass(AppointmentModel, { id: v4(), ...appointmentDto });

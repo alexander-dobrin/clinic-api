@@ -1,18 +1,17 @@
 import express, { Express, Request, Response, ErrorRequestHandler, NextFunction } from 'express';
-import { MissingParameterError } from './exceptions/missing-parameter-error';
-import { InvalidParameterError } from './exceptions/invalid-parameter-error';
-import { DuplicateEntityError } from './exceptions/duplicate-entity-error';
+import { InvalidParameterError } from './errors/invalid-parameter-error';
+import { DuplicateEntityError } from './errors/duplicate-entity-error';
 import PatientsRoutes from './routes/patients-routes';
 import DoctorsRoutes from './routes/doctors-routes';
 import AppointmentsRoutes from './routes/appointments-routes';
-import { AppointmentConflictError } from './exceptions/appointment-conflict-error';
+import { AppointmentConflictError } from './errors/appointment-conflict-error';
 import { StatusCodes } from './enums/status-codes';
 
 export default class Server {
     private readonly patientsRoutes: PatientsRoutes;
     private readonly doctorsRoutes: DoctorsRoutes;
     private readonly appointmentsRoutes: AppointmentsRoutes;
-    private readonly app: express.Express;
+    private readonly app: Express;
 
     constructor(patientsRoutes: PatientsRoutes, doctorsRoutes: DoctorsRoutes, appointmentsRoutes: AppointmentsRoutes) {
         this.patientsRoutes = patientsRoutes;
@@ -37,7 +36,6 @@ export default class Server {
 
         this.app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
             if (
-                err instanceof MissingParameterError ||
                 err instanceof InvalidParameterError ||
                 err instanceof DuplicateEntityError
             ) {

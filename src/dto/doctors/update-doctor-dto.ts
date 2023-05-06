@@ -1,4 +1,4 @@
-import { IsDateString, IsOptional, MinDate } from "class-validator";
+import { IsDateString, IsOptional } from "class-validator";
 
 export default class UpdateDoctorDto {
     public readonly firstName?: string;
