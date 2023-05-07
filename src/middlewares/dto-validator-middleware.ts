@@ -16,9 +16,10 @@ export default class DtoValidatorMiddleware<TDto extends object> {
             return next();
         }
         const dtoObject = plainToClass(this.dtoClassConstructor, req.body);
-        const validationErrors: ValidationError[] = await validate(dtoObject);
+        const validationErrors = (await validate(dtoObject))
+            .map((err: ValidationError) => Object.values(err.constraints).join('; '));
         if (validationErrors.length > 0) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ errors: validationErrors });
+            return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: validationErrors });
         }
         next();
     }

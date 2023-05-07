@@ -58,7 +58,7 @@ export default class DoctorsService {
         this.eventEmitter.emit(ServiceEvent.DOCTOR_DELETED, doctor);
         const deleted = await this.repository.remove(doctor);
         if (deleted) {
-            //this.eventEmitter.emit(ServiceEvent.DOCTOR_DELETED, doctor);
+            this.eventEmitter.emit(ServiceEvent.DOCTOR_DELETED, doctor);
         }
 
         return deleted;
