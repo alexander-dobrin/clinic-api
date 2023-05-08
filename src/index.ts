@@ -16,6 +16,7 @@ import DoctorsService from './services/doctors-service';
 import FileDataProvider from './providers/file-data-provider';
 import { ServiceEventEmitter } from './services/service-event-emitter';
 import ModelsCoordinationService from './services/models-coordination-service';
+import { ExceptionFilter } from './errors/exception-filter';
 
 const patientsRepository = new PatientsRepository(new FileDataProvider(path.resolve('assets', 'patients.json')));
 const doctorsRepository = new DoctorsRepository(new FileDataProvider(path.resolve('assets', 'doctors.json')));
@@ -37,7 +38,9 @@ const patientsRoutes = new PatientsRoutes(patientsController);
 const doctorsRoutes = new DoctorsRoutes(doctorsController);
 const appointmentsRoutes = new AppointmentsRoutes(appointmentsController);
 
-const server = new Server(patientsRoutes, doctorsRoutes, appointmentsRoutes);
+const errFilter = new ExceptionFilter();
+
+const server = new Server(patientsRoutes, doctorsRoutes, appointmentsRoutes, errFilter);
 
 dotenv.config()
 
