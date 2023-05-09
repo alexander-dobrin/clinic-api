@@ -1,7 +1,10 @@
 import IDataProvider from "./abstract/data-provider-interface";
 import { readFile, writeFile } from "fs/promises";
 import IFindable from "./abstract/findable-interface";
+import { injectable } from 'inversify';
+import 'reflect-metadata';
 
+@injectable()
 export default class FileDataProvider<TModel extends IFindable> implements IDataProvider<TModel> {
     private readonly filePath: string;
 

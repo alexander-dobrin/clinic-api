@@ -1,17 +1,22 @@
 import PatientModel from "../models/patient-model";
 import { DuplicateEntityError } from "../errors/duplicate-entity-error";
-import PatientsRepository from "../repositories/patients-repository";
 import CreatePatientDto from "../dto/patients/create-patient-dto";
 import { v4 } from "uuid";
 import { merge } from "lodash";
 import UpdatePatientDto from "../dto/patients/update-patient-dto";
 import { ErrorMessages } from "../enums/error-messages";
+import { IPatientsService } from "./abstract/patients-service-interface";
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { IRepository } from "../repositories/repository-interface";
+import { TYPES } from "../types";
 
-export default class PatientsService {
-    private readonly repository: PatientsRepository;
+@injectable()
+export default class PatientsService implements IPatientsService {
+    constructor(
+        @inject(TYPES.PATIENTS_REPOSITORY) private readonly repository: IRepository<PatientModel>
+    ) {
 
-    constructor(repository: PatientsRepository) {
-        this.repository = repository;
     }
 
     public async createPatient(patientDto: CreatePatientDto): Promise<PatientModel> {

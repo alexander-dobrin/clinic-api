@@ -10,14 +10,19 @@ import { ServiceEventEmitter } from "./service-event-emitter";
 import { ServiceEvent } from "../enums/service-event";
 import { DateTime } from "luxon";
 import AppointmentModel from "../models/appointment-model";
+import { IDoctorsService } from "./abstract/doctors-service-interface";
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { TYPES } from "../types";
+import { IRepository } from "../repositories/repository-interface";
 
-export default class DoctorsService {    
-    private readonly repository: DoctorsRepository;
-    private readonly eventEmitter: ServiceEventEmitter;
-
-    constructor(repository: DoctorsRepository, eventEmitter: ServiceEventEmitter) {
-        this.repository = repository;
-        this.eventEmitter = eventEmitter;
+@injectable()
+export default class DoctorsService implements IDoctorsService {
+    constructor(
+        @inject(TYPES.DOCTORS_REPOSITORY) private readonly repository: IRepository<DoctorModel>, 
+        @inject(TYPES.EVENT_EMITTER) private readonly eventEmitter: ServiceEventEmitter
+    ) {
+        
     }
 
     public async createDoctor(doctorDto: CreateDoctorDto): Promise<DoctorModel> {

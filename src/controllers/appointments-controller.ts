@@ -1,12 +1,16 @@
 import { StatusCodes } from '../enums/status-codes';
 import AppointmentsService from '../services/appointments-service';
 import { Request, Response, NextFunction } from 'express';
+import { IHttpController } from './http-controller-interface';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { TYPES } from '../types';
 
-export default class AppointmentsController {
-    private readonly appointmentService: AppointmentsService;
-
-    constructor(appointmentService: AppointmentsService) {
-        this.appointmentService = appointmentService;
+@injectable()
+export default class AppointmentsController implements IHttpController {
+    constructor(
+        @inject(TYPES.APPOINTMENTS_SERVICE) private readonly appointmentService: AppointmentsService
+    ) {
     }
 
     public async post(req: Request, res: Response, next: NextFunction): Promise<void> {

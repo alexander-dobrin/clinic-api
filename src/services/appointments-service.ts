@@ -6,29 +6,23 @@ import { v4 } from "uuid";
 import AppointmentsRepository from "../repositories/appointments-repository";
 import PatientsService from "./patients-service";
 import DoctorsService from "./doctors-service";
-import { ServiceEventEmitter } from "./service-event-emitter";
 import { CreateAppointmentDto } from "../dto/appointments/create-appointment-dto";
 import { plainToClass } from "class-transformer";
 import { UpdateAppointmentDto } from "../dto/appointments/update-appointment-dto";
 import { ErrorMessages } from "../enums/error-messages";
 import { merge } from "lodash";
+import { IAppointmentsService } from "./abstract/appointments-service-interface";
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { TYPES } from "../types";
 
-export default class AppointmentsService {
-    private readonly repository: AppointmentsRepository;
-    private readonly patientsService: PatientsService;
-    private readonly doctorsService: DoctorsService;
-    private readonly eventEmitter: ServiceEventEmitter;
-
+@injectable()
+export default class AppointmentsService implements IAppointmentsService {
     constructor(
-        repository: AppointmentsRepository, 
-        patientsService: PatientsService, 
-        doctorsService: DoctorsService,
-        eventEmitter: ServiceEventEmitter
+        @inject(TYPES.APPOINTMENTS_REPOSITORY) private readonly repository: AppointmentsRepository, 
+        @inject(TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientsService, 
+        @inject(TYPES.DOCTORS_SERVICE) private readonly doctorsService: DoctorsService,
     ) {
-        this.repository = repository;
-        this.patientsService = patientsService;
-        this.doctorsService = doctorsService;
-        this.eventEmitter = eventEmitter;
     }
 
     public async createAppointment(appointmentDto: CreateAppointmentDto): Promise<AppointmentModel | undefined> {

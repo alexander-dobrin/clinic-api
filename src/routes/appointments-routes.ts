@@ -3,15 +3,21 @@ import AppointmentsController from '../controllers/appointments-controller';
 import DtoValidatorMiddleware from '../middlewares/dto-validator-middleware';
 import { CreateAppointmentDto } from '../dto/appointments/create-appointment-dto';
 import { UpdateAppointmentDto } from '../dto/appointments/update-appointment-dto';
+import { IRoutes } from './routes-interface';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { IHttpController } from '../controllers/http-controller-interface';
+import { TYPES } from '../types';
 
-export default class AppointmentsRoutes {
-    private readonly appointmentsController: AppointmentsController;
+@injectable()
+export default class AppointmentsRoutes implements IRoutes {
     private readonly _router: Router;
     private readonly createValidator = new DtoValidatorMiddleware(CreateAppointmentDto);
     private readonly updateValidator = new DtoValidatorMiddleware(UpdateAppointmentDto);
 
-    constructor(appointmentsController: AppointmentsController) {
-        this.appointmentsController = appointmentsController;
+    constructor(
+        @inject(TYPES.APPOINTMENTS_CONTROLLER) private readonly appointmentsController: IHttpController
+    ) {
         this._router = Router();   
         this.setupRoutes();
     }

@@ -1,10 +1,15 @@
 import AppointmentModel from '../models/appointment-model';
 import IDataProvider from '../providers/abstract/data-provider-interface';
+import { TYPES } from '../types';
+import { IRepository } from './repository-interface';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
 
-export default class AppointmentsRepository {
-    private readonly provider: IDataProvider<AppointmentModel>;
-
-    constructor(provider: IDataProvider<AppointmentModel>) {
+@injectable()
+export default class AppointmentsRepository implements IRepository<AppointmentModel> {
+    constructor(
+        @inject(TYPES.APPOINTMENTS_DATA_PROVIDER) private readonly provider: IDataProvider<AppointmentModel>
+    ) {
         this.provider = provider;
     }
 

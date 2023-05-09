@@ -1,26 +1,20 @@
 import express, { Express } from 'express';
-import PatientsRoutes from './routes/patients-routes';
-import DoctorsRoutes from './routes/doctors-routes';
-import AppointmentsRoutes from './routes/appointments-routes';
 import { ExceptionFilter } from './errors/exception-filter';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { TYPES } from './types';
+import { IRoutes } from './routes/routes-interface';
 
-export default class Server {
-    private readonly patientsRoutes: PatientsRoutes;
-    private readonly doctorsRoutes: DoctorsRoutes;
-    private readonly appointmentsRoutes: AppointmentsRoutes;
+@injectable()
+export default class App {
     private readonly app: Express;
-    private readonly exceptionFilter: ExceptionFilter;
 
     constructor(
-        patientsRoutes: PatientsRoutes, 
-        doctorsRoutes: DoctorsRoutes, 
-        appointmentsRoutes: AppointmentsRoutes,
-        exceptionFilter: ExceptionFilter) {
-        this.patientsRoutes = patientsRoutes;
-        this.doctorsRoutes = doctorsRoutes;
-        this.appointmentsRoutes = appointmentsRoutes;
-        this.exceptionFilter = exceptionFilter;
-
+        @inject(TYPES.PATIENTS_ROUTES) private readonly patientsRoutes: IRoutes, 
+        @inject(TYPES.DOCTORS_ROUTES) private readonly doctorsRoutes: IRoutes, 
+        @inject(TYPES.APPOINTMENTS_ROUTES) private readonly appointmentsRoutes: IRoutes,
+        @inject(TYPES.EXCEPTION_FILTER) private readonly exceptionFilter: ExceptionFilter
+    ) {
         this.app = express();
 
         this.setupMiddlewares();

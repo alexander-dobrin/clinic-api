@@ -3,14 +3,21 @@ import DoctorsController from '../controllers/doctors-controller';
 import DtoValidatorMiddleware from '../middlewares/dto-validator-middleware';
 import CreateDoctorDto from '../dto/doctors/create-doctor-dto';
 import UpdateDoctorDto from '../dto/doctors/update-doctor-dto';
+import { IRoutes } from './routes-interface';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { IHttpController } from '../controllers/http-controller-interface';
+import { TYPES } from '../types';
 
-export default class DoctorsRoutes {
-    private readonly doctorsController: DoctorsController;
+@injectable()
+export default class DoctorsRoutes implements IRoutes {
     private readonly _router: Router;
     private readonly createValidator = new DtoValidatorMiddleware(CreateDoctorDto);
     private readonly updateValidator = new DtoValidatorMiddleware(UpdateDoctorDto);
     
-    constructor(doctorsController: DoctorsController) {
+    constructor(
+        @inject(TYPES.DOCTORS_CONTROLLER) private readonly doctorsController: IHttpController
+    ) {
         this.doctorsController = doctorsController;
         this._router = Router();
 

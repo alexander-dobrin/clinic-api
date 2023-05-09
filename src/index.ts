@@ -1,47 +1,26 @@
 import dotenv from 'dotenv';
-import * as path from 'path';
-import PatientsController from './controllers/patients-controller';
-import DoctorsController from './controllers/doctors-controller';
-import AppointmentsController from './controllers/appointments-controller';
-import PatientsRepository from './repositories/patients-repository';
-import DoctorsRepository from './repositories/doctors-repository';
-import AppointmentsRepository from './repositories/appointments-repository';
-import AppointmentsService from './services/appointments-service';
-import Server from './server';
-import PatientsRoutes from './routes/patients-routes';
-import DoctorsRoutes from './routes/doctors-routes';
-import AppointmentsRoutes from './routes/appointments-routes';
-import PatientsService from './services/patients-service';
-import DoctorsService from './services/doctors-service';
-import FileDataProvider from './providers/file-data-provider';
+import App from './app';
 import { ServiceEventEmitter } from './services/service-event-emitter';
-import ModelsCoordinationService from './services/models-coordination-service';
 import { ExceptionFilter } from './errors/exception-filter';
+import { Container } from 'inversify';
+import { patientsModule } from './modules/patients-module';
+import { doctorsModule } from './modules/doctors-module';
+import { appointmentsModule } from './modules/appointments-module';
+import { TYPES } from './types';
+import 'reflect-metadata';
 
-const patientsRepository = new PatientsRepository(new FileDataProvider(path.resolve('assets', 'patients.json')));
-const doctorsRepository = new DoctorsRepository(new FileDataProvider(path.resolve('assets', 'doctors.json')));
-const apointmentsRepository = new AppointmentsRepository(new FileDataProvider(path.resolve('assets', 'appointments.json')));
+const iocContainer = new Container();
+iocContainer.load(patientsModule);
+iocContainer.load(doctorsModule);
+iocContainer.load(appointmentsModule);
 
-const serviceCommonEvents = new ServiceEventEmitter();
+iocContainer.bind<ExceptionFilter>(TYPES.EXCEPTION_FILTER).to(ExceptionFilter);
+iocContainer.bind<ServiceEventEmitter>(TYPES.EVENT_EMITTER).to(ServiceEventEmitter);
 
-const patientsService = new PatientsService(patientsRepository);
-const doctorsService = new DoctorsService(doctorsRepository, serviceCommonEvents);
-const appointmentsService = new AppointmentsService(apointmentsRepository, patientsService, doctorsService, serviceCommonEvents);
+iocContainer.bind<App>(TYPES.APP).to(App);
 
-new ModelsCoordinationService(serviceCommonEvents, doctorsService, appointmentsService);
+const app = iocContainer.get<App>(TYPES.APP);
 
-const patientsController = new PatientsController(patientsService);
-const doctorsController = new DoctorsController(doctorsService);
-const appointmentsController = new AppointmentsController(appointmentsService);
+dotenv.config();
+app.listen(process.env.PORT);
 
-const patientsRoutes = new PatientsRoutes(patientsController);
-const doctorsRoutes = new DoctorsRoutes(doctorsController);
-const appointmentsRoutes = new AppointmentsRoutes(appointmentsController);
-
-const errFilter = new ExceptionFilter();
-
-const server = new Server(patientsRoutes, doctorsRoutes, appointmentsRoutes, errFilter);
-
-dotenv.config()
-
-server.listen(process.env.PORT);

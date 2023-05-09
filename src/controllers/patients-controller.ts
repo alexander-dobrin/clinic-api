@@ -1,12 +1,17 @@
 import { StatusCodes } from '../enums/status-codes';
-import PatientsService from '../services/patients-service';
 import { Request, Response, NextFunction } from 'express';
+import { IHttpController } from './http-controller-interface';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import { TYPES } from '../types';
+import { IPatientsService } from '../services/abstract/patients-service-interface';
 
-export default class PatientsController {
-    private readonly patientsService: PatientsService;
+@injectable()
+export default class PatientsController implements IHttpController {
+    constructor(
+        @inject(TYPES.PATIENTS_SERVICE) private readonly patientsService: IPatientsService
+    ) {
 
-    constructor(patientsService: PatientsService) {
-        this.patientsService = patientsService;
     }
 
     public async get(req: Request, res: Response): Promise<void> {
