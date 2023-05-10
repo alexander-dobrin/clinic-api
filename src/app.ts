@@ -1,19 +1,19 @@
 import express, { Express } from 'express';
-import { ExceptionFilter } from './errors/exception-filter';
+import { ExceptionFilter } from './common/middlewares/exception-filter';
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
-import { TYPES } from './types';
-import { IRoutes } from './routes/routes-interface';
+import { CONTAINER_TYPES } from './common/constants';
+import { IRoutes } from './common/types';
 
 @injectable()
 export default class App {
     private readonly app: Express;
 
     constructor(
-        @inject(TYPES.PATIENTS_ROUTES) private readonly patientsRoutes: IRoutes, 
-        @inject(TYPES.DOCTORS_ROUTES) private readonly doctorsRoutes: IRoutes, 
-        @inject(TYPES.APPOINTMENTS_ROUTES) private readonly appointmentsRoutes: IRoutes,
-        @inject(TYPES.EXCEPTION_FILTER) private readonly exceptionFilter: ExceptionFilter
+        @inject(CONTAINER_TYPES.PATIENTS_ROUTES) private readonly patientsRoutes: IRoutes, 
+        @inject(CONTAINER_TYPES.DOCTORS_ROUTES) private readonly doctorsRoutes: IRoutes, 
+        @inject(CONTAINER_TYPES.APPOINTMENTS_ROUTES) private readonly appointmentsRoutes: IRoutes,
+        @inject(CONTAINER_TYPES.EXCEPTION_FILTER) private readonly exceptionFilter: ExceptionFilter
     ) {
         this.app = express();
 

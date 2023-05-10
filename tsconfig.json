@@ -7,6 +7,6 @@
     "experimentalDecorators": true
     // "strict": true
   },
-  "include": ["src/**/*", "src/types.ts"],
-  "exclude": ["node_modules", "./assets"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }
