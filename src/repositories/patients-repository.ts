@@ -1,0 +1,35 @@
+import PatientModel from '../models/patient-model';
+import IDataProvider from '../providers/abstract/data-provider-interface';
+import { TYPES } from '../types';
+import { IRepository } from './repository-interface';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+
+@injectable()
+export default class PatientsRepository implements IRepository<PatientModel> {
+    constructor(
+        @inject(TYPES.PATIENTS_DATA_PROVIDER) private readonly provider: IDataProvider<PatientModel>
+    ) {
+        
+    }
+
+    public async add(patient: PatientModel): Promise<PatientModel> {
+        return this.provider.create(patient);
+    }
+
+    public async getAll(): Promise<PatientModel[]> {
+        return this.provider.read();
+    }
+
+    public async get(id: string): Promise<PatientModel | undefined> {
+        return this.provider.readById(id);
+    }
+
+    public async update(patient: PatientModel): Promise<PatientModel | undefined> {
+        return this.provider.updateById(patient.id, patient);
+    }
+
+    public async remove(patient: PatientModel): Promise<PatientModel | undefined> {
+        return this.provider.deleteById(patient.id);
+    }
+}
