@@ -17,7 +17,7 @@ export interface IFindable {
 }
 
 export interface IGetOptions {
-    sortBy: string;
+    sortBy?: string;
 }
 
 export interface IHttpController {

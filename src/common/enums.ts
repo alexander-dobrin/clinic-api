@@ -11,7 +11,8 @@ export enum StatusCodeEnum {
 export enum ErrorMessageEnum {
     PHONE_IS_TAKEN = 'Phone [%s] is allready taken',
     UNKNOWN_ID = 'Entity [%s] does not exist',
-    DOCTOR_NOT_AVAILABLE = 'Doctor [%s] is not available at [%s]'
+    DOCTOR_NOT_AVAILABLE = 'Doctor [%s] is not available at [%s]',
+    UNABLE_TO_SORT = 'Sorting based on [%s] data can not be processed since currently such data is empty'
 }
 
 export enum RequestMethodEnum {
@@ -20,4 +21,8 @@ export enum RequestMethodEnum {
 
 export enum EventEnum {
     DOCTOR_DELETED = 'doctorDeleted'
+}
+
+export enum DoctorsSortByEnum {
+    APPOINTMENTS = 'appointmentsCount'
 }

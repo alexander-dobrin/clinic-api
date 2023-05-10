@@ -14,12 +14,16 @@ export default class DoctorsController implements IHttpController {
 
     }
 
-    public async get(req: Request, res: Response): Promise<void> {
-        const doctors = await this.doctorsService.getAllDoctors();
-        if(doctors.length < 1) {
-            res.status(StatusCodeEnum.NO_CONTENT);
+    public async get(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const doctors = await this.doctorsService.getAllDoctors({ sortBy: req.query.sortBy as string });
+            if (doctors.length < 1) {
+                res.status(StatusCodeEnum.NO_CONTENT);
+            }
+            res.json(doctors);
+        } catch (err) {
+            next(err);
         }
-        res.json(doctors);
     }
 
     public async getById(req: Request, res: Response): Promise<void> {

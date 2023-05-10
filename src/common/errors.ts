@@ -18,3 +18,10 @@ export class InvalidParameterError extends Error {
       Error.captureStackTrace(this, InvalidParameterError);
     }
 }
+
+export class UnableToSortError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, InvalidParameterError);
+  }
+}
