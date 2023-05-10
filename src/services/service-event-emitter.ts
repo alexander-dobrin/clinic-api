@@ -4,7 +4,7 @@ import { injectable } from 'inversify';
 
 @injectable()
 export class ServiceEventEmitter {
-    private readonly emitter: EventEmitter;
+    private readonly emitter = new EventEmitter();
 
     public emit(event: string, ...args: any[]) {
         this.emitter.emit(event, ...args);

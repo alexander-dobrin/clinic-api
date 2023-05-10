@@ -66,4 +66,8 @@ export default class PatientsService implements IPatientsService {
             throw new DuplicateEntityError(ErrorMessages.PHONE_IS_TAKEN.replace('%s', phone));
         }
     }
+
+    public async isExists(id: string): Promise<boolean> {
+        return (await this.repository.get(id)) ? true : false;
+    }
 }

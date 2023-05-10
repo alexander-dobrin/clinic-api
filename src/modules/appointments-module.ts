@@ -15,11 +15,11 @@ import FileDataProvider from "../providers/file-data-provider";
 import * as path from 'path';
 
 export const appointmentsModule = new ContainerModule((bind: interfaces.Bind) => {
-    bind<IRoutes>(TYPES.APPOINTMENTS_ROUTES).to(AppointmentsRoutes);
-    bind<IHttpController>(TYPES.APPOINTMENTS_CONTROLLER).to(AppointmentsController);
-    bind<IAppointmentsService>(TYPES.APPOINTMENTS_SERVICE).to(AppointmentsService);
-    bind<IRepository<AppointmentModel>>(TYPES.APPOINTMENTS_REPOSITORY).to(AppointmentsRepository);
+    bind<IRoutes>(TYPES.APPOINTMENTS_ROUTES).to(AppointmentsRoutes).inSingletonScope();
+    bind<IHttpController>(TYPES.APPOINTMENTS_CONTROLLER).to(AppointmentsController).inSingletonScope();
+    bind<IAppointmentsService>(TYPES.APPOINTMENTS_SERVICE).to(AppointmentsService).inSingletonScope();
+    bind<IRepository<AppointmentModel>>(TYPES.APPOINTMENTS_REPOSITORY).to(AppointmentsRepository).inSingletonScope();
     bind<IDataProvider<AppointmentModel>>(TYPES.APPOINTMENTS_DATA_PROVIDER).toDynamicValue((context: interfaces.Context) => {
       return new FileDataProvider(path.resolve('assets', 'appointments.json'))
-  });
+  }).inSingletonScope();
 });

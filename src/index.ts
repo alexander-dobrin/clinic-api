@@ -8,16 +8,20 @@ import { doctorsModule } from './modules/doctors-module';
 import { appointmentsModule } from './modules/appointments-module';
 import { TYPES } from './types';
 import 'reflect-metadata';
+import ModelsCoordinationService from './services/models-coordination-service';
 
 const iocContainer = new Container();
 iocContainer.load(patientsModule);
 iocContainer.load(doctorsModule);
 iocContainer.load(appointmentsModule);
 
-iocContainer.bind<ExceptionFilter>(TYPES.EXCEPTION_FILTER).to(ExceptionFilter);
-iocContainer.bind<ServiceEventEmitter>(TYPES.EVENT_EMITTER).to(ServiceEventEmitter);
+iocContainer.bind<ExceptionFilter>(TYPES.EXCEPTION_FILTER).to(ExceptionFilter).inSingletonScope();
+iocContainer.bind<ServiceEventEmitter>(TYPES.EVENT_EMITTER).to(ServiceEventEmitter).inSingletonScope();
+iocContainer.bind<ModelsCoordinationService>(TYPES.MODELS_COORDINATION_SERVICE).to(ModelsCoordinationService).inSingletonScope();
 
 iocContainer.bind<App>(TYPES.APP).to(App);
+
+const coordService = iocContainer.get(TYPES.MODELS_COORDINATION_SERVICE);
 
 const app = iocContainer.get<App>(TYPES.APP);
 

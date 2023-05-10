@@ -8,5 +8,5 @@ export interface IAppointmentsService {
     getAppointmentById(id: string): Promise<AppointmentModel | undefined>;
     updateAppointmentById(id: string, appointmentDto: UpdateAppointmentDto): Promise<AppointmentModel | undefined>;
     deleteAppointmentById(id: string): Promise<AppointmentModel | undefined>;
-    deleteAllAppointmentsById(ids: string[]): Promise<void>;
+    getAllDoctorAppointments(id: string): Promise<AppointmentModel[]>;
 }

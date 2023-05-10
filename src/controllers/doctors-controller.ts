@@ -15,7 +15,7 @@ export default class DoctorsController implements IHttpController {
     }
 
     public async get(req: Request, res: Response): Promise<void> {
-        const doctors = await this.doctorsService.getAllDoctors({ sortBy: req.query.sortBy as string });
+        const doctors = await this.doctorsService.getAllDoctors();
         if(doctors.length < 1) {
             res.status(StatusCodes.NO_CONTENT);
         }

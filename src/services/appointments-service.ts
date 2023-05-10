@@ -1,7 +1,5 @@
 import AppointmentModel from "../models/appointment-model";
-import { AppointmentConflictError } from "../errors/appointment-conflict-error";
 import { DateTime } from "luxon";
-import { InvalidParameterError } from "../errors/invalid-parameter-error";
 import { v4 } from "uuid";
 import AppointmentsRepository from "../repositories/appointments-repository";
 import PatientsService from "./patients-service";
@@ -9,7 +7,6 @@ import DoctorsService from "./doctors-service";
 import { CreateAppointmentDto } from "../dto/appointments/create-appointment-dto";
 import { plainToClass } from "class-transformer";
 import { UpdateAppointmentDto } from "../dto/appointments/update-appointment-dto";
-import { ErrorMessages } from "../enums/error-messages";
 import { merge } from "lodash";
 import { IAppointmentsService } from "./abstract/appointments-service-interface";
 import { injectable, inject } from 'inversify';
@@ -28,19 +25,17 @@ export default class AppointmentsService implements IAppointmentsService {
     public async createAppointment(appointmentDto: CreateAppointmentDto): Promise<AppointmentModel | undefined> {
         const { patientId, doctorId, date } = appointmentDto;
 
-        const patient = await this.patientsService.getPatientById(patientId);
-        const doctor = await this.doctorsService.getDoctortById(doctorId);
-
-        if (!patient || !doctor) {
+        const doParticipantsExist = await this.patientsService.isExists(patientId) &&
+            await this.doctorsService.isExists(doctorId);
+        if (!doParticipantsExist) {
             return;
-        }        
-        const isAvailable = await this.doctorsService.isDoctorAvailable(doctorId, DateTime.fromISO(date, { zone: 'utc' }))
-        if (!isAvailable) {
-            throw new AppointmentConflictError(ErrorMessages.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date));
         }
         
         const appointment = plainToClass(AppointmentModel, { id: v4(), ...appointmentDto });
-        await this.doctorsService.addAppointmentToDoctor(doctorId, appointment);
+        const isScheduled = await this.doctorsService.takeFreeSlot(doctorId, DateTime.fromISO(date, { zone: 'utc' }));
+        if (!isScheduled) {
+            return;
+        }
         
         return this.repository.add(appointment);
     }
@@ -59,30 +54,17 @@ export default class AppointmentsService implements IAppointmentsService {
             return;
         }
 
-        const { 
-            patientId = appointment.patientId, 
-            doctorId = appointment.doctorId, 
-            date = appointment.date.toISO() 
-        } = appointmentDto;
+        const { patientId = appointment.patientId, doctorId = appointment.doctorId } = appointmentDto;
         
-        const patient = await this.patientsService.getPatientById(patientId);
-        const doctor = await this.doctorsService.getDoctortById(doctorId);
-
-        if (!doctor) {
-            throw new InvalidParameterError(ErrorMessages.UNKNOWN_ID.replace('%s', doctorId));
+        const doParticipantsExist = await this.patientsService.isExists(patientId) &&
+            await this.doctorsService.isExists(doctorId);
+        if (!doParticipantsExist) {
+            return;
         }
-        if (!patient) {
-            throw new InvalidParameterError(ErrorMessages.UNKNOWN_ID.replace('%s', patientId));
-        }
-        const isAvailable = await this.doctorsService.isDoctorAvailable(doctorId, DateTime.fromISO(date, { zone: 'utc' }))
-        if (!isAvailable) {
-            throw new AppointmentConflictError(ErrorMessages.DOCTOR_NOT_AVAILABLE.replace('%s', doctorId).replace('%s', date));
-        }
-
-        await this.doctorsService.removeAppointmentFromDoctor(doctorId, appointment.id);
+        
         merge(appointment, appointmentDto);
         appointment = plainToClass(AppointmentModel, appointment);
-        await this.doctorsService.addAppointmentToDoctor(doctorId, appointment);
+        await this.doctorsService.takeFreeSlot(doctorId, appointment.date);
 
         return this.repository.update(appointment);
     }
@@ -92,14 +74,10 @@ export default class AppointmentsService implements IAppointmentsService {
         if (!appointment) {
             return;
         }
-        const removed = this.doctorsService.removeAppointmentFromDoctor(appointment.doctorId, id);
-        if (!removed) {
-            return;
-        }
         return this.repository.remove(appointment);
     }
 
-    public async deleteAllAppointmentsById(ids: string[]): Promise<void> {
-        await Promise.all(ids.map(id => this.deleteAppointmentById(id)));
+    public async getAllDoctorAppointments(id: string): Promise<AppointmentModel[]> {
+        return (await this.repository.getAll()).filter(a => a.doctorId === id);
     }
 }
