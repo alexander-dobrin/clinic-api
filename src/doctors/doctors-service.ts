@@ -3,19 +3,19 @@ import DoctorModel from "./doctor-model";
 import CreateDoctorDto from "./dto/create-doctor-dto";
 import { plainToClass } from "class-transformer";
 import UpdateDoctorDto from "./dto/update-doctor-dto";
-import { merge, groupBy } from "lodash";
+import { merge } from "lodash";
 import { ServiceEventEmitter } from "../common/services/service-event-emitter";
-import { DoctorsSortByEnum, EventEnum } from "../common/enums";
+import { EventEnum } from "../common/enums";
 import { DateTime } from "luxon";
 import { IDoctorsService } from "./doctors-service-interface";
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { CONTAINER_TYPES } from "../common/constants";
-import { IGetOptions, IRepository } from "../common/types";
-import { AppointmentConflictError, UnableToSortError } from "../common/errors";
+import { IQueryParams, IRepository } from "../common/types";
+import { AppointmentConflictError } from "../common/errors";
 import { ErrorMessageEnum } from "../common/enums";
 import AppointmentModel from "../appointments/appointment-model";
-import DoctorWithAppointmentsViewModel from "./doctor-with-appointments-view-model";
+import { DoctorsQueryHandler } from "./helpers/doctors-query-handler";
 
 @injectable()
 export default class DoctorsService implements IDoctorsService {
@@ -32,17 +32,11 @@ export default class DoctorsService implements IDoctorsService {
         return this.doctorsRepository.add(doctor);
     }
 
-    public async getAllDoctors(options: IGetOptions): Promise<DoctorModel[] | DoctorWithAppointmentsViewModel[]> {
-        if (options.sortBy === DoctorsSortByEnum.APPOINTMENTS) {
-            const doctors = await this.getBuisiestDoctors();
-            if (doctors.length < 1) {
-                throw new UnableToSortError(ErrorMessageEnum.UNABLE_TO_SORT.replace('%s', DoctorsSortByEnum.APPOINTMENTS));
-            }
-            return this.getBuisiestDoctors();
-        }
+    public async getAllDoctors(options: IQueryParams): Promise<DoctorModel[]> {
         const objects = await this.doctorsRepository.getAll();
         const doctors = objects.map(d => plainToClass(DoctorModel, d));
-        return doctors;
+
+        return new DoctorsQueryHandler(this.appointmentsRepository).applyRequestQuery(doctors, options);
     }
 
     public async getDoctortById(id: string): Promise<DoctorModel | undefined> {
@@ -90,20 +84,5 @@ export default class DoctorsService implements IDoctorsService {
 
     public async isExists(id: string): Promise<boolean> {
         return (await this.getDoctortById(id)) ? true : false;
-    }
-
-    private async getBuisiestDoctors(): Promise<DoctorWithAppointmentsViewModel[]> {
-        const appointments = await this.appointmentsRepository.getAll();
-        const appointmentsByDoctorId = groupBy(appointments, a => a.doctorId);
-        return (await Promise.all(Object.entries(appointmentsByDoctorId)
-            .map(async group => {
-                const doctorId = group[0];
-                const appointments = group[1];
-                return new DoctorWithAppointmentsViewModel(
-                    (await this.doctorsRepository.get(doctorId)).firstName,
-                    appointments.length
-                )
-            })))
-            .sort((a, b) => b.appointmentsCount - a.appointmentsCount);
     }
 }

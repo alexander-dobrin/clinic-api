@@ -1,6 +1,6 @@
 import { StatusCodeEnum } from "../common/enums"; 
 import { Request, Response, NextFunction } from "express";
-import { IHttpController } from "../common/types";
+import { IQueryParams, IHttpController } from "../common/types";
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { CONTAINER_TYPES } from "../common/constants";
@@ -14,9 +14,9 @@ export default class DoctorsController implements IHttpController {
 
     }
 
-    public async get(req: Request, res: Response, next: NextFunction): Promise<void> {
+    public async get(req: Request<{}, {}, IQueryParams>, res: Response, next: NextFunction): Promise<void> {
         try {
-            const doctors = await this.doctorsService.getAllDoctors({ sortBy: req.query.sortBy as string });
+            const doctors = await this.doctorsService.getAllDoctors(req.query);
             if (doctors.length < 1) {
                 res.status(StatusCodeEnum.NO_CONTENT);
             }

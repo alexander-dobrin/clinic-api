@@ -7,12 +7,14 @@ import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
+import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
 
 @injectable()
 export default class DoctorsRoutes implements IRoutes {
     private readonly _router: Router;
     private readonly createValidator = new DtoValidatorMiddleware(CreateDoctorDto);
     private readonly updateValidator = new DtoValidatorMiddleware(UpdateDoctorDto);
+    private readonly queryMapper = new QueryMapperMiddleware();
     
     constructor(
         @inject(CONTAINER_TYPES.DOCTORS_CONTROLLER) private readonly doctorsController: IHttpController
@@ -25,7 +27,10 @@ export default class DoctorsRoutes implements IRoutes {
 
     private setupRoutes(): void {
         this._router.route('/')
-            .get(this.doctorsController.get.bind(this.doctorsController))
+            .get(
+                this.queryMapper.map.bind(this.queryMapper),
+                this.doctorsController.get.bind(this.doctorsController)
+            )
             .post(
                 this.createValidator.validate.bind(this.createValidator),
                 this.doctorsController.post.bind(this.doctorsController)

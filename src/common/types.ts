@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response, Router } from "express";
+import DoctorModel from "../doctors/doctor-model";
 
 export interface IDataProvider<TModel> {
     create(model: TModel): Promise<TModel>;
@@ -16,8 +17,19 @@ export interface IFindable {
     id: string;
 }
 
-export interface IGetOptions {
-    sortBy?: string;
+export interface IQueryParams {
+    sortBy?: ISortParam[];
+    filterBy?: IFilterParam[];
+}
+
+export interface ISortParam {
+    field: string;
+    order: string;
+}
+
+export interface IFilterParam {
+    field: string;
+    value: string;
 }
 
 export interface IHttpController {
@@ -38,4 +50,8 @@ export interface IRepository<T> {
 
 export interface IRoutes {
     get router(): Router;
+}
+
+export interface ISortingStrategy {
+    sortDescening(doctors: DoctorModel[]): DoctorModel[];
 }
