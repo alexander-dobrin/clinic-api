@@ -25,3 +25,10 @@ export class UnableToSortError extends Error {
     Error.captureStackTrace(this, InvalidParameterError);
   }
 }
+
+export class UnableToFilterError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, InvalidParameterError);
+  }
+}

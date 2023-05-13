@@ -34,3 +34,8 @@ export enum SortOrderEnum {
     ACSENDING = 'asc',
     DESCENDING = 'desc'
 }
+
+export enum AppointmentsFilterByEnum {
+    DOCTORS = 'doctorid',
+    PATIENTS = 'patientid'
+}

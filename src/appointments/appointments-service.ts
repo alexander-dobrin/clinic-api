@@ -12,6 +12,9 @@ import { IAppointmentsService } from "./appointments-service-interface";
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { CONTAINER_TYPES } from "../common/constants";
+import { IFilterParam, IQueryParams } from "../common/types";
+import { AppointmentsFilterByEnum, ErrorMessageEnum } from "../common/enums";
+import { UnableToFilterError } from "../common/errors";
 
 @injectable()
 export default class AppointmentsService implements IAppointmentsService {
@@ -40,8 +43,35 @@ export default class AppointmentsService implements IAppointmentsService {
         return this.repository.add(appointment);
     }
 
-    public async getAllAppointments(): Promise<AppointmentModel[]> {
-        return this.repository.getAll();
+    public async getAllAppointments(options: IQueryParams): Promise<AppointmentModel[]> {
+        let appointments = await this.repository.getAll();
+        if (options.filterBy) {
+            appointments = this.filterAppointments(appointments, options.filterBy);
+        }
+        return appointments;
+    }
+
+    private filterAppointments(appointments: AppointmentModel[], filterParams: IFilterParam[]): AppointmentModel[] {
+        let filtered = appointments;
+        for (const param of filterParams) {
+            param.field = param.field.toLowerCase();
+            if (param.field === AppointmentsFilterByEnum.DOCTORS) {
+                filtered = this.filterByDoctors(appointments, param.value);
+            } else if (param.field === AppointmentsFilterByEnum.PATIENTS) {
+                filtered = this.filterByPatients(appointments, param.value);
+            } else {
+                throw new UnableToFilterError(ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field));
+            }
+        }
+        return filtered;
+    }
+
+    private filterByDoctors(appointments: AppointmentModel[], doctorId: string): AppointmentModel[] {
+        return appointments.filter(a => a.doctorId === doctorId);
+    }
+
+    private filterByPatients(appointments: AppointmentModel[], patientId: string): AppointmentModel[] {
+        return appointments.filter(a => a.patientId === patientId);
     }
 
     public async getAppointmentById(id: string): Promise<AppointmentModel | undefined> {

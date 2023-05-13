@@ -27,7 +27,7 @@ export default class AppointmentsController implements IHttpController {
     }
 
     public async get(req: Request, res: Response): Promise<void> {
-        const appointments = await this.appointmentService.getAllAppointments();
+        const appointments = await this.appointmentService.getAllAppointments(req.query);
         if(appointments.length < 1) {
             res.status(StatusCodeEnum.NO_CONTENT);
         }

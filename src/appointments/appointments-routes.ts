@@ -7,12 +7,14 @@ import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
+import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
 
 @injectable()
 export default class AppointmentsRoutes implements IRoutes {
     private readonly _router: Router;
     private readonly createValidator = new DtoValidatorMiddleware(CreateAppointmentDto);
     private readonly updateValidator = new DtoValidatorMiddleware(UpdateAppointmentDto);
+    private readonly mapQueryParams = new QueryMapperMiddleware();
 
     constructor(
         @inject(CONTAINER_TYPES.APPOINTMENTS_CONTROLLER) private readonly appointmentsController: IHttpController
@@ -23,7 +25,10 @@ export default class AppointmentsRoutes implements IRoutes {
 
     private setupRoutes() {
         this._router.route('/')
-            .get(this.appointmentsController.get.bind(this.appointmentsController))
+            .get(
+                this.mapQueryParams.map.bind(this.mapQueryParams),
+                this.appointmentsController.get.bind(this.appointmentsController)
+            )
             .post(
                 this.createValidator.validate.bind(this.createValidator),
                 this.appointmentsController.post.bind(this.appointmentsController)

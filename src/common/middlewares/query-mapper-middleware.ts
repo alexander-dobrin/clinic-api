@@ -43,7 +43,7 @@ export class QueryMapperMiddleware {
         const [field, value] = param.split(':');
 
         if (value == undefined) {
-            throw new InvalidParameterError(ErrorMessageEnum.INVALID_FILTER_PARAMETER);
+            throw new InvalidParameterError(ErrorMessageEnum.INVALID_FILTER_PARAMETER.replace('%s', param));
         }
 
         return { field, value };
