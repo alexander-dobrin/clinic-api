@@ -32,4 +32,11 @@ export default class AppointmentsRepository implements IRepository<AppointmentMo
     public async remove(appointment: AppointmentModel): Promise<AppointmentModel | undefined> {
         return this.provider.deleteById(appointment.id);
     }
+
+    public async removeAllDoctorAppointments(id: string): Promise<void> {
+        const appointments = await this.getAll();
+        const doctorAppointments = appointments.filter(a => a.doctorId === id);
+        const promises = doctorAppointments.map(a => this.provider.deleteById(a.id));
+        await Promise.all(promises);
+    }
 }

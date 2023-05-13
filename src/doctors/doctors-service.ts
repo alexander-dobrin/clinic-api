@@ -4,8 +4,6 @@ import CreateDoctorDto from "./dto/create-doctor-dto";
 import { plainToClass } from "class-transformer";
 import UpdateDoctorDto from "./dto/update-doctor-dto";
 import { merge } from "lodash";
-import { ServiceEventEmitter } from "../common/services/service-event-emitter";
-import { EventEnum } from "../common/enums";
 import { DateTime } from "luxon";
 import { IDoctorsService } from "./doctors-service-interface";
 import { injectable, inject } from 'inversify';
@@ -14,15 +12,14 @@ import { CONTAINER_TYPES } from "../common/constants";
 import { IQueryParams, IRepository } from "../common/types";
 import { AppointmentConflictError } from "../common/errors";
 import { ErrorMessageEnum } from "../common/enums";
-import AppointmentModel from "../appointments/appointment-model";
 import { DoctorsQueryHandler } from "./helpers/doctors-query-handler";
+import AppointmentsRepository from "../appointments/appointments-repository";
 
 @injectable()
 export default class DoctorsService implements IDoctorsService {
     constructor(
         @inject(CONTAINER_TYPES.DOCTORS_REPOSITORY) private readonly doctorsRepository: IRepository<DoctorModel>, 
-        @inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY) private readonly appointmentsRepository: IRepository<AppointmentModel>,
-        @inject(CONTAINER_TYPES.EVENT_EMITTER) private readonly eventEmitter: ServiceEventEmitter
+        @inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY) private readonly appointmentsRepository: AppointmentsRepository
     ) {
         
     }
@@ -60,12 +57,13 @@ export default class DoctorsService implements IDoctorsService {
         if (!doctor) {
             return;
         }
-        const deleted = await this.doctorsRepository.remove(doctor);
-        if (deleted) {
-            this.eventEmitter.emit(EventEnum.DOCTOR_DELETED, doctor);
-        }
 
-        return deleted;
+        const deletedDoctor = await this.doctorsRepository.remove(doctor);
+        if (deletedDoctor) {
+            this.appointmentsRepository.removeAllDoctorAppointments(deletedDoctor.id);
+        }
+        
+        return deletedDoctor;
     }
 
     public async takeFreeSlot(id: string, date: DateTime): Promise<boolean> {

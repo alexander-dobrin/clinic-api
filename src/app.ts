@@ -13,6 +13,7 @@ export default class App {
         @inject(CONTAINER_TYPES.PATIENTS_ROUTES) private readonly patientsRoutes: IRoutes, 
         @inject(CONTAINER_TYPES.DOCTORS_ROUTES) private readonly doctorsRoutes: IRoutes, 
         @inject(CONTAINER_TYPES.APPOINTMENTS_ROUTES) private readonly appointmentsRoutes: IRoutes,
+        @inject(CONTAINER_TYPES.AUTH_ROUTES) private readonly authRoutes: IRoutes,
         @inject(CONTAINER_TYPES.EXCEPTION_FILTER) private readonly exceptionFilter: ExceptionFilter
     ) {
         this.app = express();
@@ -35,6 +36,7 @@ export default class App {
         this.app.use('/patients', this.patientsRoutes.router);
         this.app.use('/doctors', this.doctorsRoutes.router);
         this.app.use('/appointments', this.appointmentsRoutes.router);
+        this.app.use('/', this.authRoutes.router);
     }
 
     public listen(port): void {

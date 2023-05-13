@@ -44,7 +44,7 @@ export default class FileDataProvider<TModel extends IFindable> implements IData
 
     public async deleteById(id: string): Promise<TModel | undefined> {
         const models = await this.read();
-        const model = this.findById(id, models);
+        const model = await this.findById(id, models);
         if (!model) {
             return;
         }
