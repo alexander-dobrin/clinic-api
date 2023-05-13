@@ -1,14 +1,14 @@
 import PatientModel from "./patient-model";
-import { DuplicateEntityError } from "../common/errors";
+import { DuplicateEntityError, UnableToFilterError } from "../common/errors";
 import CreatePatientDto from "./dto/create-patient-dto";
 import { v4 } from "uuid";
 import { merge } from "lodash";
 import UpdatePatientDto from "./dto/update-patient-dto";
-import { ErrorMessageEnum } from "../common/enums";
+import { ErrorMessageEnum, PatietnsFilterByEnum } from "../common/enums";
 import { IPatientsService } from "./patients-service-interface";
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
-import { IRepository } from "../common/types";
+import { IFilterParam, IQueryParams, IRepository } from "../common/types";
 import { CONTAINER_TYPES } from "../common/constants";
 
 @injectable()
@@ -28,8 +28,35 @@ export default class PatientsService implements IPatientsService {
         return await this.repository.add(patient);
     }
 
-    public async getAllPatients(): Promise<PatientModel[]> {
-        return this.repository.getAll();
+    public async getAllPatients(options: IQueryParams): Promise<PatientModel[]> {
+        let patients = await this.repository.getAll();
+        if (options.filterBy) {
+            patients = this.filterPatients(patients, options.filterBy);
+        }
+        return patients;
+    }
+
+    private filterPatients(patients: PatientModel[], filterParams: IFilterParam[]): PatientModel[] {
+        let filtered = patients;
+        for (const param of filterParams) {
+            param.field = param.field.toLowerCase();
+            if (param.field === PatietnsFilterByEnum.NAME) {
+                filtered = this.filterByName(patients, param.value);
+            } else if (param.field === PatietnsFilterByEnum.PHONE) {
+                filtered = this.filterByPhone(patients, param.value);
+            } else {
+                throw new UnableToFilterError(ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field));
+            }
+        }
+        return filtered;
+    }
+
+    private filterByName(patients: PatientModel[], name: string): PatientModel[] {
+        return patients.filter(p => p.firstName === name);
+    }
+
+    private filterByPhone(patients: PatientModel[], phone: string): PatientModel[] {
+        return patients.filter(p => p.phoneNumber === phone);
     }
 
     public async getPatientById(id: string): Promise<PatientModel | undefined> {

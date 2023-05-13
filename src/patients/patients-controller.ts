@@ -15,7 +15,7 @@ export default class PatientsController implements IHttpController {
     }
 
     public async get(req: Request, res: Response): Promise<void> {
-        const patients = await this.patientsService.getAllPatients();
+        const patients = await this.patientsService.getAllPatients(req.query);
         if (patients.length < 1) {
             res.status(StatusCodeEnum.NO_CONTENT);
         }

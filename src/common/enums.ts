@@ -39,3 +39,8 @@ export enum AppointmentsFilterByEnum {
     DOCTORS = 'doctorid',
     PATIENTS = 'patientid'
 }
+
+export enum PatietnsFilterByEnum {
+    NAME = 'name',
+    PHONE = 'phonenumber'
+}
