@@ -8,12 +8,14 @@ import { appointmentsModule } from './appointments/appointments-module';
 import { CONTAINER_TYPES } from './common/constants';
 import 'reflect-metadata';
 import { authModule } from './auth/auth-module';
+import { userModule } from './users/user-module';
 
 const iocContainer = new Container();
 iocContainer.load(patientsModule);
 iocContainer.load(doctorsModule);
 iocContainer.load(appointmentsModule);
 iocContainer.load(authModule);
+iocContainer.load(userModule);
 
 iocContainer.bind<ExceptionFilter>(CONTAINER_TYPES.EXCEPTION_FILTER).to(ExceptionFilter).inSingletonScope();
 iocContainer.bind<App>(CONTAINER_TYPES.APP).to(App);

@@ -14,7 +14,8 @@ export enum ErrorMessageEnum {
     DOCTOR_NOT_AVAILABLE = 'Doctor [%s] is not available at [%s]',
     UNABLE_TO_SORT = 'Sorting based on [%s] data can not be processed since currently such data is empty',
     UNKNOWN_QUERY_PARAMETER = 'Unknown query parameter [%s]',
-    INVALID_FILTER_PARAMETER = `Query filterBy parameter [%s] must follow field:value format`
+    INVALID_FILTER_PARAMETER = `Query filterBy parameter [%s] must follow field:value format`,
+    USER_ALLREADY_EXISTS = 'User [%s] allready exists'
 }
 
 export enum RequestMethodEnum {
