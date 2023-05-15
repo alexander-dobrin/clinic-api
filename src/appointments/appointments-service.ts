@@ -10,7 +10,7 @@ import { UpdateAppointmentDto } from "./dto/update-appointment-dto";
 import { merge } from "lodash";
 import { IAppointmentsService } from "./appointments-service-interface";
 import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
+
 import { CONTAINER_TYPES } from "../common/constants";
 import { IFilterParam, IQueryParams } from "../common/types";
 import { AppointmentsFilterByEnum, ErrorMessageEnum } from "../common/enums";

@@ -9,7 +9,7 @@ import PatientsService from "./patients-service";
 import { IRepository } from "../common/types";
 import PatientsRepository from "./patients-repository";
 import PatientModel from "./patient-model";
-import 'reflect-metadata';
+
 import { IDataProvider } from "../common/types";
 import FileDataProvider from "../common/providers/file-data-provider";
 import * as path from 'path';

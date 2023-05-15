@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import 'reflect-metadata';
+
 import { AuthService } from "./auth-service";
 import { CONTAINER_TYPES } from "../common/constants";
 import { StatusCodeEnum } from "../common/enums";

@@ -4,7 +4,7 @@ import CreateDoctorDto from './dto/create-doctor-dto';
 import UpdateDoctorDto from './dto/update-doctor-dto';
 import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
+
 import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';

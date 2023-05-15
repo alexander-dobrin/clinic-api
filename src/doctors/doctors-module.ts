@@ -9,7 +9,7 @@ import DoctorModel from "./doctor-model";
 import DoctorsRepository from "./doctors-repository";
 import DoctorsController from "./doctors-controller";
 import DoctorsRoutes from "./doctors-routes";
-import 'reflect-metadata';
+
 import { IDataProvider } from "../common/types";
 import FileDataProvider from "../common/providers/file-data-provider";
 import * as path from 'path';

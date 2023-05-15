@@ -7,7 +7,7 @@ import { merge } from "lodash";
 import { DateTime } from "luxon";
 import { IDoctorsService } from "./doctors-service-interface";
 import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
+
 import { CONTAINER_TYPES } from "../common/constants";
 import { IQueryParams, IRepository } from "../common/types";
 import { AppointmentConflictError } from "../common/errors";

@@ -4,7 +4,7 @@ import CreatePatientDto from './dto/create-patient-dto';
 import UpdatePatientDto from './dto/update-patient-dto';
 import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
+
 import { CONTAINER_TYPES } from '../common/constants';
 import { IHttpController } from '../common/types';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';

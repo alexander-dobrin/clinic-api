@@ -2,7 +2,7 @@ import { StatusCodeEnum } from "../common/enums";
 import { Request, Response, NextFunction } from "express";
 import { IQueryParams, IHttpController } from "../common/types";
 import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
+
 import { CONTAINER_TYPES } from "../common/constants";
 import { IDoctorsService } from "./doctors-service-interface";
 

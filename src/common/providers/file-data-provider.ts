@@ -2,7 +2,7 @@ import { IDataProvider } from "../types";
 import { readFile, writeFile } from "fs/promises";
 import { IFindable } from "../types";
 import { injectable } from 'inversify';
-import 'reflect-metadata';
+
 
 @injectable()
 export default class FileDataProvider<TModel extends IFindable> implements IDataProvider<TModel> {

@@ -7,7 +7,7 @@ import UpdatePatientDto from "./dto/update-patient-dto";
 import { ErrorMessageEnum, PatietnsFilterByEnum, UserRoleEnum } from "../common/enums";
 import { IPatientsService } from "./patients-service-interface";
 import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
+
 import { IDataProvider, IFilterParam, IQueryParams, IRepository } from "../common/types";
 import { CONTAINER_TYPES } from "../common/constants";
 import { IUser } from "../users/user-interface";

@@ -4,7 +4,7 @@ import { DuplicateEntityError } from "../errors";
 import { StatusCodeEnum } from "../enums";
 import { AppointmentConflictError } from "../errors";
 import { injectable } from 'inversify';
-import 'reflect-metadata';
+
 
 @injectable()
 export class ExceptionFilter {

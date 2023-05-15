@@ -9,7 +9,7 @@ import AppointmentsService from "./appointments-service";
 import AppointmentModel from "./appointment-model";
 import AppointmentsRepository from "./appointments-repository";
 import { IAppointmentsService } from "./appointments-service-interface";
-import 'reflect-metadata';
+
 import { IDataProvider } from "../common/types";
 import FileDataProvider from "../common/providers/file-data-provider";
 import * as path from 'path';

@@ -3,7 +3,7 @@ import { IDataProvider } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IRepository } from '../common/types';
 import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
+
 
 @injectable()
 export default class DoctorsRepository implements IRepository<DoctorModel> {

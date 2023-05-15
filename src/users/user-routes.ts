@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { IRoutes } from "../common/types";
 import { inject, injectable } from "inversify";
-import 'reflect-metadata';
+
 import { UserController } from "./user-controller";
 import { CONTAINER_TYPES } from "../common/constants";
 

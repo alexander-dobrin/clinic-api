@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { IRoutes } from "../common/types";
 import { inject, injectable } from "inversify";
-import 'reflect-metadata';
+
 import AuthController from "./auth-controller";
 import { CONTAINER_TYPES } from "../common/constants";
 import DtoValidatorMiddleware from "../common/middlewares/dto-validator-middleware";

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import 'reflect-metadata';
+
 import { injectable } from 'inversify';
 
 @injectable()

@@ -1,6 +1,6 @@
 import { IDataProvider } from "../common/types";
 import { inject, injectable } from "inversify";
-import 'reflect-metadata';
+
 import { CONTAINER_TYPES } from "../common/constants";
 import { DuplicateEntityError, InvalidParameterError } from "../common/errors";
 import { ErrorMessageEnum, UserRoleEnum } from "../common/enums";

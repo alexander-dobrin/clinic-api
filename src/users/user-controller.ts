@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import 'reflect-metadata';
+
 import { CONTAINER_TYPES } from "../common/constants";
 import { NextFunction, Request, Response } from "express";
 import UserService from "./user-service";

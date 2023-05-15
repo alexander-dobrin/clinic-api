@@ -11,7 +11,7 @@ import { UpdateUserDto } from "./dto/update-user-dto";
 import bcrypt from "bcrypt";
 import DoctorModel from "../doctors/doctor-model";
 import PatientModel from "../patients/patient-model";
-import 'reflect-metadata';
+
 
 @injectable()
 export default class UserService {
