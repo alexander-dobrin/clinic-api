@@ -3,6 +3,7 @@ import { inject, injectable } from "inversify";
 import 'reflect-metadata';
 import { AuthService } from "./auth-service";
 import { CONTAINER_TYPES } from "../common/constants";
+import { StatusCodeEnum } from "../common/enums";
 
 @injectable()
 export default class AuthController {
@@ -21,27 +22,34 @@ export default class AuthController {
         }
     }
 
-    public login(req: Request, res: Response, next: NextFunction) {
-        console.log('/login');
+    public async login(req: Request, res: Response, next: NextFunction) {
+        try {
+            const loginedUser = await this.authService.login(req.body);
+            if (!loginedUser) {
+                res.sendStatus(StatusCodeEnum.NOT_FOUND);
+                return;
+            }
+            res.json(loginedUser);
+        } catch (error) {
+            next(error);
+        }
     }
 
-    // private async signIn(user) {
-    //     const foundUser = users.find(u => u.name === user.name);
+    public async resetPassword(req: Request, res: Response, next: NextFunction) {
+        try {
+            const resetToken = await this.authService.resetPassword(req.body.email);
+            res.json({ token: resetToken });
+        } catch (error) {
+            next(error);
+        }
+    }
 
-    // if (!foundUser) {
-    //     throw new Error('Name of user is not correct');
-    // }
-
-    // const isMatch = await bcrypt.compare(user.password, foundUser.password);
-
-    // if (isMatch) {
-    //     const token = jwt.sign({ id: foundUser.id?.toString(), name: foundUser.name }, SECRET_KEY, {
-    //         expiresIn: '2 days',
-    //     });
-
-    //     return { user: { id: foundUser.id, name: foundUser.name }, token };
-    // } else {
-    //     throw new Error('Password is not correct');
-    // }
-    // }
+    public async recoverPassword(req: Request, res: Response, next: NextFunction) {
+        try {
+            const result = await this.authService.recoverPassword(req.body.resetToken, req.body.password);
+            res.json({ message: result });
+        } catch (error) {
+            next(error);
+        }
+    }
 }

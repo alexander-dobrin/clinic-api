@@ -15,7 +15,10 @@ export enum ErrorMessageEnum {
     UNABLE_TO_SORT = 'Sorting based on [%s] data can not be processed since currently such data is empty',
     UNKNOWN_QUERY_PARAMETER = 'Unknown query parameter [%s]',
     INVALID_FILTER_PARAMETER = `Query filterBy parameter [%s] must follow field:value format`,
-    USER_ALLREADY_EXISTS = 'User [%s] allready exists'
+    USER_ALLREADY_EXISTS = 'User [%s] allready exists',
+    INVALID_PASSWORD = 'Password is not correct',
+    USER_NOT_FOUND = 'User [%s] not found',
+    INVALID_RESET_TOKEN = 'Invalid reset token'
 }
 
 export enum RequestMethodEnum {
@@ -44,4 +47,10 @@ export enum AppointmentsFilterByEnum {
 export enum PatietnsFilterByEnum {
     NAME = 'name',
     PHONE = 'phonenumber'
+}
+
+export enum UserRoleEnum {
+    GUEST = 'guest',
+    USER = 'user',
+    DOCTOR = 'doctor'
 }
