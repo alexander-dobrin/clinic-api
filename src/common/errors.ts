@@ -32,3 +32,10 @@ export class UnableToFilterError extends Error {
     Error.captureStackTrace(this, InvalidParameterError);
   }
 }
+
+export class NotAuthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, InvalidParameterError);
+  }
+}

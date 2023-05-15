@@ -8,6 +8,7 @@ import 'reflect-metadata';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IHttpController } from '../common/types';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
+import { auth } from '../common/middlewares/auth-middleware';
 
 @injectable()
 export default class PatientsRoutes implements IRoutes {
@@ -29,6 +30,7 @@ export default class PatientsRoutes implements IRoutes {
                 this.patientsController.get.bind(this.patientsController)
             )
             .post(
+                auth,
                 this.createValidator.validate.bind(this.createValidator),
                 this.patientsController.post.bind(this.patientsController)
             );

@@ -9,6 +9,8 @@ import { SALT_ROUNDS } from "../common/constants";
 import jwt from "jsonwebtoken";
 import { IUser } from "../users/user-interface";
 import UserService from "../users/user-service";
+import { CreateUserDto } from "../users/dto/create-user-dto";
+import { UpdateUserDto } from "../users/dto/update-user-dto";
 
 @injectable()
 export class AuthService {
@@ -19,7 +21,7 @@ export class AuthService {
 
     }
 
-    public async register(user: IUser) {
+    public async register(user: CreateUserDto) {
         if (await this.userService.isUserExist(user.email)) {
             throw new DuplicateEntityError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email));
         }
@@ -58,8 +60,7 @@ export class AuthService {
 
         // Review: should i provide additional info for token payload when reset password?
         const resetToken = this.signTokenForUser(user);
-        user.resetToken = resetToken;
-        await this.userService.updateUserByEmail(email, user);
+        await this.userService.updateUserResetToken(email, resetToken);
 
         return resetToken;
     }
@@ -71,8 +72,8 @@ export class AuthService {
         }
 
         user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
-        user.resetToken = null; // Очищаем токен сброса пароля
-        await this.userService.updateUserByEmail(user.email, user);
+        await this.userService.updateUserById(user.id, new UpdateUserDto(user.email, user.password, user.firstName, user.role));
+        await this.userService.updateUserResetToken(user.email, null);
 
         return "Password has been successfully recovered.";
     }

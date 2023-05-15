@@ -5,7 +5,8 @@ export enum StatusCodeEnum {
     NOT_FOUND = 404,
     INTERNAL_SERVER_ERROR = 500,
     CONFLICT = 409,
-    UNPROCESSABLE_ENTITY = 422
+    UNPROCESSABLE_ENTITY = 422,
+    NOT_AUTHORIZED = 401,
 }
 
 export enum ErrorMessageEnum {
@@ -18,7 +19,8 @@ export enum ErrorMessageEnum {
     USER_ALLREADY_EXISTS = 'User [%s] allready exists',
     INVALID_PASSWORD = 'Password is not correct',
     USER_NOT_FOUND = 'User [%s] not found',
-    INVALID_RESET_TOKEN = 'Invalid reset token'
+    INVALID_RESET_TOKEN = 'Invalid reset token',
+    NOT_AUTHORIZED = 'Authorization requiered'
 }
 
 export enum RequestMethodEnum {

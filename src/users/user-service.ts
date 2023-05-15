@@ -1,29 +1,36 @@
 import { inject, injectable } from "inversify";
-import { IDataProvider } from "../common/types";
+import { IDataProvider, IRepository } from "../common/types";
 import { IUser } from "./user-interface";
-import { CONTAINER_TYPES } from "../common/constants";
+import { CONTAINER_TYPES, SALT_ROUNDS } from "../common/constants";
 import { v4 } from "uuid";
 import { DuplicateEntityError } from "../common/errors";
 import { ErrorMessageEnum, UserRoleEnum } from "../common/enums";
 import { merge } from "lodash";
+import { CreateUserDto } from "./dto/create-user-dto";
+import { UpdateUserDto } from "./dto/update-user-dto";
+import bcrypt from "bcrypt";
+import DoctorModel from "../doctors/doctor-model";
+import PatientModel from "../patients/patient-model";
+import 'reflect-metadata';
 
 @injectable()
 export default class UserService {
     constructor(
-        @inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly provider: IDataProvider<IUser>
+        @inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly provider: IDataProvider<IUser>,
+        @inject(CONTAINER_TYPES.PATIENTS_REPOSITORY) private readonly patientsRepository: IRepository<PatientModel>
     ) {
 
     }
 
-    public async createUser(user: IUser): Promise<IUser> {
+    public async createUser(user: CreateUserDto): Promise<IUser> {
         if (await this.isUserExist(user.email)) {
             throw new DuplicateEntityError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email));
         }
-        // Review: on which criteria initial user role is defined and which module is responsible for that?
-        // Should user role be passed in req body and, if not, set do default, and then 
-        // set to doctor/patient when creating patient or doctor?
+        // Review: on which criteria initial user role is defined?
         // Should user role be set in UserService or AuthService?
         // Should role be set during login or registration?
+        // Should user role be passed in req body and, or when creating patient or doctor in their services?
+        user.password = await bcrypt.hash(user.password, SALT_ROUNDS);
         const newUser: IUser = { id: v4(), role: user.role ?? UserRoleEnum.GUEST, ...user };        
         return this.provider.create(newUser);
     }
@@ -38,22 +45,55 @@ export default class UserService {
         return users.find(u => u.email === email);
     }
 
-    public async updateUserByEmail(email: string, userNewData: IUser): Promise<IUser> {
-        const isOldEmail = email === userNewData.email;
-        if (!isOldEmail && await this.isUserExist(userNewData.email)) {
-            throw new DuplicateEntityError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', userNewData.email));
-        }
+    public async updateUserResetToken(email: string, token: string | null): Promise<IUser> {
         const user = await this.getUserByEmail(email);
         if (!user) {
             return;
         }
-        // Review: use merge or create new user manually with constructor
-        merge(user, userNewData);
+        
+        user.resetToken = token;
         return this.provider.updateById(user.id, user);
     }
 
     public async getUserByResetToken(token: string) {
         const users = await this.provider.read();
         return users.find(u => u?.resetToken === token);
+    }
+
+    public async getAllUsers() {
+        return this.provider.read();
+    }
+
+    public async getUserById(id: string) {
+        const users = await this.provider.read();
+        return users.find(u => u.id === id);
+    }
+
+    public async updateUserById(id: string, userDto: UpdateUserDto) {
+        if (!this.isUserExist(userDto.email)) {
+            throw new DuplicateEntityError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', userDto.email));
+        }
+        const user = await this.provider.readById(id);
+        if (!user) {
+            return;
+        }
+        if (userDto.password) {
+            userDto.password = await bcrypt.hash(userDto.password, SALT_ROUNDS);
+        }
+        merge(user, userDto);
+        return this.provider.updateById(user.id, user);
+    }
+
+    public async deleteUserById(id: string) {
+        const user = this.getUserById(id);
+        if (!user) {
+            return;
+        }
+        
+        const patients = await this.patientsRepository.getAll();
+        const patientsToDelete = patients.filter(p => p.user.id === id);
+        const promises = patientsToDelete.map(p => this.patientsRepository.remove(p));
+        await Promise.all(promises);
+        return this.provider.deleteById(id);
     }
 }

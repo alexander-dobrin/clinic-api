@@ -1,11 +1,11 @@
-export default class PatientModel {
-    public id: string;
-    public firstName: string;
-    public phoneNumber: string;
+import { IUser } from "../users/user-interface";
 
-    constructor(id: string, firstName: string, phoneNumber: string) {
-        this.id = id;
-        this.firstName = firstName;
-        this.phoneNumber = phoneNumber;
+export default class PatientModel {
+    constructor(
+        public id: string, 
+        // Review: use full model or just id?
+        public user: IUser,
+        public phoneNumber: string
+    ) {
     }
 }

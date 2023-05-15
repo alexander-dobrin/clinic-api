@@ -4,46 +4,51 @@ import CreatePatientDto from "./dto/create-patient-dto";
 import { v4 } from "uuid";
 import { merge } from "lodash";
 import UpdatePatientDto from "./dto/update-patient-dto";
-import { ErrorMessageEnum, PatietnsFilterByEnum } from "../common/enums";
+import { ErrorMessageEnum, PatietnsFilterByEnum, UserRoleEnum } from "../common/enums";
 import { IPatientsService } from "./patients-service-interface";
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
-import { IFilterParam, IQueryParams, IRepository } from "../common/types";
+import { IDataProvider, IFilterParam, IQueryParams, IRepository } from "../common/types";
 import { CONTAINER_TYPES } from "../common/constants";
+import { IUser } from "../users/user-interface";
+import { JwtPayload } from "jsonwebtoken";
 
 @injectable()
 export default class PatientsService implements IPatientsService {
     constructor(
-        @inject(CONTAINER_TYPES.PATIENTS_REPOSITORY) private readonly repository: IRepository<PatientModel>
+        @inject(CONTAINER_TYPES.PATIENTS_REPOSITORY) private readonly repository: IRepository<PatientModel>,
+        @inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly userProvider: IDataProvider<IUser>
     ) {
 
     }
 
-    public async createPatient(patientDto: CreatePatientDto): Promise<PatientModel> {
-        const { firstName, phoneNumber } = patientDto;
+    public async createPatient(patientDto: CreatePatientDto, user: JwtPayload): Promise<PatientModel> {
+        await this.throwIfPhoneTaken(patientDto.phoneNumber);
+        const patientUser = await this.userProvider.readById(user.id);
+        const patient = new PatientModel(v4(), patientUser, patientDto.phoneNumber);
 
-        await this.throwIfPhoneTaken(phoneNumber);
-        const patient = new PatientModel(v4(), firstName, phoneNumber);
-        
+        // Review: should assign role here?
+        patientUser.role = UserRoleEnum.DOCTOR;
+        this.userProvider.updateById(patientUser.id, patientUser);
+
         return await this.repository.add(patient);
     }
 
     public async getAllPatients(options: IQueryParams): Promise<PatientModel[]> {
-        let patients = await this.repository.getAll();
         if (options.filterBy) {
-            patients = this.filterPatients(patients, options.filterBy);
+            return await this.filterPatients(options.filterBy);
         }
-        return patients;
+        return this.repository.getAll();
     }
 
-    private filterPatients(patients: PatientModel[], filterParams: IFilterParam[]): PatientModel[] {
-        let filtered = patients;
+    private async filterPatients(filterParams: IFilterParam[]): Promise<PatientModel[]> {
+        let filtered = await this.repository.getAll();
         for (const param of filterParams) {
             param.field = param.field.toLowerCase();
             if (param.field === PatietnsFilterByEnum.NAME) {
-                filtered = this.filterByName(patients, param.value);
+                filtered = this.filterByName(filtered, param.value);
             } else if (param.field === PatietnsFilterByEnum.PHONE) {
-                filtered = this.filterByPhone(patients, param.value);
+                filtered = this.filterByPhone(filtered, param.value);
             } else {
                 throw new UnableToFilterError(ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field));
             }
@@ -52,7 +57,7 @@ export default class PatientsService implements IPatientsService {
     }
 
     private filterByName(patients: PatientModel[], name: string): PatientModel[] {
-        return patients.filter(p => p.firstName === name);
+        return patients.filter(p => p.user.firstName === name);
     }
 
     private filterByPhone(patients: PatientModel[], phone: string): PatientModel[] {
@@ -72,6 +77,7 @@ export default class PatientsService implements IPatientsService {
         if (!patient) {
             return;
         }        
+        // Review: use merge or create new user manually with constructor
         merge(patient, patientDto);
 
         return await this.repository.update(patient);
@@ -83,7 +89,7 @@ export default class PatientsService implements IPatientsService {
             return;
         }
 
-        return await this.repository.remove(patient);;
+        return this.repository.remove(patient);;
     }
 
     private async throwIfPhoneTaken(phone: string) {

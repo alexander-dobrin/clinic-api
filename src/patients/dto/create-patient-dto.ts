@@ -1,14 +1,14 @@
 import { IsNotEmpty, IsPhoneNumber } from 'class-validator';
 
 export default class CreatePatientDto {
-    @IsNotEmpty()
-    public readonly firstName: string;
+    // Review: should pass firstName when creating patient if it is created in user model? So should we override?
+    // @IsNotEmpty()
+    // public readonly firstName: string;
 
     @IsPhoneNumber()
     public readonly phoneNumber: string;
 
-    constructor(firstName: string, phoneNumber: string) {
-        this.firstName = firstName;
+    constructor(phoneNumber: string) {
         this.phoneNumber = phoneNumber;
     }
 }

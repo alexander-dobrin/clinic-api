@@ -5,6 +5,6 @@ export interface IUser {
     email: string;
     password: string;
     firstName: string;
-    role: UserRoleEnum;
+    role?: UserRoleEnum;
     resetToken?: string;
 }

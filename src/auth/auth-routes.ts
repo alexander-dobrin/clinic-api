@@ -25,6 +25,7 @@ export class AuthRoutes implements IRoutes {
     }
 
     private setupRoutes() {
+        // Review: are the routes correct?
         this._router.post(
             '/register', 
             this.createValidator.validate.bind(this.createValidator),

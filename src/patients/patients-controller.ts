@@ -5,6 +5,7 @@ import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IPatientsService } from './patients-service-interface';
+import { AuthorizedRequest } from '../common/middlewares/auth-middleware';
 
 @injectable()
 export default class PatientsController implements IHttpController {
@@ -31,9 +32,9 @@ export default class PatientsController implements IHttpController {
         res.json(patient);
     }
 
-    public async post(req: Request, res: Response, next: NextFunction): Promise<void> {
+    public async post(req: AuthorizedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const patient = await this.patientsService.createPatient(req.body);
+            const patient = await this.patientsService.createPatient(req.body, req.user);
             res.status(StatusCodeEnum.CREATED).json(patient);
         } catch (err) {
             next(err);
