@@ -23,6 +23,16 @@ export enum ErrorMessageEnum {
     NOT_AUTHORIZED = 'Authorization requiered'
 }
 
+export enum ResponseMessageEnum {
+    PASSWORD_RECOVERED = 'Password has been successfully recovered'
+}
+
+export enum TokenLifetimeEnum {
+    RESET_TOKEN = '15m',
+    REGISTER_TOKEN = '1d',
+    LOGIN_TOKEN = '1d'
+}
+
 export enum RequestMethodEnum {
     GET = 'GET',
 }

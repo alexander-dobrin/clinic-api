@@ -9,7 +9,6 @@ import { merge } from "lodash";
 import { CreateUserDto } from "./dto/create-user-dto";
 import { UpdateUserDto } from "./dto/update-user-dto";
 import bcrypt from "bcrypt";
-import DoctorModel from "../doctors/doctor-model";
 import PatientModel from "../patients/patient-model";
 
 
@@ -40,9 +39,23 @@ export default class UserService {
         return users.some(u => u.email === email);
     }
 
+    public async getAllUsers() {
+        return this.provider.read();
+    }
+
+    public async getUserById(id: string) {
+        const users = await this.provider.read();
+        return users.find(u => u.id === id);
+    }
+
     public async getUserByEmail(email: string): Promise<IUser> {
         const users = await this.provider.read();
         return users.find(u => u.email === email);
+    }
+
+    public async getUserByResetToken(token: string) {
+        const users = await this.provider.read();
+        return users.find(u => u?.resetToken === token);
     }
 
     public async updateUserResetToken(email: string, token: string | null): Promise<IUser> {
@@ -53,21 +66,7 @@ export default class UserService {
         
         user.resetToken = token;
         return this.provider.updateById(user.id, user);
-    }
-
-    public async getUserByResetToken(token: string) {
-        const users = await this.provider.read();
-        return users.find(u => u?.resetToken === token);
-    }
-
-    public async getAllUsers() {
-        return this.provider.read();
-    }
-
-    public async getUserById(id: string) {
-        const users = await this.provider.read();
-        return users.find(u => u.id === id);
-    }
+    }    
 
     public async updateUserById(id: string, userDto: UpdateUserDto) {
         if (!this.isUserExist(userDto.email)) {
@@ -89,11 +88,14 @@ export default class UserService {
         if (!user) {
             return;
         }
-        
+        await this.deleteAssociatedPatients(id);      
+        return this.provider.deleteById(id);
+    }
+
+    private async deleteAssociatedPatients(id: string) {
         const patients = await this.patientsRepository.getAll();
         const patientsToDelete = patients.filter(p => p.user.id === id);
         const promises = patientsToDelete.map(p => this.patientsRepository.remove(p));
         await Promise.all(promises);
-        return this.provider.deleteById(id);
     }
 }

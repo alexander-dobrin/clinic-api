@@ -1,19 +1,18 @@
 import { Router } from "express";
 import { IRoutes } from "../common/types";
 import { inject, injectable } from "inversify";
-
 import AuthController from "./auth-controller";
 import { CONTAINER_TYPES } from "../common/constants";
 import DtoValidatorMiddleware from "../common/middlewares/dto-validator-middleware";
-import { CreateUserDto } from "../users/dto/create-user-dto";
 import { LoginDto } from "./dto/login-dto";
 import { ResetPasswordDto } from "./dto/reset-password-dto";
 import { RecoverPasswordDto } from "./dto/recover-password-dto";
+import { RegisterDto } from "./dto/register-dto";
 
 @injectable()
 export class AuthRoutes implements IRoutes {
     private readonly _router = Router();
-    private readonly createValidator = new DtoValidatorMiddleware(CreateUserDto);
+    private readonly registerValidator = new DtoValidatorMiddleware(RegisterDto);
     private readonly loginValidator = new DtoValidatorMiddleware(LoginDto);
     private readonly resetValidator = new DtoValidatorMiddleware(ResetPasswordDto);
     private readonly recoverValidator = new DtoValidatorMiddleware(RecoverPasswordDto);
@@ -25,10 +24,10 @@ export class AuthRoutes implements IRoutes {
     }
 
     private setupRoutes() {
-        // Review: are the routes correct?
+        // Review: are the routes ok?
         this._router.post(
             '/register', 
-            this.createValidator.validate.bind(this.createValidator),
+            this.registerValidator.validate.bind(this.registerValidator),
             this.controller.register.bind(this.controller));
         this._router.post(
             '/login', 

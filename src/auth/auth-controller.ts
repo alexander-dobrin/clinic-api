@@ -37,7 +37,7 @@ export default class AuthController {
 
     public async resetPassword(req: Request, res: Response, next: NextFunction) {
         try {
-            const resetToken = await this.authService.resetPassword(req.body.email);
+            const resetToken = await this.authService.resetPassword(req.body);
             res.json({ token: resetToken });
         } catch (error) {
             next(error);
@@ -46,7 +46,7 @@ export default class AuthController {
 
     public async recoverPassword(req: Request, res: Response, next: NextFunction) {
         try {
-            const result = await this.authService.recoverPassword(req.body.resetToken, req.body.password);
+            const result = await this.authService.recoverPassword(req.body);
             res.json({ message: result });
         } catch (error) {
             next(error);
