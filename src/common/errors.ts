@@ -39,3 +39,10 @@ export class NotAuthorizedError extends Error {
     Error.captureStackTrace(this, InvalidParameterError);
   }
 }
+
+export class UserConfilctError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, InvalidParameterError);
+  }
+}

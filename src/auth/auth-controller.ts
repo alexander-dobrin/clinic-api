@@ -16,7 +16,7 @@ export default class AuthController {
     public async register(req: Request, res: Response, next: NextFunction) {
         try {
             const registeredUser = await this.authService.register(req.body);
-            res.json(registeredUser);
+            res.status(StatusCodeEnum.CREATED).json(registeredUser);
         } catch (error) {
             next(error);
         }

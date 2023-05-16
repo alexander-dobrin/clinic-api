@@ -17,6 +17,7 @@ export const CONTAINER_TYPES = {
     AUTH_ROUTES: Symbol.for('AUTH_ROUTES'),
     AUTH_CONTROLLER: Symbol.for('AUTH_CONTROLLER'),
     AUTH_SERVICE: Symbol.for('AUTH_SERVICE'),
+    AUTH_MIDDLEWARE: Symbol.for('AUTH_MIDDLEWARE'),
 
     USER_SERVICE: Symbol.for('USER_SERVICE'),
     USER_CONTROLLER: Symbol.for('USER_CONTROLLER'),

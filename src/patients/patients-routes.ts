@@ -8,7 +8,8 @@ import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IHttpController } from '../common/types';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
-import { auth } from '../common/middlewares/auth-middleware';
+import { AuthMiddleware } from '../common/middlewares/auth-middleware';
+import { iocContainer } from '../inversify.config';
 
 @injectable()
 export default class PatientsRoutes implements IRoutes {
@@ -16,6 +17,7 @@ export default class PatientsRoutes implements IRoutes {
     private readonly createValidator = new DtoValidatorMiddleware(CreatePatientDto);
     private readonly updateValidator = new DtoValidatorMiddleware(UpdatePatientDto);
     private readonly mapQuery = new QueryMapperMiddleware();
+    private readonly authMiddleware = iocContainer.get<AuthMiddleware>(CONTAINER_TYPES.AUTH_MIDDLEWARE);
 
     constructor(
         @inject(CONTAINER_TYPES.PATIENTS_CONTROLLER) private readonly patientsController: IHttpController
@@ -30,7 +32,7 @@ export default class PatientsRoutes implements IRoutes {
                 this.patientsController.get.bind(this.patientsController)
             )
             .post(
-                auth,
+                this.authMiddleware.auth.bind(this.authMiddleware),
                 this.createValidator.validate.bind(this.createValidator),
                 this.patientsController.post.bind(this.patientsController)
             );

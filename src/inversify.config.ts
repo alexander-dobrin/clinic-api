@@ -7,6 +7,7 @@ import { appointmentsModule } from './appointments/appointments-module';
 import { CONTAINER_TYPES } from './common/constants';
 import { authModule } from './auth/auth-module';
 import { userModule } from './users/user-module';
+import { AuthMiddleware } from './common/middlewares/auth-middleware'
 
 export const iocContainer = new Container();
 
@@ -20,4 +21,8 @@ iocContainer.bind<ExceptionFilter>(CONTAINER_TYPES.EXCEPTION_FILTER)
     .to(ExceptionFilter)
     .inSingletonScope();
     
+iocContainer.bind<AuthMiddleware>(CONTAINER_TYPES.AUTH_MIDDLEWARE)
+    .to(AuthMiddleware)
+    .inSingletonScope();
+
 iocContainer.bind<App>(CONTAINER_TYPES.APP).to(App);

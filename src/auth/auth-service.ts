@@ -1,7 +1,7 @@
 import { IDataProvider } from "../common/types";
 import { inject, injectable } from "inversify";
 import { CONTAINER_TYPES } from "../common/constants";
-import { DuplicateEntityError, InvalidParameterError } from "../common/errors";
+import { DuplicateEntityError, InvalidParameterError, NotAuthorizedError } from "../common/errors";
 import { ErrorMessageEnum, ResponseMessageEnum, TokenLifetimeEnum, UserRoleEnum } from "../common/enums";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
@@ -24,9 +24,6 @@ export class AuthService {
     }
 
     public async register(registerData: RegisterDto): Promise<AuthedUser> {
-        if (await this.userService.isUserExist(registerData.email)) {
-            throw new DuplicateEntityError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', registerData.email));
-        }
         const newUser = await this.userService.createUser(registerData);    
         const token = this.signTokenForUser(newUser as UserPayload, TokenLifetimeEnum.REGISTER_TOKEN);
 
@@ -47,7 +44,7 @@ export class AuthService {
             const token = this.signTokenForUser(foundUser as UserPayload, TokenLifetimeEnum.LOGIN_TOKEN);
             return { user: { email: foundUser.email, role: foundUser.role, id: foundUser.id }, token };
         } else {
-            throw new InvalidParameterError(ErrorMessageEnum.INVALID_PASSWORD);
+            throw new NotAuthorizedError(ErrorMessageEnum.INVALID_PASSWORD);
         }
     }
 

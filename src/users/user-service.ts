@@ -3,7 +3,7 @@ import { IDataProvider, IRepository } from "../common/types";
 import { IUser } from "./user-interface";
 import { CONTAINER_TYPES, SALT_ROUNDS } from "../common/constants";
 import { v4 } from "uuid";
-import { DuplicateEntityError } from "../common/errors";
+import { DuplicateEntityError, UserConfilctError } from "../common/errors";
 import { ErrorMessageEnum, UserRoleEnum } from "../common/enums";
 import { merge } from "lodash";
 import { CreateUserDto } from "./dto/create-user-dto";
@@ -23,7 +23,7 @@ export default class UserService {
 
     public async createUser(user: CreateUserDto): Promise<IUser> {
         if (await this.isUserExist(user.email)) {
-            throw new DuplicateEntityError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email));
+            throw new UserConfilctError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email));
         }
         // Review: on which criteria initial user role is defined?
         // Should user role be set in UserService or AuthService?
@@ -34,7 +34,7 @@ export default class UserService {
         return this.provider.create(newUser);
     }
 
-    public async isUserExist(email: string): Promise<boolean> {
+    private async isUserExist(email: string): Promise<boolean> {
         const users = await this.provider.read();
         return users.some(u => u.email === email);
     }

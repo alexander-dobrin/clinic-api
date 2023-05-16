@@ -7,11 +7,11 @@ import UpdatePatientDto from "./dto/update-patient-dto";
 import { ErrorMessageEnum, PatietnsFilterByEnum, UserRoleEnum } from "../common/enums";
 import { IPatientsService } from "./patients-service-interface";
 import { injectable, inject } from 'inversify';
-
 import { IDataProvider, IFilterParam, IQueryParams, IRepository } from "../common/types";
 import { CONTAINER_TYPES } from "../common/constants";
 import { IUser } from "../users/user-interface";
 import { JwtPayload } from "jsonwebtoken";
+import { UserPayload } from "../auth/auth-types";
 
 @injectable()
 export default class PatientsService implements IPatientsService {
@@ -22,9 +22,10 @@ export default class PatientsService implements IPatientsService {
 
     }
 
-    public async createPatient(patientDto: CreatePatientDto, user: JwtPayload): Promise<PatientModel> {
+    public async createPatient(patientDto: CreatePatientDto, user: UserPayload): Promise<PatientModel> {
         await this.throwIfPhoneTaken(patientDto.phoneNumber);
         const patientUser = await this.userProvider.readById(user.id);
+        console.log(user.id)
         const patient = new PatientModel(v4(), patientUser, patientDto.phoneNumber);
 
         // Review: should assign role here?
