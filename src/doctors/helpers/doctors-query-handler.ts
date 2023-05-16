@@ -5,6 +5,7 @@ import DoctorModel from "../doctor-model";
 import AppointmentModel from "../../appointments/appointment-model";
 import { SortingStrategyFactory } from "./sorting/sorting-strategy-factory";
 
+// Review: декомпозировать это все в отдельные классы или оставить методами сервиса докторов?
 export class DoctorsQueryHandler {
     private readonly sortingStrategy;
 

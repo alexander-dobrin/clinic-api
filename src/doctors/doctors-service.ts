@@ -7,7 +7,6 @@ import { merge } from "lodash";
 import { DateTime } from "luxon";
 import { IDoctorsService } from "./doctors-service-interface";
 import { injectable, inject } from 'inversify';
-
 import { CONTAINER_TYPES } from "../common/constants";
 import { IQueryParams, IRepository } from "../common/types";
 import { AppointmentConflictError } from "../common/errors";
@@ -15,6 +14,8 @@ import { ErrorMessageEnum } from "../common/enums";
 import { DoctorsQueryHandler } from "./helpers/doctors-query-handler";
 import AppointmentsRepository from "../appointments/appointments-repository";
 
+// Review: что на счет export default? Стоит спользовать? Единственный известный мне риск это то что в таком случае
+// нельзя будет из двух разных модулей экспортировать типы с одинаковым именем
 @injectable()
 export default class DoctorsService implements IDoctorsService {
     constructor(
