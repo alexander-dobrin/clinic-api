@@ -8,7 +8,7 @@ import UserService from '../../users/user-service';
 import { UserPayload } from '../../auth/auth-types';
 
 export interface AuthorizedRequest extends Request {
-    user: JwtPayload;
+    user: UserPayload;
 }
 
 @injectable()

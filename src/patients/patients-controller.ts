@@ -32,6 +32,9 @@ export default class PatientsController implements IHttpController {
         res.json(patient);
     }
 
+    // Review: у пациента теперь часть полей находится в сущности пользователя
+    // значит ли это, что для создания пациента теперь необходима авторизация, ведь в ней
+    // и находятся данные о пользователе
     public async post(req: AuthorizedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const patient = await this.patientsService.createPatient(req.body, req.user);

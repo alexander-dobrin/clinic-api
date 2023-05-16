@@ -1,10 +1,9 @@
 import { inject, injectable } from "inversify";
-
 import { CONTAINER_TYPES } from "../common/constants";
 import { NextFunction, Request, Response } from "express";
 import UserService from "./user-service";
 import { StatusCodeEnum } from "../common/enums";
-import { CreateUserDto } from "./dto/create-user-dto";
+import { AuthorizedRequest } from "../common/middlewares/auth-middleware";
 
 @injectable()
 export class UserController {
@@ -38,6 +37,14 @@ export class UserController {
             return res.sendStatus(StatusCodeEnum.NOT_FOUND);
         }
         res.json(user);
+    }
+
+    public async profile(req: AuthorizedRequest, res: Response, next: NextFunction) {
+        const profile = await this.userService.getUserById(req.user.id);
+        if (!profile) {
+            return res.sendStatus(StatusCodeEnum.NOT_FOUND);
+        }
+        res.json(profile);
     }
 
     public async put(req: Request, res: Response, next: NextFunction) {
