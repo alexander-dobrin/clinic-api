@@ -2,7 +2,6 @@ import PatientModel from "./patient-model";
 import { DuplicateEntityError, UnableToFilterError } from "../common/errors";
 import CreatePatientDto from "./dto/create-patient-dto";
 import { v4 } from "uuid";
-import { merge } from "lodash";
 import UpdatePatientDto from "./dto/update-patient-dto";
 import { ErrorMessageEnum, PatietnsFilterByEnum, UserRoleEnum } from "../common/enums";
 import { IPatientsService } from "./patients-service-interface";
@@ -10,7 +9,6 @@ import { injectable, inject } from 'inversify';
 import { IDataProvider, IFilterParam, IQueryParams, IRepository } from "../common/types";
 import { CONTAINER_TYPES } from "../common/constants";
 import { IUser } from "../users/user-interface";
-import { JwtPayload } from "jsonwebtoken";
 import { UserPayload } from "../auth/auth-types";
 
 @injectable()
@@ -25,7 +23,6 @@ export default class PatientsService implements IPatientsService {
     public async createPatient(patientDto: CreatePatientDto, user: UserPayload): Promise<PatientModel> {
         await this.throwIfPhoneTaken(patientDto.phoneNumber);
         const patientUser = await this.userProvider.readById(user.id);
-        console.log(user.id)
         const patient = new PatientModel(v4(), patientUser, patientDto.phoneNumber);
 
         // Review: should assign role here?
@@ -73,13 +70,19 @@ export default class PatientsService implements IPatientsService {
         if (patientDto.phoneNumber) {
             await this.throwIfPhoneTaken(patientDto.phoneNumber);
         }
-
         const patient = await this.repository.get(id);
         if (!patient) {
             return;
         }        
-        // Review: use merge or create new user manually with constructor
-        merge(patient, patientDto);
+        const { 
+            phoneNumber = patient.phoneNumber, 
+            firstName = patient.user.firstName 
+        } = patientDto;
+        patient.phoneNumber = phoneNumber;
+
+        // Review: should update user that straightforward way since patients user part was updated?
+        patient.user.firstName = firstName;
+        await this.userProvider.updateById(patient.user.id, patient.user);
 
         return await this.repository.update(patient);
     }

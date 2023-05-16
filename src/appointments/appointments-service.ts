@@ -91,7 +91,7 @@ export default class AppointmentsService implements IAppointmentsService {
         if (!doParticipantsExist) {
             return;
         }
-        
+        // Review: use merge or create new appointment manually with constructor
         merge(appointment, appointmentDto);
         appointment = plainToClass(AppointmentModel, appointment);
         await this.doctorsService.takeFreeSlot(doctorId, appointment.date);
