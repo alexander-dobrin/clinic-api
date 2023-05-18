@@ -1,14 +1,14 @@
 import { StatusCodeEnum } from '../common/enums';
-import AppointmentsService from './appointments-service';
+import AppointmentService from './appointment-service';
 import { Request, Response, NextFunction } from 'express';
 import { IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 
 @injectable()
-export default class AppointmentsController implements IHttpController {
+export default class AppointmentController implements IHttpController {
     constructor(
-        @inject(CONTAINER_TYPES.APPOINTMENTS_SERVICE) private readonly appointmentService: AppointmentsService
+        @inject(CONTAINER_TYPES.APPOINTMENTS_SERVICE) private readonly appointmentService: AppointmentService
     ) {
     }
 

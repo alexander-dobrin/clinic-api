@@ -5,23 +5,22 @@ import { plainToClass } from "class-transformer";
 import UpdateDoctorDto from "./dto/update-doctor-dto";
 import { merge } from "lodash";
 import { DateTime } from "luxon";
-import { IDoctorsService } from "./doctors-service-interface";
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from "../common/constants";
 import { IQueryParams, IRepository } from "../common/types";
 import { AppointmentConflictError } from "../common/errors";
 import { ErrorMessageEnum } from "../common/enums";
-import { DoctorsQueryHandler } from "./helpers/doctors-query-handler";
-import AppointmentsRepository from "../appointments/appointments-repository";
+import { DoctorQueryHandler } from "./helpers/doctor-query-handler";
+import AppointmentRepository from "../appointment/appointment-repository";
 import { validDto, validateDto } from "../common/decorator";
 
 // Review: что на счет export default? Стоит спользовать? Единственный известный мне риск это то что в таком случае
 // нельзя будет из двух разных модулей экспортировать типы с одинаковым именем
 @injectable()
-export default class DoctorsService implements IDoctorsService {
+export default class DoctorService {
     constructor(
         @inject(CONTAINER_TYPES.DOCTORS_REPOSITORY) private readonly doctorsRepository: IRepository<DoctorModel>, 
-        @inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY) private readonly appointmentsRepository: AppointmentsRepository
+        @inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY) private readonly appointmentsRepository: AppointmentRepository
     ) {
         
     }
@@ -36,7 +35,7 @@ export default class DoctorsService implements IDoctorsService {
         const objects = await this.doctorsRepository.getAll();
         const doctors = objects.map(d => plainToClass(DoctorModel, d));
 
-        return new DoctorsQueryHandler(this.appointmentsRepository).applyRequestQuery(doctors, options);
+        return new DoctorQueryHandler(this.appointmentsRepository).applyRequestQuery(doctors, options);
     }
 
     public async getDoctortById(id: string): Promise<DoctorModel | undefined> {

@@ -2,11 +2,11 @@ import { DoctorsSortByEnum, ErrorMessageEnum } from "../../common/enums";
 import { InvalidParameterError, UnableToSortError } from "../../common/errors";
 import { IFilterParam, IQueryParams, IRepository, ISortParam, ISortingStrategy } from "../../common/types";
 import DoctorModel from "../doctor-model";
-import AppointmentModel from "../../appointments/appointment-model";
+import AppointmentModel from "../../appointment/appointment-model";
 import { SortingStrategyFactory } from "./sorting/sorting-strategy-factory";
 
 // Review: декомпозировать это все в отдельные классы или оставить методами сервиса докторов?
-export class DoctorsQueryHandler {
+export class DoctorQueryHandler {
     private readonly sortingStrategy;
 
     constructor(

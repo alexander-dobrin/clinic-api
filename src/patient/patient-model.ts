@@ -1,4 +1,4 @@
-import { IUser } from "../users/user-interface";
+import { IUser } from "../user/user-interface";
 
 // Review: make model fields immutable?
 export default class PatientModel {

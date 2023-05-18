@@ -5,9 +5,9 @@ import { DuplicateEntityError, InvalidParameterError, NotAuthorizedError } from 
 import { ErrorMessageEnum, ResponseMessageEnum, TokenLifetimeEnum, UserRoleEnum } from "../common/enums";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
-import { IUser } from "../users/user-interface";
-import UserService from "../users/user-service";
-import { UpdateUserDto } from "../users/dto/update-user-dto";
+import { IUser } from "../user/user-interface";
+import UserService from "../user/user-service";
+import { UpdateUserDto } from "../user/dto/update-user-dto";
 import { LoginDto } from "./dto/login-dto";
 import { RegisterDto } from "./dto/register-dto";
 import { AuthedUser, UserPayload } from "./auth-types";

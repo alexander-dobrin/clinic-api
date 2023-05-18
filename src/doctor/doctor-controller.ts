@@ -3,12 +3,12 @@ import { Request, Response, NextFunction } from "express";
 import { IQueryParams, IHttpController } from "../common/types";
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from "../common/constants";
-import { IDoctorsService } from "./doctors-service-interface";
+import DoctorService from "./doctor-service";
 
 @injectable()
-export default class DoctorsController implements IHttpController {
+export default class DoctorController implements IHttpController {
     constructor(
-        @inject(CONTAINER_TYPES.DOCTORS_SERVICE) private readonly doctorsService: IDoctorsService
+        @inject(CONTAINER_TYPES.DOCTORS_SERVICE) private readonly doctorsService: DoctorService
     ) {
 
     }

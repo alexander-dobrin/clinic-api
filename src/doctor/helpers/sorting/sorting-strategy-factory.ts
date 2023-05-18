@@ -1,4 +1,4 @@
-import AppointmentModel from "../../../appointments/appointment-model";
+import AppointmentModel from "../../../appointment/appointment-model";
 import { DoctorsSortByEnum, ErrorMessageEnum } from "../../../common/enums";
 import { UnableToSortError } from "../../../common/errors";
 import { IRepository, ISortingStrategy } from "../../../common/types";

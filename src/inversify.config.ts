@@ -1,21 +1,21 @@
 import App from './app';
 import { ExceptionFilter } from './common/middlewares/exception-filter';
 import { Container } from 'inversify';
-import { patientsModule } from './patients/patients-module';
-import { doctorsModule } from './doctors/doctors-module';
-import { appointmentsModule } from './appointments/appointments-module';
+import { patientModule } from './patient/patient-module';
+import { doctorModule } from './doctor/doctor-module';
+import { appointmentModule } from './appointment/appointment-module';
 import { CONTAINER_TYPES } from './common/constants';
 import { authModule } from './auth/auth-module';
-import { userModule } from './users/user-module';
+import { userModule } from './user/user-module';
 import { AuthMiddleware } from './common/middlewares/auth-middleware'
 
 export const iocContainer = new Container();
 
 iocContainer.load(userModule);
 iocContainer.load(authModule);
-iocContainer.load(patientsModule);
-iocContainer.load(doctorsModule);
-iocContainer.load(appointmentsModule);
+iocContainer.load(patientModule);
+iocContainer.load(doctorModule);
+iocContainer.load(appointmentModule);
 
 iocContainer.bind<ExceptionFilter>(CONTAINER_TYPES.EXCEPTION_FILTER)
     .to(ExceptionFilter)

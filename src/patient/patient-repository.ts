@@ -6,7 +6,7 @@ import { injectable, inject } from 'inversify';
 
 
 @injectable()
-export default class PatientsRepository implements IRepository<PatientModel> {
+export default class PatientRepository implements IRepository<PatientModel> {
     constructor(
         @inject(CONTAINER_TYPES.PATIENTS_DATA_PROVIDER) private readonly provider: IDataProvider<PatientModel>
     ) {

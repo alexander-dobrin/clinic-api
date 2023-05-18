@@ -4,16 +4,15 @@ import CreatePatientDto from "./dto/create-patient-dto";
 import { v4 } from "uuid";
 import UpdatePatientDto from "./dto/update-patient-dto";
 import { ErrorMessageEnum, PatietnsFilterByEnum, UserRoleEnum } from "../common/enums";
-import { IPatientsService } from "./patients-service-interface";
 import { injectable, inject } from 'inversify';
 import { IDataProvider, IFilterParam, IQueryParams, IRepository } from "../common/types";
 import { CONTAINER_TYPES } from "../common/constants";
-import { IUser } from "../users/user-interface";
+import { IUser } from "../user/user-interface";
 import { UserPayload } from "../auth/auth-types";
 import { validDto, validateDto } from "../common/decorator";
 
 @injectable()
-export default class PatientsService implements IPatientsService {
+export default class PatientService {
     constructor(
         @inject(CONTAINER_TYPES.PATIENTS_REPOSITORY) private readonly repository: IRepository<PatientModel>,
         @inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly userProvider: IDataProvider<IUser>

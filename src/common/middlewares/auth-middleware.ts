@@ -4,7 +4,7 @@ import { NotAuthorizedError } from '../errors';
 import { ErrorMessageEnum, StatusCodeEnum } from '../enums';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../constants';
-import UserService from '../../users/user-service';
+import UserService from '../../user/user-service';
 import { UserPayload } from '../../auth/auth-types';
 
 export interface AuthorizedRequest extends Request {

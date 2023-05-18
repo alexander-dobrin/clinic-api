@@ -2,15 +2,14 @@ import { StatusCodeEnum } from '../common/enums';
 import { Request, Response, NextFunction } from 'express';
 import { IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
-
 import { CONTAINER_TYPES } from '../common/constants';
-import { IPatientsService } from './patients-service-interface';
 import { AuthorizedRequest } from '../common/middlewares/auth-middleware';
+import PatientService from './patient-service';
 
 @injectable()
-export default class PatientsController implements IHttpController {
+export default class PatientController implements IHttpController {
     constructor(
-        @inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: IPatientsService
+        @inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientService
     ) {
 
     }

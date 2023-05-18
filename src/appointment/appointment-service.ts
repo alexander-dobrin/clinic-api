@@ -1,14 +1,13 @@
 import AppointmentModel from "./appointment-model";
 import { DateTime } from "luxon";
 import { v4 } from "uuid";
-import AppointmentsRepository from "./appointments-repository";
-import PatientsService from "../patients/patients-service";
-import DoctorsService from "../doctors/doctors-service";
+import AppointmentRepository from "./appointment-repository";
+import PatientService from "../patient/patient-service";
+import DoctorService from "../doctor/doctor-service";
 import { CreateAppointmentDto } from "./dto/create-appointment-dto";
 import { plainToClass } from "class-transformer";
 import { UpdateAppointmentDto } from "./dto/update-appointment-dto";
 import { merge } from "lodash";
-import { IAppointmentsService } from "./appointments-service-interface";
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from "../common/constants";
 import { IFilterParam, IQueryParams } from "../common/types";
@@ -17,11 +16,11 @@ import { UnableToFilterError } from "../common/errors";
 import { validDto, validateDto } from "../common/decorator";
 
 @injectable()
-export default class AppointmentsService implements IAppointmentsService {
+export default class AppointmentService {
     constructor(
-        @inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY) private readonly repository: AppointmentsRepository, 
-        @inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientsService, 
-        @inject(CONTAINER_TYPES.DOCTORS_SERVICE) private readonly doctorsService: DoctorsService,
+        @inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY) private readonly repository: AppointmentRepository, 
+        @inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientService, 
+        @inject(CONTAINER_TYPES.DOCTORS_SERVICE) private readonly doctorsService: DoctorService,
     ) {
     }
 

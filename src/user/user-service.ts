@@ -9,7 +9,7 @@ import { merge } from "lodash";
 import { CreateUserDto } from "./dto/create-user-dto";
 import { UpdateUserDto } from "./dto/update-user-dto";
 import bcrypt from "bcrypt";
-import PatientModel from "../patients/patient-model";
+import PatientModel from "../patient/patient-model";
 import { validDto, validateDto } from "../common/decorator";
 
 

@@ -1,4 +1,4 @@
-import AppointmentModel from "../../../appointments/appointment-model";
+import AppointmentModel from "../../../appointment/appointment-model";
 import { ISortingStrategy } from "../../../common/types";
 import DoctorModel from "../../doctor-model";
 
