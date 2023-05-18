@@ -30,6 +30,10 @@ export const CONTAINER_TYPES = {
     DOCTORS_DATA_PROVIDER: Symbol.for('DOCTORS_DATA_PROVIDER'),
     PATIENTS_DATA_PROVIDER: Symbol.for('PATIENTS_DATA_PROVIDER'),
     USER_DATA_PROVIDER: Symbol.for('USER_DATA_PROVIDER')
-}
+} as const;
+
+export const METADATA = {
+    VALIDATE_DTO: 'VALIDATE_DTO'
+} as const;
 
 export const SALT_ROUNDS = 8;

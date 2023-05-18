@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { InvalidParameterError, NotAuthorizedError, UnableToSortError, UserConfilctError } from "../errors";
+import { InvalidParameterError, NotAuthorizedError, UnableToSortError, UnprocessableEntityError, UserConfilctError } from "../errors";
 import { DuplicateEntityError } from "../errors";
 import { StatusCodeEnum } from "../enums";
 import { AppointmentConflictError } from "../errors";
@@ -20,7 +20,10 @@ export class ExceptionFilter {
         ) {
             res.status(StatusCodeEnum.CONFLICT).json({ error: { message: err.message } });
             return;
-        } else if (err instanceof UnableToSortError) {
+        } else if (
+            err instanceof UnableToSortError ||
+            err instanceof UnprocessableEntityError
+        ) {
             res.status(StatusCodeEnum.UNPROCESSABLE_ENTITY).json({ error: { message: err.message } });
             return;
         } else if (err instanceof NotAuthorizedError) {

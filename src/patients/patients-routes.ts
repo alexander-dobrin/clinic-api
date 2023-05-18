@@ -1,10 +1,6 @@
 import { Router } from 'express';
-import DtoValidatorMiddleware from '../common/middlewares/dto-validator-middleware';
-import CreatePatientDto from './dto/create-patient-dto';
-import UpdatePatientDto from './dto/update-patient-dto';
 import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
-
 import { CONTAINER_TYPES } from '../common/constants';
 import { IHttpController } from '../common/types';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
@@ -14,8 +10,6 @@ import { iocContainer } from '../inversify.config';
 @injectable()
 export default class PatientsRoutes implements IRoutes {
     private readonly _router = Router();
-    private readonly createValidator = new DtoValidatorMiddleware(CreatePatientDto);
-    private readonly updateValidator = new DtoValidatorMiddleware(UpdatePatientDto);
     private readonly mapQuery = new QueryMapperMiddleware();
     private readonly authMiddleware = iocContainer.get<AuthMiddleware>(CONTAINER_TYPES.AUTH_MIDDLEWARE);
 
@@ -33,16 +27,12 @@ export default class PatientsRoutes implements IRoutes {
             )
             .post(
                 this.authMiddleware.auth.bind(this.authMiddleware),
-                this.createValidator.validate.bind(this.createValidator),
                 this.patientsController.post.bind(this.patientsController)
             );
 
         this._router.route('/:id')
             .get(this.patientsController.getById.bind(this.patientsController))
-            .put(
-                this.updateValidator.validate.bind(this.updateValidator),
-                this.patientsController.put.bind(this.patientsController)
-            )
+            .put(this.patientsController.put.bind(this.patientsController))
             .delete(this.patientsController.delete.bind(this.patientsController));
     }
 

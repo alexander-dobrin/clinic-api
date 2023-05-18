@@ -3,7 +3,6 @@ import AppointmentsService from './appointments-service';
 import { Request, Response, NextFunction } from 'express';
 import { IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
-
 import { CONTAINER_TYPES } from '../common/constants';
 
 @injectable()

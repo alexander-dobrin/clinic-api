@@ -13,6 +13,7 @@ import { AppointmentConflictError } from "../common/errors";
 import { ErrorMessageEnum } from "../common/enums";
 import { DoctorsQueryHandler } from "./helpers/doctors-query-handler";
 import AppointmentsRepository from "../appointments/appointments-repository";
+import { validDto, validateDto } from "../common/decorator";
 
 // Review: что на счет export default? Стоит спользовать? Единственный известный мне риск это то что в таком случае
 // нельзя будет из двух разных модулей экспортировать типы с одинаковым именем
@@ -25,7 +26,8 @@ export default class DoctorsService implements IDoctorsService {
         
     }
 
-    public async createDoctor(doctorDto: CreateDoctorDto): Promise<DoctorModel> {
+    @validateDto
+    public async createDoctor(@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto): Promise<DoctorModel> {
         const doctor =  plainToClass(DoctorModel, { id: v4(), ...doctorDto });
         return this.doctorsRepository.add(doctor);
     }
@@ -42,7 +44,8 @@ export default class DoctorsService implements IDoctorsService {
         return doctor;
     }
 
-    public async updateDoctorById(id: string, doctorDto: UpdateDoctorDto): Promise<DoctorModel | undefined> {
+    @validateDto
+    public async updateDoctorById(id: string, @validDto(UpdateDoctorDto) doctorDto: UpdateDoctorDto): Promise<DoctorModel | undefined> {
         const doctor = await this.getDoctortById(id);
         
         if (!doctor) {

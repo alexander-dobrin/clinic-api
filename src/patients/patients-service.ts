@@ -10,6 +10,7 @@ import { IDataProvider, IFilterParam, IQueryParams, IRepository } from "../commo
 import { CONTAINER_TYPES } from "../common/constants";
 import { IUser } from "../users/user-interface";
 import { UserPayload } from "../auth/auth-types";
+import { validDto, validateDto } from "../common/decorator";
 
 @injectable()
 export default class PatientsService implements IPatientsService {
@@ -20,7 +21,8 @@ export default class PatientsService implements IPatientsService {
 
     }
 
-    public async createPatient(patientDto: CreatePatientDto, user: UserPayload): Promise<PatientModel> {
+    @validateDto
+    public async createPatient(@validDto(CreatePatientDto) patientDto: CreatePatientDto, user: UserPayload): Promise<PatientModel> {
         await this.throwIfPhoneTaken(patientDto.phoneNumber);
         const patientUser = await this.userProvider.readById(user.id);
         const patient = new PatientModel(v4(), patientUser, patientDto.phoneNumber);
@@ -66,7 +68,8 @@ export default class PatientsService implements IPatientsService {
         return this.repository.get(id);
     }
 
-    public async updatePatientById(id: string, patientDto: UpdatePatientDto): Promise<PatientModel | undefined> {
+    @validateDto
+    public async updatePatientById(id: string, @validDto(UpdatePatientDto) patientDto: UpdatePatientDto): Promise<PatientModel | undefined> {
         if (patientDto.phoneNumber) {
             await this.throwIfPhoneTaken(patientDto.phoneNumber);
         }

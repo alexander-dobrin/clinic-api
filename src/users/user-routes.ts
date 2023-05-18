@@ -1,20 +1,14 @@
 import { Router } from "express";
 import { IRoutes } from "../common/types";
 import { inject, injectable } from "inversify";
-
 import { UserController } from "./user-controller";
 import { CONTAINER_TYPES } from "../common/constants";
-import DtoValidatorMiddleware from "../common/middlewares/dto-validator-middleware";
-import { CreateUserDto } from "./dto/create-user-dto";
-import { UpdateUserDto } from "./dto/update-user-dto";
 import { iocContainer } from "../inversify.config";
 import { AuthMiddleware } from "../common/middlewares/auth-middleware";
 
 @injectable()
 export default class UserRoutes implements IRoutes {
     private readonly _router = Router();
-    private readonly createValidator = new DtoValidatorMiddleware(CreateUserDto);
-    private readonly updateValidator = new DtoValidatorMiddleware(UpdateUserDto);
     private readonly authMiddleware = iocContainer.get<AuthMiddleware>(CONTAINER_TYPES.AUTH_MIDDLEWARE);
 
     constructor(
@@ -26,10 +20,7 @@ export default class UserRoutes implements IRoutes {
     private setupRoutes() {
         this._router.route('/')
             .get(this.userController.get.bind(this.userController))
-            .post(
-                this.createValidator.validate.bind(this.createValidator),
-                this.userController.post.bind(this.userController)
-            );
+            .post(this.userController.post.bind(this.userController));
         this._router.route('/profile')
             .get(
                 this.authMiddleware.auth.bind(this.authMiddleware),
@@ -37,10 +28,7 @@ export default class UserRoutes implements IRoutes {
             );
         this._router.route('/:id')
             .get(this.userController.getById.bind(this.userController))
-            .put(
-                this.updateValidator.validate.bind(this.updateValidator),
-                this.userController.put.bind(this.userController)
-            )
+            .put(this.userController.put.bind(this.userController))
             .delete(this.userController.delete.bind(this.userController)
         );
     }

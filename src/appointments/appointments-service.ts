@@ -10,11 +10,11 @@ import { UpdateAppointmentDto } from "./dto/update-appointment-dto";
 import { merge } from "lodash";
 import { IAppointmentsService } from "./appointments-service-interface";
 import { injectable, inject } from 'inversify';
-
 import { CONTAINER_TYPES } from "../common/constants";
 import { IFilterParam, IQueryParams } from "../common/types";
 import { AppointmentsFilterByEnum, ErrorMessageEnum } from "../common/enums";
 import { UnableToFilterError } from "../common/errors";
+import { validDto, validateDto } from "../common/decorator";
 
 @injectable()
 export default class AppointmentsService implements IAppointmentsService {
@@ -25,7 +25,8 @@ export default class AppointmentsService implements IAppointmentsService {
     ) {
     }
 
-    public async createAppointment(appointmentDto: CreateAppointmentDto): Promise<AppointmentModel | undefined> {
+    @validateDto
+    public async createAppointment(@validDto(CreateAppointmentDto) appointmentDto: CreateAppointmentDto): Promise<AppointmentModel | undefined> {
         const { patientId, doctorId, date } = appointmentDto;
 
         const doParticipantsExist = await this.patientsService.isExists(patientId) &&
@@ -78,7 +79,8 @@ export default class AppointmentsService implements IAppointmentsService {
         return this.repository.get(id);
     }
 
-    public async updateAppointmentById(id: string, appointmentDto: UpdateAppointmentDto): Promise<AppointmentModel | undefined> {
+    @validateDto
+    public async updateAppointmentById(id: string, @validDto(UpdateAppointmentDto) appointmentDto: UpdateAppointmentDto): Promise<AppointmentModel | undefined> {
         let appointment = await this.repository.get(id)
         if (!appointment) {
             return;

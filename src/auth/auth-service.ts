@@ -13,6 +13,7 @@ import { RegisterDto } from "./dto/register-dto";
 import { AuthedUser, UserPayload } from "./auth-types";
 import { ResetPasswordDto } from "./dto/reset-password-dto";
 import { RecoverPasswordDto } from "./dto/recover-password-dto";
+import { validDto, validateDto } from "../common/decorator";
 
 @injectable()
 export class AuthService {
@@ -23,14 +24,16 @@ export class AuthService {
 
     }
 
-    public async register(registerData: RegisterDto): Promise<AuthedUser> {
+    @validateDto
+    public async register(@validDto(RegisterDto) registerData: RegisterDto): Promise<AuthedUser> {
         const newUser = await this.userService.createUser(registerData);    
         const token = this.signTokenForUser(newUser as UserPayload, TokenLifetimeEnum.REGISTER_TOKEN);
 
         return { user: { email: newUser.email, role: newUser.role, id: newUser.id }, token };
     }
 
-    public async login(loginData: LoginDto): Promise<AuthedUser> {
+    @validateDto
+    public async login(@validDto(LoginDto) loginData: LoginDto): Promise<AuthedUser> {
         const foundUser = await this.userService.getUserByEmail(loginData.email);
 
         // Review: return undefined or throw error when user not found? 
@@ -48,7 +51,8 @@ export class AuthService {
         }
     }
 
-    public async resetPassword(resetData: ResetPasswordDto) {
+    @validateDto
+    public async resetPassword(@validDto(ResetPasswordDto) resetData: ResetPasswordDto) {
         const user = await this.userService.getUserByEmail(resetData.email);
         if (!user) {
             throw new InvalidParameterError(ErrorMessageEnum.USER_NOT_FOUND.replace('%s', resetData.email));
@@ -60,7 +64,8 @@ export class AuthService {
         return resetToken;
     }
 
-    public async recoverPassword(recoverData: RecoverPasswordDto) {
+    @validateDto
+    public async recoverPassword(@validDto(RecoverPasswordDto) recoverData: RecoverPasswordDto) {
         const { resetToken, password } = recoverData
         const user = await this.userService.getUserByResetToken(resetToken);
         if (!user) {

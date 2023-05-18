@@ -10,6 +10,7 @@ import { CreateUserDto } from "./dto/create-user-dto";
 import { UpdateUserDto } from "./dto/update-user-dto";
 import bcrypt from "bcrypt";
 import PatientModel from "../patients/patient-model";
+import { validDto, validateDto } from "../common/decorator";
 
 
 @injectable()
@@ -21,7 +22,8 @@ export default class UserService {
 
     }
 
-    public async createUser(user: CreateUserDto): Promise<IUser> {
+    @validateDto
+    public async createUser(@validDto(CreateUserDto) user: CreateUserDto): Promise<IUser> {
         if (await this.isUserExist(user.email)) {
             throw new UserConfilctError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email));
         }
@@ -68,7 +70,8 @@ export default class UserService {
         return this.provider.updateById(user.id, user);
     }    
 
-    public async updateUserById(id: string, userDto: UpdateUserDto) {
+    @validateDto
+    public async updateUserById(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto) {
         if (!this.isUserExist(userDto.email)) {
             throw new DuplicateEntityError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', userDto.email));
         }
