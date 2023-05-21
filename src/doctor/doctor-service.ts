@@ -1,89 +1,96 @@
-import { v4 } from "uuid";
-import DoctorModel from "./doctor-model";
-import CreateDoctorDto from "./dto/create-doctor-dto";
-import { plainToClass } from "class-transformer";
-import UpdateDoctorDto from "./dto/update-doctor-dto";
-import { merge } from "lodash";
-import { DateTime } from "luxon";
+import { v4 } from 'uuid';
+import DoctorModel from './doctor-model';
+import CreateDoctorDto from './dto/create-doctor-dto';
+import { plainToClass } from 'class-transformer';
+import UpdateDoctorDto from './dto/update-doctor-dto';
+import { merge } from 'lodash';
+import { DateTime } from 'luxon';
 import { injectable, inject } from 'inversify';
-import { CONTAINER_TYPES } from "../common/constants";
-import { IQueryParams, IRepository } from "../common/types";
-import { AppointmentConflictError } from "../common/errors";
-import { ErrorMessageEnum } from "../common/enums";
-import { DoctorQueryHandler } from "./helpers/doctor-query-handler";
-import AppointmentRepository from "../appointment/appointment-repository";
-import { validDto, validateDto } from "../common/decorator";
+import { CONTAINER_TYPES } from '../common/constants';
+import { IQueryParams, IRepository } from '../common/types';
+import { AppointmentConflictError } from '../common/errors';
+import { ErrorMessageEnum } from '../common/enums';
+import { DoctorQueryHandler } from './helpers/doctor-query-handler';
+import AppointmentRepository from '../appointment/appointment-repository';
+import { validDto, validateDto } from '../common/decorator';
 
 // Review: что на счет export default? Стоит спользовать? Единственный известный мне риск это то что в таком случае
 // нельзя будет из двух разных модулей экспортировать типы с одинаковым именем
 @injectable()
 export default class DoctorService {
-    constructor(
-        @inject(CONTAINER_TYPES.DOCTORS_REPOSITORY) private readonly doctorsRepository: IRepository<DoctorModel>, 
-        @inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY) private readonly appointmentsRepository: AppointmentRepository
-    ) {
-        
-    }
+	constructor(
+		@inject(CONTAINER_TYPES.DOCTORS_REPOSITORY)
+		private readonly doctorsRepository: IRepository<DoctorModel>,
+		@inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY)
+		private readonly appointmentsRepository: AppointmentRepository,
+	) {}
 
-    @validateDto
-    public async createDoctor(@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto): Promise<DoctorModel> {
-        const doctor =  plainToClass(DoctorModel, { id: v4(), ...doctorDto });
-        return this.doctorsRepository.add(doctor);
-    }
+	@validateDto
+	public async createDoctor(
+		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
+	): Promise<DoctorModel> {
+		const doctor = plainToClass(DoctorModel, { id: v4(), ...doctorDto });
+		return this.doctorsRepository.add(doctor);
+	}
 
-    public async getAllDoctors(options: IQueryParams): Promise<DoctorModel[]> {
-        const objects = await this.doctorsRepository.getAll();
-        const doctors = objects.map(d => plainToClass(DoctorModel, d));
+	public async getAllDoctors(options: IQueryParams): Promise<DoctorModel[]> {
+		const objects = await this.doctorsRepository.getAll();
+		const doctors = objects.map((d) => plainToClass(DoctorModel, d));
 
-        return new DoctorQueryHandler(this.appointmentsRepository).applyRequestQuery(doctors, options);
-    }
+		return new DoctorQueryHandler(this.appointmentsRepository).applyRequestQuery(doctors, options);
+	}
 
-    public async getDoctortById(id: string): Promise<DoctorModel | undefined> {
-        const doctor = plainToClass(DoctorModel, await this.doctorsRepository.get(id));
-        return doctor;
-    }
+	public async getDoctortById(id: string): Promise<DoctorModel | undefined> {
+		const doctor = plainToClass(DoctorModel, await this.doctorsRepository.get(id));
+		return doctor;
+	}
 
-    @validateDto
-    public async updateDoctorById(id: string, @validDto(UpdateDoctorDto) doctorDto: UpdateDoctorDto): Promise<DoctorModel | undefined> {
-        const doctor = await this.getDoctortById(id);
-        
-        if (!doctor) {
-            return;
-        }        
-        merge(doctor, doctorDto);
+	@validateDto
+	public async updateDoctorById(
+		id: string,
+		@validDto(UpdateDoctorDto) doctorDto: UpdateDoctorDto,
+	): Promise<DoctorModel | undefined> {
+		const doctor = await this.getDoctortById(id);
 
-        return this.doctorsRepository.update(doctor);
-    }
+		if (!doctor) {
+			return;
+		}
+		merge(doctor, doctorDto);
 
-    public async deleteDoctorById(id: string): Promise<DoctorModel | undefined> {
-        const doctor = await this.getDoctortById(id);
-        if (!doctor) {
-            return;
-        }
+		return this.doctorsRepository.update(doctor);
+	}
 
-        const deletedDoctor = await this.doctorsRepository.remove(doctor);
-        if (deletedDoctor) {
-            this.appointmentsRepository.removeAllDoctorAppointments(deletedDoctor.id);
-        }
-        
-        return deletedDoctor;
-    }
+	public async deleteDoctorById(id: string): Promise<DoctorModel | undefined> {
+		const doctor = await this.getDoctortById(id);
+		if (!doctor) {
+			return;
+		}
 
-    public async takeFreeSlot(id: string, date: DateTime): Promise<boolean> {
-        const doctor = await this.getDoctortById(id);
-        if (!doctor) {
-            return false;
-        }
-        const freeSlotIdx = doctor.availableSlots.findIndex(s => s.equals(date.toUTC()));
-        if (freeSlotIdx < 0) {
-            throw new AppointmentConflictError(ErrorMessageEnum.DOCTOR_NOT_AVAILABLE.replace('%s', id).replace('%s', date.toISO()));
-        }
-        doctor.availableSlots.splice(freeSlotIdx, 1);
-        this.doctorsRepository.update(doctor);
-        return true;
-    }
+		const deletedDoctor = await this.doctorsRepository.remove(doctor);
+		if (deletedDoctor) {
+			this.appointmentsRepository.removeAllDoctorAppointments(deletedDoctor.id);
+		}
 
-    public async isExists(id: string): Promise<boolean> {
-        return (await this.getDoctortById(id)) ? true : false;
-    }
+		return deletedDoctor;
+	}
+
+	public async takeFreeSlot(id: string, date: DateTime): Promise<boolean> {
+		const doctor = await this.getDoctortById(id);
+		if (!doctor) {
+			return false;
+		}
+		const freeSlotIdx = doctor.availableSlots.findIndex((s) => s.equals(date.toUTC()));
+		if (freeSlotIdx < 0) {
+			throw new AppointmentConflictError(
+				ErrorMessageEnum.DOCTOR_NOT_AVAILABLE.replace('%s', id).replace('%s', date.toISO()),
+			);
+		}
+		doctor.availableSlots.splice(freeSlotIdx, 1);
+		this.doctorsRepository.update(doctor);
+		return true;
+	}
+
+	public async isExists(id: string): Promise<boolean> {
+		return (await this.getDoctortById(id)) ? true : false;
+	}
 }

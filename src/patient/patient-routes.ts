@@ -9,34 +9,39 @@ import { iocContainer } from '../inversify.config';
 
 @injectable()
 export default class PatientRoutes implements IRoutes {
-    private readonly _router = Router();
-    private readonly mapQuery = new QueryMapperMiddleware();
-    private readonly authMiddleware = iocContainer.get<AuthMiddleware>(CONTAINER_TYPES.AUTH_MIDDLEWARE);
+	private readonly _router = Router();
+	private readonly mapQuery = new QueryMapperMiddleware();
+	private readonly authMiddleware = iocContainer.get<AuthMiddleware>(
+		CONTAINER_TYPES.AUTH_MIDDLEWARE,
+	);
 
-    constructor(
-        @inject(CONTAINER_TYPES.PATIENTS_CONTROLLER) private readonly patientsController: IHttpController
-    ) {
-        this.setupRoutes();
-    }
+	constructor(
+		@inject(CONTAINER_TYPES.PATIENTS_CONTROLLER)
+		private readonly patientsController: IHttpController,
+	) {
+		this.setupRoutes();
+	}
 
-    private setupRoutes(): void {
-        this.router.route('/')
-            .get(
-                this.mapQuery.map.bind(this.mapQuery),
-                this.patientsController.get.bind(this.patientsController)
-            )
-            .post(
-                this.authMiddleware.auth.bind(this.authMiddleware),
-                this.patientsController.post.bind(this.patientsController)
-            );
+	private setupRoutes(): void {
+		this.router
+			.route('/')
+			.get(
+				this.mapQuery.map.bind(this.mapQuery),
+				this.patientsController.get.bind(this.patientsController),
+			)
+			.post(
+				this.authMiddleware.auth.bind(this.authMiddleware),
+				this.patientsController.post.bind(this.patientsController),
+			);
 
-        this._router.route('/:id')
-            .get(this.patientsController.getById.bind(this.patientsController))
-            .put(this.patientsController.put.bind(this.patientsController))
-            .delete(this.patientsController.delete.bind(this.patientsController));
-    }
+		this._router
+			.route('/:id')
+			.get(this.patientsController.getById.bind(this.patientsController))
+			.put(this.patientsController.put.bind(this.patientsController))
+			.delete(this.patientsController.delete.bind(this.patientsController));
+	}
 
-    get router(): Router {
-        return this._router;
-    }
+	get router(): Router {
+		return this._router;
+	}
 }

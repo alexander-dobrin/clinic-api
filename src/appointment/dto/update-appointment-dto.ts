@@ -1,10 +1,10 @@
-import { IsDateString, IsOptional } from "class-validator";
+import { IsDateString, IsOptional } from 'class-validator';
 
 export class UpdateAppointmentDto {
-    public readonly patientId?: string;
-    public readonly doctorId?: string;
+	public readonly patientId?: string;
+	public readonly doctorId?: string;
 
-    @IsOptional()
-    @IsDateString()
-    public readonly date?: string;
+	@IsOptional()
+	@IsDateString()
+	public readonly date?: string;
 }
