@@ -1,9 +1,11 @@
 import { StatusCodeEnum } from '../common/enums';
 import AppointmentService from './appointment-service';
 import { Request, Response, NextFunction } from 'express';
-import { IHttpController } from '../common/types';
+import { IHttpController, IQueryParams } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
+import { CreateAppointmentDto } from './dto/create-appointment-dto';
+import { UpdateAppointmentDto } from './dto/update-appointment-dto';
 
 @injectable()
 export default class AppointmentController implements IHttpController {
@@ -12,7 +14,11 @@ export default class AppointmentController implements IHttpController {
 		private readonly appointmentService: AppointmentService,
 	) {}
 
-	public async post(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async post(
+		req: Request<object, object, CreateAppointmentDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		try {
 			const created = await this.appointmentService.createAppointment(req.body);
 			if (!created) {
@@ -25,7 +31,10 @@ export default class AppointmentController implements IHttpController {
 		}
 	}
 
-	public async get(req: Request, res: Response): Promise<void> {
+	public async get(
+		req: Request<object, object, object, IQueryParams>,
+		res: Response,
+	): Promise<void> {
 		const appointments = await this.appointmentService.getAllAppointments(req.query);
 		if (appointments.length < 1) {
 			res.status(StatusCodeEnum.NO_CONTENT);
@@ -33,7 +42,7 @@ export default class AppointmentController implements IHttpController {
 		res.json(appointments);
 	}
 
-	public async getById(req: Request, res: Response): Promise<void> {
+	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
 		const appointment = await this.appointmentService.getAppointmentById(req.params.id);
 		if (!appointment) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);
@@ -42,9 +51,12 @@ export default class AppointmentController implements IHttpController {
 		res.json(appointment);
 	}
 
-	public async put(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async put(
+		req: Request<{ id: string }, object, UpdateAppointmentDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		try {
-			req.body.id = req.params.id;
 			const updated = await this.appointmentService.updateAppointmentById(req.params.id, req.body);
 			if (!updated) {
 				res.sendStatus(StatusCodeEnum.NOT_FOUND);
@@ -56,7 +68,7 @@ export default class AppointmentController implements IHttpController {
 		}
 	}
 
-	public async delete(req: Request, res: Response): Promise<void> {
+	public async delete(req: Request<{ id: string }>, res: Response): Promise<void> {
 		const removed = await this.appointmentService.deleteAppointmentById(req.params.id);
 		if (!removed) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);

@@ -4,6 +4,8 @@ import { IQueryParams, IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import DoctorService from './doctor-service';
+import CreateDoctorDto from './dto/create-doctor-dto';
+import UpdateDoctorDto from './dto/update-doctor-dto';
 
 @injectable()
 export default class DoctorController implements IHttpController {
@@ -27,7 +29,7 @@ export default class DoctorController implements IHttpController {
 		}
 	}
 
-	public async getById(req: Request, res: Response): Promise<void> {
+	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
 		const doctor = await this.doctorsService.getDoctortById(req.params.id);
 		if (!doctor) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);
@@ -36,7 +38,11 @@ export default class DoctorController implements IHttpController {
 		res.json(doctor);
 	}
 
-	public async post(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async post(
+		req: Request<object, object, CreateDoctorDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		try {
 			const doctor = await this.doctorsService.createDoctor(req.body);
 			res.status(StatusCodeEnum.CREATED).json(doctor);
@@ -45,7 +51,11 @@ export default class DoctorController implements IHttpController {
 		}
 	}
 
-	public async put(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async put(
+		req: Request<{ id: string }, object, UpdateDoctorDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		try {
 			const doctor = await this.doctorsService.updateDoctorById(req.params.id, req.body);
 			if (!doctor) {
@@ -58,7 +68,7 @@ export default class DoctorController implements IHttpController {
 		}
 	}
 
-	public async delete(req: Request, res: Response): Promise<void> {
+	public async delete(req: Request<{ id: string }>, res: Response): Promise<void> {
 		const doctor = await this.doctorsService.deleteDoctorById(req.params.id);
 		if (!doctor) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);

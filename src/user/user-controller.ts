@@ -4,12 +4,18 @@ import { NextFunction, Request, Response } from 'express';
 import UserService from './user-service';
 import { StatusCodeEnum } from '../common/enums';
 import { AuthorizedRequest } from '../common/middlewares/auth-middleware';
+import { CreateUserDto } from './dto/create-user-dto';
+import { UpdateUserDto } from './dto/update-user-dto';
 
 @injectable()
 export class UserController {
 	constructor(@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService) {}
 
-	public async post(req: Request, res: Response, next: NextFunction) {
+	public async post(
+		req: Request<object, object, CreateUserDto>,
+		res: Response,
+		next: NextFunction,
+	) {
 		try {
 			const user = await this.userService.createUser(req.body);
 			res.status(StatusCodeEnum.CREATED).json(user);
@@ -27,7 +33,7 @@ export class UserController {
 		res.json(users);
 	}
 
-	public async getById(req: Request, res: Response, next: NextFunction) {
+	public async getById(req: Request<{ id: string }>, res: Response, next: NextFunction) {
 		const user = await this.userService.getUserById(req.params.id);
 		if (!user) {
 			return res.sendStatus(StatusCodeEnum.NOT_FOUND);
@@ -43,7 +49,11 @@ export class UserController {
 		res.json(profile);
 	}
 
-	public async put(req: Request, res: Response, next: NextFunction) {
+	public async put(
+		req: Request<{ id: string }, object, UpdateUserDto>,
+		res: Response,
+		next: NextFunction,
+	) {
 		try {
 			const user = await this.userService.updateUserById(req.params.id, req.body);
 			if (!user) {
@@ -56,7 +66,7 @@ export class UserController {
 		}
 	}
 
-	public async delete(req: Request, res: Response, next: NextFunction) {
+	public async delete(req: Request<{ id: string }>, res: Response, next: NextFunction) {
 		try {
 			const user = await this.userService.deleteUserById(req.params.id);
 			if (!user) {

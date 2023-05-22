@@ -1,10 +1,12 @@
 import { StatusCodeEnum } from '../common/enums';
 import { Request, Response, NextFunction } from 'express';
-import { IHttpController } from '../common/types';
+import { IHttpController, IQueryParams } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { AuthorizedRequest } from '../common/middlewares/auth-middleware';
 import PatientService from './patient-service';
+import CreatePatientDto from './dto/create-patient-dto';
+import UpdatePatientDto from './dto/update-patient-dto';
 
 @injectable()
 export default class PatientController implements IHttpController {
@@ -12,7 +14,10 @@ export default class PatientController implements IHttpController {
 		@inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientService,
 	) {}
 
-	public async get(req: Request, res: Response): Promise<void> {
+	public async get(
+		req: Request<object, object, object, IQueryParams>,
+		res: Response,
+	): Promise<void> {
 		const patients = await this.patientsService.getAllPatients(req.query);
 		if (patients.length < 1) {
 			res.status(StatusCodeEnum.NO_CONTENT);
@@ -20,7 +25,7 @@ export default class PatientController implements IHttpController {
 		res.json(patients);
 	}
 
-	public async getById(req: Request, res: Response): Promise<void> {
+	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
 		const patient = await this.patientsService.getPatientById(req.params.id);
 		if (!patient) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);
@@ -32,7 +37,11 @@ export default class PatientController implements IHttpController {
 	// Review: у пациента теперь часть полей находится в сущности пользователя
 	// значит ли это, что для создания пациента теперь необходима авторизация, ведь в ней
 	// и находятся данные о пользователе
-	public async post(req: AuthorizedRequest, res: Response, next: NextFunction): Promise<void> {
+	public async post(
+		req: AuthorizedRequest<CreatePatientDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		try {
 			const patient = await this.patientsService.createPatient(req.body, req.user);
 			res.status(StatusCodeEnum.CREATED).json(patient);
@@ -41,7 +50,11 @@ export default class PatientController implements IHttpController {
 		}
 	}
 
-	public async put(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async put(
+		req: Request<{ id: string }, object, UpdatePatientDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		try {
 			const patient = await this.patientsService.updatePatientById(req.params.id, req.body);
 			if (!patient) {
@@ -54,7 +67,11 @@ export default class PatientController implements IHttpController {
 		}
 	}
 
-	public async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async delete(
+		req: Request<{ id: string }>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		try {
 			const patient = await this.patientsService.deletePatientById(req.params.id);
 			if (!patient) {

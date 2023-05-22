@@ -3,12 +3,20 @@ import { inject, injectable } from 'inversify';
 import { AuthService } from './auth-service';
 import { CONTAINER_TYPES } from '../common/constants';
 import { StatusCodeEnum } from '../common/enums';
+import { RegisterDto } from './dto/register-dto';
+import { LoginDto } from './dto/login-dto';
+import { ResetPasswordDto } from './dto/reset-password-dto';
+import { RecoverPasswordDto } from './dto/recover-password-dto';
 
 @injectable()
 export default class AuthController {
 	constructor(@inject(CONTAINER_TYPES.AUTH_SERVICE) private readonly authService: AuthService) {}
 
-	public async register(req: Request, res: Response, next: NextFunction) {
+	public async register(
+		req: Request<object, object, RegisterDto>,
+		res: Response,
+		next: NextFunction,
+	) {
 		try {
 			const registeredUser = await this.authService.register(req.body);
 			res.status(StatusCodeEnum.CREATED).json(registeredUser);
@@ -17,7 +25,7 @@ export default class AuthController {
 		}
 	}
 
-	public async login(req: Request, res: Response, next: NextFunction) {
+	public async login(req: Request<object, object, LoginDto>, res: Response, next: NextFunction) {
 		try {
 			const loginedUser = await this.authService.login(req.body);
 			if (!loginedUser) {
@@ -30,7 +38,11 @@ export default class AuthController {
 		}
 	}
 
-	public async resetPassword(req: Request, res: Response, next: NextFunction) {
+	public async resetPassword(
+		req: Request<object, object, ResetPasswordDto>,
+		res: Response,
+		next: NextFunction,
+	) {
 		try {
 			const resetToken = await this.authService.resetPassword(req.body);
 			res.json({ token: resetToken });
@@ -39,7 +51,11 @@ export default class AuthController {
 		}
 	}
 
-	public async recoverPassword(req: Request, res: Response, next: NextFunction) {
+	public async recoverPassword(
+		req: Request<object, object, RecoverPasswordDto>,
+		res: Response,
+		next: NextFunction,
+	) {
 		try {
 			const result = await this.authService.recoverPassword(req.body);
 			res.json({ message: result });

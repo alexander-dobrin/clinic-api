@@ -7,8 +7,9 @@ import { CONTAINER_TYPES } from '../constants';
 import UserService from '../../user/user-service';
 import { UserPayload } from '../../auth/auth-types';
 
-export interface AuthorizedRequest extends Request {
+export interface AuthorizedRequest<T = unknown> extends Request {
 	user: UserPayload;
+	body: T;
 }
 
 @injectable()
@@ -31,7 +32,7 @@ export class AuthMiddleware {
 				throw new NotAuthorizedError(ErrorMessageEnum.NOT_AUTHORIZED);
 			}
 
-			(req as AuthorizedRequest).user = decoded;
+			(req as AuthorizedRequest<unknown>).user = decoded;
 
 			next();
 		} catch (err) {
