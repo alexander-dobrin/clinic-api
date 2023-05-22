@@ -1,7 +1,15 @@
 import { ClassConstructor, plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
-import { UnprocessableEntityError } from './errors';
+import { HttpError, UnprocessableEntityError } from './errors';
 import { METADATA } from './constants';
+import {
+	registerDecorator,
+	ValidationOptions,
+	ValidatorConstraint,
+	ValidatorConstraintInterface,
+} from 'class-validator';
+import { DateTime } from 'luxon';
+import { StatusCodeEnum } from './enums';
 
 export interface ValidDtoParamInfo<T extends object> {
 	index: number;
@@ -58,10 +66,34 @@ export function validateDto<T extends object>(
 			await Reflect.apply(originalMethod, this, params);
 		} catch (errors) {
 			if (Array.isArray(errors)) {
-				const message = errors.map((error) => Object.values(error.constraints).join('; '));
-				throw new UnprocessableEntityError(message);
+				const message = errors.map((error) => Object.values(error.constraints).join('; ')).join('; ');
+				throw new HttpError(StatusCodeEnum.UNPROCESSABLE_ENTITY, message);
 			}
 			throw errors;
 		}
+	};
+}
+
+@ValidatorConstraint()
+class IsNotInThePastConstraint implements ValidatorConstraintInterface {
+	validate(utcDate: string) {
+		const currentDate = DateTime.utc();
+		const inputDate = DateTime.fromISO(utcDate, { zone: 'utc' });
+		return inputDate > currentDate;
+	}
+
+	defaultMessage(): string {
+		return '$property date can not be in the past';
+	}
+}
+
+export function IsNotInThePast(validationOptions?: ValidationOptions) {
+	return function (object: object, propertyName: string) {
+		registerDecorator({
+			target: object.constructor,
+			propertyName: propertyName,
+			options: validationOptions,
+			validator: IsNotInThePastConstraint,
+		});
 	};
 }

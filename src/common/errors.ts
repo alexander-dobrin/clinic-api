@@ -1,3 +1,5 @@
+import { StatusCodeEnum } from "./enums";
+
 export class AppointmentConflictError extends Error {
 	constructor(message) {
 		super(message);
@@ -51,5 +53,12 @@ export class UnprocessableEntityError extends Error {
 	constructor(message) {
 		super(message);
 		Error.captureStackTrace(this, InvalidParameterError);
+	}
+}
+
+export class HttpError extends Error {
+	constructor(public code: StatusCodeEnum, message: string) {
+		super(message);
+		Error.captureStackTrace(this, HttpError);
 	}
 }

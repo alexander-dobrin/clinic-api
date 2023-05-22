@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import {
+	HttpError,
 	InvalidParameterError,
 	NotAuthorizedError,
 	UnableToSortError,
@@ -26,6 +27,11 @@ export class ExceptionFilter {
 		} else if (err instanceof NotAuthorizedError) {
 			return res.status(StatusCodeEnum.NOT_AUTHORIZED).json({ error: { message: err.message } });
 		}
+
+		if (err instanceof HttpError) {
+			return res.status(err.code).json({ error: { message: err.message } });
+		}
+
 		console.log(err);
 		res.sendStatus(StatusCodeEnum.INTERNAL_SERVER_ERROR);
 		next(err);

@@ -1,4 +1,5 @@
 import { IsDateString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotInThePast } from '../../common/decorator';
 
 export default class CreateDoctorDto {
 	@IsNotEmpty()
@@ -9,6 +10,7 @@ export default class CreateDoctorDto {
 
 	@IsOptional()
 	@IsDateString({}, { each: true })
+	@IsNotInThePast({ each: true })
 	public readonly availableSlots: string[];
 
 	constructor(firstName: string, speciality: string, availableSlots: string[] = []) {
