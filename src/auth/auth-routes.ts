@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { IRoutes } from '../common/types';
 import { inject, injectable } from 'inversify';
-import AuthController from './auth-controller';
+import { AuthController } from './auth-controller';
 import { CONTAINER_TYPES } from '../common/constants';
 
 @injectable()
@@ -15,7 +15,6 @@ export class AuthRoutes implements IRoutes {
 	}
 
 	private setupRoutes() {
-		// Review: are the routes ok?
 		this._router.post('/register', this.controller.register.bind(this.controller));
 		this._router.post('/login', this.controller.login.bind(this.controller));
 		this._router.post('/reset', this.controller.resetPassword.bind(this.controller));

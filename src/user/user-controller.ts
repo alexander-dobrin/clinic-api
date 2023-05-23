@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { NextFunction, Request, Response } from 'express';
-import UserService from './user-service';
+import { UserService } from './user-service';
 import { StatusCodeEnum } from '../common/enums';
 import { AuthorizedRequest } from '../common/middlewares/auth-middleware';
 import { CreateUserDto } from './dto/create-user-dto';
@@ -17,7 +17,7 @@ export class UserController {
 		next: NextFunction,
 	) {
 		try {
-			const user = await this.userService.createUser(req.body);
+			const user = await this.userService.create(req.body);
 			res.status(StatusCodeEnum.CREATED).json(user);
 		} catch (err) {
 			next(err);
@@ -25,7 +25,7 @@ export class UserController {
 	}
 
 	public async get(req: Request, res: Response, next: NextFunction) {
-		const users = await this.userService.getAllUsers();
+		const users = await this.userService.get();
 		if (users.length < 1) {
 			res.sendStatus(StatusCodeEnum.NO_CONTENT);
 			return;
@@ -34,7 +34,7 @@ export class UserController {
 	}
 
 	public async getById(req: Request<{ id: string }>, res: Response, next: NextFunction) {
-		const user = await this.userService.getUserById(req.params.id);
+		const user = await this.userService.getById(req.params.id);
 		if (!user) {
 			return res.sendStatus(StatusCodeEnum.NOT_FOUND);
 		}
@@ -42,7 +42,7 @@ export class UserController {
 	}
 
 	public async profile(req: AuthorizedRequest, res: Response, next: NextFunction) {
-		const profile = await this.userService.getUserById(req.user.id);
+		const profile = await this.userService.getById(req.user.id);
 		if (!profile) {
 			return res.sendStatus(StatusCodeEnum.NOT_FOUND);
 		}
@@ -55,7 +55,7 @@ export class UserController {
 		next: NextFunction,
 	) {
 		try {
-			const user = await this.userService.updateUserById(req.params.id, req.body);
+			const user = await this.userService.update(req.params.id, req.body);
 			if (!user) {
 				res.sendStatus(StatusCodeEnum.NOT_FOUND);
 				return;
@@ -68,7 +68,7 @@ export class UserController {
 
 	public async delete(req: Request<{ id: string }>, res: Response, next: NextFunction) {
 		try {
-			const user = await this.userService.deleteUserById(req.params.id);
+			const user = await this.userService.delete(req.params.id);
 			if (!user) {
 				res.sendStatus(StatusCodeEnum.NOT_FOUND);
 				return;

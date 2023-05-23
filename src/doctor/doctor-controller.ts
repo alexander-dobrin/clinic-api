@@ -3,12 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 import { IQueryParams, IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
-import DoctorService from './doctor-service';
-import CreateDoctorDto from './dto/create-doctor-dto';
-import UpdateDoctorDto from './dto/update-doctor-dto';
+import { DoctorService } from './doctor-service';
+import { CreateDoctorDto } from './dto/create-doctor-dto';
+import { UpdateDoctorDto } from './dto/update-doctor-dto';
 
 @injectable()
-export default class DoctorController implements IHttpController {
+export class DoctorController implements IHttpController {
 	constructor(
 		@inject(CONTAINER_TYPES.DOCTORS_SERVICE) private readonly doctorsService: DoctorService,
 	) {}
@@ -19,7 +19,7 @@ export default class DoctorController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const doctors = await this.doctorsService.getAllDoctors(req.query);
+			const doctors = await this.doctorsService.read(req.query);
 			if (doctors.length < 1) {
 				res.status(StatusCodeEnum.NO_CONTENT);
 			}
@@ -30,7 +30,7 @@ export default class DoctorController implements IHttpController {
 	}
 
 	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const doctor = await this.doctorsService.getDoctortById(req.params.id);
+		const doctor = await this.doctorsService.getById(req.params.id);
 		if (!doctor) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);
 			return;
@@ -57,7 +57,7 @@ export default class DoctorController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const doctor = await this.doctorsService.updateDoctorById(req.params.id, req.body);
+			const doctor = await this.doctorsService.update(req.params.id, req.body);
 			if (!doctor) {
 				res.sendStatus(StatusCodeEnum.NOT_FOUND);
 				return;
@@ -69,7 +69,7 @@ export default class DoctorController implements IHttpController {
 	}
 
 	public async delete(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const doctor = await this.doctorsService.deleteDoctorById(req.params.id);
+		const doctor = await this.doctorsService.delete(req.params.id);
 		if (!doctor) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);
 			return;

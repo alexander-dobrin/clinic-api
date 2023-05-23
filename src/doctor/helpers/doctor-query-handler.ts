@@ -7,8 +7,8 @@ import {
 	ISortParam,
 	ISortingStrategy,
 } from '../../common/types';
-import DoctorModel from '../doctor-model';
-import AppointmentModel from '../../appointment/appointment-model';
+import { DoctorModel } from '../doctor-model';
+import { AppointmentModel } from '../../appointment/appointment-model';
 import { SortingStrategyFactory } from './sorting/sorting-strategy-factory';
 
 // Review: декомпозировать это все в отдельные классы или оставить методами DoctorService?

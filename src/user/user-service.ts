@@ -9,11 +9,11 @@ import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import bcrypt from 'bcrypt';
-import PatientModel from '../patient/patient-model';
+import { PatientModel } from '../patient/patient-model';
 import { validDto, validateDto } from '../common/decorator';
 
 @injectable()
-export default class UserService {
+export class UserService {
 	constructor(
 		@inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly provider: IDataProvider<IUser>,
 		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
@@ -21,17 +21,15 @@ export default class UserService {
 	) {}
 
 	@validateDto
-	public async createUser(@validDto(CreateUserDto) user: CreateUserDto): Promise<IUser> {
+	public async create(@validDto(CreateUserDto) user: CreateUserDto): Promise<IUser> {
 		if (await this.isUserExist(user.email)) {
 			throw new HttpError(
 				StatusCodeEnum.BAD_REQUEST,
 				ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email),
 			);
 		}
-		// Review: on which criteria initial user role is defined?
-		// Should user role be set in UserService or AuthService?
+		// Review: should user role be set in UserService or AuthService?
 		// Should role be set during login or registration?
-		// Should user role be passed in req body and, or when creating patient or doctor in their services?
 		user.password = await bcrypt.hash(user.password, SALT_ROUNDS);
 		const newUser: IUser = { id: v4(), role: user.role ?? UserRoleEnum.GUEST, ...user };
 		return this.provider.create(newUser);
@@ -42,27 +40,41 @@ export default class UserService {
 		return users.some((u) => u.email === email);
 	}
 
-	public async getAllUsers() {
+	public async get() {
 		return this.provider.read();
 	}
 
-	public async getUserById(id: string) {
+	public async getById(id: string) {
 		const users = await this.provider.read();
 		return users.find((u) => u.id === id);
 	}
 
-	public async getUserByEmail(email: string): Promise<IUser> {
+	public async getByEmail(email: string): Promise<IUser> {
 		const users = await this.provider.read();
-		return users.find((u) => u.email === email);
+		const foundUser = users.find((u) => u.email === email);
+		if (!foundUser) {
+			throw new HttpError(
+				StatusCodeEnum.NOT_FOUND,
+				ErrorMessageEnum.USER_NOT_FOUND.replace('%s', email),
+			);
+		}
+		return foundUser;
 	}
 
-	public async getUserByResetToken(token: string) {
+	public async getByResetToken(token: string) {
 		const users = await this.provider.read();
-		return users.find((u) => u?.resetToken === token);
+		const foundUser = users.find((u) => u?.resetToken === token);
+		if (!foundUser) {
+			throw new HttpError(
+				StatusCodeEnum.NOT_FOUND,
+				ErrorMessageEnum.USER_NOT_FOUND.replace('%s', token),
+			);
+		}
+		return foundUser;
 	}
 
-	public async updateUserResetToken(email: string, token: string | null): Promise<IUser> {
-		const user = await this.getUserByEmail(email);
+	public async updateResetToken(email: string, token: string | null): Promise<IUser> {
+		const user = await this.getByEmail(email);
 		if (!user) {
 			return;
 		}
@@ -72,7 +84,7 @@ export default class UserService {
 	}
 
 	@validateDto
-	public async updateUserById(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto) {
+	public async update(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto) {
 		if (!this.isUserExist(userDto.email)) {
 			throw new HttpError(
 				StatusCodeEnum.BAD_REQUEST,
@@ -90,8 +102,8 @@ export default class UserService {
 		return this.provider.updateById(user.id, user);
 	}
 
-	public async deleteUserById(id: string) {
-		const user = this.getUserById(id);
+	public async delete(id: string) {
+		const user = this.getById(id);
 		if (!user) {
 			return;
 		}

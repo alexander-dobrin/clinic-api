@@ -3,13 +3,13 @@ import { IRoutes } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IHttpController } from '../common/types';
 import { IRepository } from '../common/types';
-import DoctorService from './doctor-service';
-import DoctorModel from './doctor-model';
-import DoctorRepository from './doctor-repository';
-import DoctorController from './doctor-controller';
-import DoctorRoutes from './doctor-routes';
+import { DoctorService } from './doctor-service';
+import { DoctorModel } from './doctor-model';
+import { DoctorRepository } from './doctor-repository';
+import { DoctorController } from './doctor-controller';
+import { DoctorRoutes } from './doctor-routes';
 import { IDataProvider } from '../common/types';
-import FileDataProvider from '../common/providers/file-data-provider';
+import { FileDataProvider } from '../common/providers/file-data-provider';
 import * as path from 'path';
 
 export const doctorModule = new ContainerModule((bind: interfaces.Bind) => {

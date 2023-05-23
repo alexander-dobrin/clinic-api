@@ -6,7 +6,7 @@ import { CONTAINER_TYPES } from './common/constants';
 import { IRoutes } from './common/types';
 
 @injectable()
-export default class App {
+export class App {
 	private readonly app: Express;
 
 	constructor(

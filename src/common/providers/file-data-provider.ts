@@ -4,7 +4,7 @@ import { IFindable } from '../types';
 import { injectable } from 'inversify';
 
 @injectable()
-export default class FileDataProvider<TModel extends IFindable> implements IDataProvider<TModel> {
+export class FileDataProvider<TModel extends IFindable> implements IDataProvider<TModel> {
 	private readonly filePath: string;
 
 	constructor(filePath: string) {

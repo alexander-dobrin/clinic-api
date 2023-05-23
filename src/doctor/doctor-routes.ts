@@ -6,7 +6,7 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
 
 @injectable()
-export default class DoctorRoutes implements IRoutes {
+export class DoctorRoutes implements IRoutes {
 	private readonly _router: Router;
 	private readonly queryMapper = new QueryMapperMiddleware();
 

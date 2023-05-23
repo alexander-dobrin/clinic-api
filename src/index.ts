@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import App from './app';
+import { App } from './app';
 import { iocContainer } from './inversify.config';
 import { CONTAINER_TYPES } from './common/constants';
 

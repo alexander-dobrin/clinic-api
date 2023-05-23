@@ -1,8 +1,8 @@
 import { v4 } from 'uuid';
-import DoctorModel from './doctor-model';
-import CreateDoctorDto from './dto/create-doctor-dto';
+import { DoctorModel } from './doctor-model';
+import { CreateDoctorDto } from './dto/create-doctor-dto';
 import { plainToClass } from 'class-transformer';
-import UpdateDoctorDto from './dto/update-doctor-dto';
+import { UpdateDoctorDto } from './dto/update-doctor-dto';
 import { merge } from 'lodash';
 import { DateTime } from 'luxon';
 import { injectable, inject } from 'inversify';
@@ -11,13 +11,11 @@ import { IQueryParams, IRepository } from '../common/types';
 import { HttpError } from '../common/errors';
 import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { DoctorQueryHandler } from './helpers/doctor-query-handler';
-import AppointmentRepository from '../appointment/appointment-repository';
+import { AppointmentRepository } from '../appointment/appointment-repository';
 import { validDto, validateDto } from '../common/decorator';
 
-// Review: что на счет export default? Стоит спользовать? Единственный известный мне риск это то что в таком случае
-// нельзя будет из двух разных модулей экспортировать типы с одинаковым именем
 @injectable()
-export default class DoctorService {
+export class DoctorService {
 	constructor(
 		@inject(CONTAINER_TYPES.DOCTORS_REPOSITORY)
 		private readonly doctorsRepository: IRepository<DoctorModel>,
@@ -33,24 +31,24 @@ export default class DoctorService {
 		return this.doctorsRepository.add(doctor);
 	}
 
-	public async getAllDoctors(options: IQueryParams): Promise<DoctorModel[]> {
+	public async read(options: IQueryParams): Promise<DoctorModel[]> {
 		const objects = await this.doctorsRepository.getAll();
 		const doctors = objects.map((d) => plainToClass(DoctorModel, d));
 
 		return new DoctorQueryHandler(this.appointmentsRepository).applyRequestQuery(doctors, options);
 	}
 
-	public async getDoctortById(id: string): Promise<DoctorModel | undefined> {
+	public async getById(id: string): Promise<DoctorModel | undefined> {
 		const doctor = plainToClass(DoctorModel, await this.doctorsRepository.get(id));
 		return doctor;
 	}
 
 	@validateDto
-	public async updateDoctorById(
+	public async update(
 		id: string,
 		@validDto(UpdateDoctorDto) doctorDto: UpdateDoctorDto,
 	): Promise<DoctorModel | undefined> {
-		const doctor = await this.getDoctortById(id);
+		const doctor = await this.getById(id);
 
 		if (!doctor) {
 			return;
@@ -60,8 +58,8 @@ export default class DoctorService {
 		return this.doctorsRepository.update(doctor);
 	}
 
-	public async deleteDoctorById(id: string): Promise<DoctorModel | undefined> {
-		const doctor = await this.getDoctortById(id);
+	public async delete(id: string): Promise<DoctorModel | undefined> {
+		const doctor = await this.getById(id);
 		if (!doctor) {
 			return;
 		}
@@ -75,7 +73,7 @@ export default class DoctorService {
 	}
 
 	public async takeFreeSlot(id: string, date: DateTime): Promise<boolean> {
-		const doctor = await this.getDoctortById(id);
+		const doctor = await this.getById(id);
 		if (!doctor) {
 			return false;
 		}
@@ -92,6 +90,6 @@ export default class DoctorService {
 	}
 
 	public async isExists(id: string): Promise<boolean> {
-		return (await this.getDoctortById(id)) ? true : false;
+		return (await this.getById(id)) ? true : false;
 	}
 }

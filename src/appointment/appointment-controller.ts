@@ -1,5 +1,5 @@
 import { StatusCodeEnum } from '../common/enums';
-import AppointmentService from './appointment-service';
+import { AppointmentService } from './appointment-service';
 import { Request, Response, NextFunction } from 'express';
 import { IHttpController, IQueryParams } from '../common/types';
 import { injectable, inject } from 'inversify';
@@ -8,7 +8,7 @@ import { CreateAppointmentDto } from './dto/create-appointment-dto';
 import { UpdateAppointmentDto } from './dto/update-appointment-dto';
 
 @injectable()
-export default class AppointmentController implements IHttpController {
+export class AppointmentController implements IHttpController {
 	constructor(
 		@inject(CONTAINER_TYPES.APPOINTMENTS_SERVICE)
 		private readonly appointmentService: AppointmentService,
@@ -20,7 +20,7 @@ export default class AppointmentController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const created = await this.appointmentService.createAppointment(req.body);
+			const created = await this.appointmentService.create(req.body);
 			if (!created) {
 				res.sendStatus(StatusCodeEnum.NOT_FOUND);
 				return;
@@ -35,7 +35,7 @@ export default class AppointmentController implements IHttpController {
 		req: Request<object, object, object, IQueryParams>,
 		res: Response,
 	): Promise<void> {
-		const appointments = await this.appointmentService.getAllAppointments(req.query);
+		const appointments = await this.appointmentService.read(req.query);
 		if (appointments.length < 1) {
 			res.status(StatusCodeEnum.NO_CONTENT);
 		}
@@ -57,7 +57,7 @@ export default class AppointmentController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const updated = await this.appointmentService.updateAppointmentById(req.params.id, req.body);
+			const updated = await this.appointmentService.update(req.params.id, req.body);
 			if (!updated) {
 				res.sendStatus(StatusCodeEnum.NOT_FOUND);
 				return;
@@ -69,7 +69,7 @@ export default class AppointmentController implements IHttpController {
 	}
 
 	public async delete(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const removed = await this.appointmentService.deleteAppointmentById(req.params.id);
+		const removed = await this.appointmentService.delete(req.params.id);
 		if (!removed) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);
 			return;

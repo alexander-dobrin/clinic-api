@@ -1,10 +1,8 @@
 import { IUser } from '../user/user-interface';
 
-// Review: make model fields immutable?
-export default class PatientModel {
+export class PatientModel {
 	constructor(
 		public id: string,
-		// Review: use full model or just id?
 		public user: IUser,
 		public phoneNumber: string,
 	) {}

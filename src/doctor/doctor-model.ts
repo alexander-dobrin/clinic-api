@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { Transform } from 'class-transformer';
 
-export default class DoctorModel {
+export class DoctorModel {
 	public id: string;
 	public firstName: string;
 	public speciality: string;

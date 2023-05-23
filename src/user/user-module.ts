@@ -1,11 +1,11 @@
 import { ContainerModule } from 'inversify';
 import { IUser } from './user-interface';
 import { CONTAINER_TYPES } from '../common/constants';
-import FileDataProvider from '../common/providers/file-data-provider';
+import { FileDataProvider } from '../common/providers/file-data-provider';
 import { resolve } from 'path';
 import { IDataProvider } from '../common/types';
-import UserService from './user-service';
-import UserRoutes from './user-routes';
+import { UserService } from './user-service';
+import { UserRoutes } from './user-routes';
 import { UserController } from './user-controller';
 
 export const userModule = new ContainerModule((bind) => {

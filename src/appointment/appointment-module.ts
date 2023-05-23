@@ -3,13 +3,13 @@ import { IRoutes } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IHttpController } from '../common/types';
 import { IRepository } from '../common/types';
-import AppointmentRoutes from './appointment-routes';
-import AppointmentController from './appointment-controller';
-import AppointmentService from './appointment-service';
-import AppointmentModel from './appointment-model';
-import AppointmentRepository from './appointment-repository';
+import { AppointmentRoutes } from './appointment-routes';
+import { AppointmentController } from './appointment-controller';
+import { AppointmentService } from './appointment-service';
+import { AppointmentModel } from './appointment-model';
+import { AppointmentRepository } from './appointment-repository';
 import { IDataProvider } from '../common/types';
-import FileDataProvider from '../common/providers/file-data-provider';
+import { FileDataProvider } from '../common/providers/file-data-provider';
 import * as path from 'path';
 
 export const appointmentModule = new ContainerModule((bind: interfaces.Bind) => {

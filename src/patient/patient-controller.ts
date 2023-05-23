@@ -4,12 +4,12 @@ import { IHttpController, IQueryParams } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { AuthorizedRequest } from '../common/middlewares/auth-middleware';
-import PatientService from './patient-service';
-import CreatePatientDto from './dto/create-patient-dto';
-import UpdatePatientDto from './dto/update-patient-dto';
+import { PatientService } from './patient-service';
+import { CreatePatientDto } from './dto/create-patient-dto';
+import { UpdatePatientDto } from './dto/update-patient-dto';
 
 @injectable()
-export default class PatientController implements IHttpController {
+export class PatientController implements IHttpController {
 	constructor(
 		@inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientService,
 	) {}
@@ -18,7 +18,7 @@ export default class PatientController implements IHttpController {
 		req: Request<object, object, object, IQueryParams>,
 		res: Response,
 	): Promise<void> {
-		const patients = await this.patientsService.getAllPatients(req.query);
+		const patients = await this.patientsService.read(req.query);
 		if (patients.length < 1) {
 			res.status(StatusCodeEnum.NO_CONTENT);
 		}
@@ -26,7 +26,7 @@ export default class PatientController implements IHttpController {
 	}
 
 	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const patient = await this.patientsService.getPatientById(req.params.id);
+		const patient = await this.patientsService.readById(req.params.id);
 		if (!patient) {
 			res.sendStatus(StatusCodeEnum.NOT_FOUND);
 			return;
@@ -43,7 +43,7 @@ export default class PatientController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const patient = await this.patientsService.createPatient(req.body, req.user);
+			const patient = await this.patientsService.create(req.body, req.user);
 			res.status(StatusCodeEnum.CREATED).json(patient);
 		} catch (err) {
 			next(err);

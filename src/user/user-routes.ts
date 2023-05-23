@@ -7,7 +7,7 @@ import { iocContainer } from '../inversify.config';
 import { AuthMiddleware } from '../common/middlewares/auth-middleware';
 
 @injectable()
-export default class UserRoutes implements IRoutes {
+export class UserRoutes implements IRoutes {
 	private readonly _router = Router();
 	private readonly authMiddleware = iocContainer.get<AuthMiddleware>(
 		CONTAINER_TYPES.AUTH_MIDDLEWARE,

@@ -4,7 +4,7 @@ import { ClassConstructor, plainToClass } from 'class-transformer';
 import { StatusCodeEnum } from '../enums';
 import { RequestMethodEnum } from '../enums';
 
-export default class DtoValidatorMiddleware<TDto extends object> {
+export class DtoValidatorMiddleware<TDto extends object> {
 	private readonly dtoClassConstructor: ClassConstructor<TDto>;
 
 	constructor(dtoClassConstructor: ClassConstructor<TDto>) {

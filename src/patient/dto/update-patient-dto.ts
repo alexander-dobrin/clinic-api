@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsOptional, IsPhoneNumber } from 'class-validator';
 
-export default class UpdatePatientDto {
+export class UpdatePatientDto {
 	@IsOptional()
 	@IsNotEmpty()
 	public readonly firstName?: string;

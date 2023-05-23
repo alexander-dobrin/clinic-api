@@ -1,9 +1,9 @@
-import AppointmentModel from './appointment-model';
+import { AppointmentModel } from './appointment-model';
 import { DateTime } from 'luxon';
 import { v4 } from 'uuid';
-import AppointmentRepository from './appointment-repository';
-import PatientService from '../patient/patient-service';
-import DoctorService from '../doctor/doctor-service';
+import { AppointmentRepository } from './appointment-repository';
+import { PatientService } from '../patient/patient-service';
+import { DoctorService } from '../doctor/doctor-service';
 import { CreateAppointmentDto } from './dto/create-appointment-dto';
 import { plainToClass } from 'class-transformer';
 import { UpdateAppointmentDto } from './dto/update-appointment-dto';
@@ -16,7 +16,7 @@ import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator';
 
 @injectable()
-export default class AppointmentService {
+export class AppointmentService {
 	constructor(
 		@inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY)
 		private readonly repository: AppointmentRepository,
@@ -25,7 +25,7 @@ export default class AppointmentService {
 	) {}
 
 	@validateDto
-	public async createAppointment(
+	public async create(
 		@validDto(CreateAppointmentDto) appointmentDto: CreateAppointmentDto,
 	): Promise<AppointmentModel | undefined> {
 		const { patientId, doctorId, date } = appointmentDto;
@@ -49,7 +49,7 @@ export default class AppointmentService {
 		return this.repository.add(appointment);
 	}
 
-	public async getAllAppointments(options: IQueryParams): Promise<AppointmentModel[]> {
+	public async read(options: IQueryParams): Promise<AppointmentModel[]> {
 		let appointments = await this.repository.getAll();
 		if (options.filterBy) {
 			appointments = this.filterAppointments(appointments, options.filterBy);
@@ -94,7 +94,7 @@ export default class AppointmentService {
 	}
 
 	@validateDto
-	public async updateAppointmentById(
+	public async update(
 		id: string,
 		@validDto(UpdateAppointmentDto) appointmentDto: UpdateAppointmentDto,
 	): Promise<AppointmentModel | undefined> {
@@ -119,7 +119,7 @@ export default class AppointmentService {
 		return this.repository.update(appointment);
 	}
 
-	public async deleteAppointmentById(id: string): Promise<AppointmentModel | undefined> {
+	public async delete(id: string): Promise<AppointmentModel | undefined> {
 		const appointment = await this.repository.get(id);
 		if (!appointment) {
 			return;

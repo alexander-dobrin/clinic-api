@@ -7,9 +7,10 @@ import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
 import { ResetPasswordDto } from './dto/reset-password-dto';
 import { RecoverPasswordDto } from './dto/recover-password-dto';
+import { plainToClass } from 'class-transformer';
 
 @injectable()
-export default class AuthController {
+export class AuthController {
 	constructor(@inject(CONTAINER_TYPES.AUTH_SERVICE) private readonly authService: AuthService) {}
 
 	public async register(
@@ -18,7 +19,8 @@ export default class AuthController {
 		next: NextFunction,
 	) {
 		try {
-			const registeredUser = await this.authService.register(req.body);
+			const registerDto = plainToClass(RegisterDto, req.body);
+			const registeredUser = await this.authService.register(registerDto);
 			res.status(StatusCodeEnum.CREATED).json(registeredUser);
 		} catch (error) {
 			next(error);
@@ -27,11 +29,9 @@ export default class AuthController {
 
 	public async login(req: Request<object, object, LoginDto>, res: Response, next: NextFunction) {
 		try {
-			const loginedUser = await this.authService.login(req.body);
-			if (!loginedUser) {
-				res.sendStatus(StatusCodeEnum.NOT_FOUND);
-				return;
-			}
+			// TODO middleware all theese transformations
+			const loginDto = plainToClass(LoginDto, req.body);
+			const loginedUser = await this.authService.login(loginDto);
 			res.json(loginedUser);
 		} catch (error) {
 			next(error);
@@ -44,8 +44,9 @@ export default class AuthController {
 		next: NextFunction,
 	) {
 		try {
-			const resetToken = await this.authService.resetPassword(req.body);
-			res.json({ token: resetToken });
+			const resetDto = plainToClass(ResetPasswordDto, req.body);
+			const resetToken = await this.authService.resetPassword(resetDto);
+			res.json(resetToken);
 		} catch (error) {
 			next(error);
 		}

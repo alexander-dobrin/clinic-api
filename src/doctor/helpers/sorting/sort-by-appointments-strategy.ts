@@ -1,6 +1,6 @@
-import AppointmentModel from '../../../appointment/appointment-model';
+import { AppointmentModel } from '../../../appointment/appointment-model';
 import { ISortingStrategy } from '../../../common/types';
-import DoctorModel from '../../doctor-model';
+import { DoctorModel } from '../../doctor-model';
 
 export class SortByAppointmentsStrategy implements ISortingStrategy {
 	constructor(private readonly appointments: AppointmentModel[]) {}

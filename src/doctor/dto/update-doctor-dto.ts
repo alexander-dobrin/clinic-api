@@ -1,7 +1,7 @@
 import { IsDateString, IsOptional } from 'class-validator';
 import { IsNotInThePast } from '../../common/decorator';
 
-export default class UpdateDoctorDto {
+export class UpdateDoctorDto {
 	@IsOptional()
 	public readonly firstName?: string;
 

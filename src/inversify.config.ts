@@ -1,4 +1,4 @@
-import App from './app';
+import { App } from './app';
 import { ExceptionFilter } from './common/middlewares/exception-filter';
 import { Container } from 'inversify';
 import { patientModule } from './patient/patient-module';

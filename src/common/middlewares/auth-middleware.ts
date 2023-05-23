@@ -4,7 +4,7 @@ import { HttpError } from '../errors';
 import { ErrorMessageEnum, StatusCodeEnum } from '../enums';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../constants';
-import UserService from '../../user/user-service';
+import { UserService } from '../../user/user-service';
 import { UserPayload } from '../../auth/auth-types';
 
 export interface AuthorizedRequest<T = unknown> extends Request {
@@ -27,7 +27,7 @@ export class AuthMiddleware {
 			const decoded = jwt.verify(token, process.env.SECRET_KEY) as UserPayload;
 
 			// Review: shold middleware use userService to check user was not deleted?
-			const user = await this.userService.getUserById(decoded.id);
+			const user = await this.userService.getById(decoded.id);
 			if (!user) {
 				throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.NOT_AUTHORIZED);
 			}

@@ -1,5 +1,5 @@
 import { ContainerModule } from 'inversify';
-import AuthController from './auth-controller';
+import { AuthController } from './auth-controller';
 import { CONTAINER_TYPES } from '../common/constants';
 import { AuthRoutes } from './auth-routes';
 import { AuthService } from './auth-service';

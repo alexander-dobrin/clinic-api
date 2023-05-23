@@ -1,15 +1,15 @@
 import { ContainerModule, interfaces } from 'inversify';
 import { IRoutes } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
-import PatientRoutes from './patient-routes';
-import PatientController from './patient-controller';
+import { PatientRoutes } from './patient-routes';
+import { PatientController } from './patient-controller';
 import { IHttpController } from '../common/types';
-import PatientService from './patient-service';
+import { PatientService } from './patient-service';
 import { IRepository } from '../common/types';
-import PatientRepository from './patient-repository';
-import PatientModel from './patient-model';
+import { PatientRepository } from './patient-repository';
+import { PatientModel } from './patient-model';
 import { IDataProvider } from '../common/types';
-import FileDataProvider from '../common/providers/file-data-provider';
+import { FileDataProvider } from '../common/providers/file-data-provider';
 import * as path from 'path';
 
 export const patientModule = new ContainerModule((bind: interfaces.Bind) => {

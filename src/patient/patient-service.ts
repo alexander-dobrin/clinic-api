@@ -1,8 +1,8 @@
-import PatientModel from './patient-model';
+import { PatientModel } from './patient-model';
 import { HttpError } from '../common/errors';
-import CreatePatientDto from './dto/create-patient-dto';
+import { CreatePatientDto } from './dto/create-patient-dto';
 import { v4 } from 'uuid';
-import UpdatePatientDto from './dto/update-patient-dto';
+import { UpdatePatientDto } from './dto/update-patient-dto';
 import {
 	ErrorMessageEnum,
 	PatietnsFilterByEnum,
@@ -17,7 +17,7 @@ import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator';
 
 @injectable()
-export default class PatientService {
+export class PatientService {
 	constructor(
 		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
 		private readonly repository: IRepository<PatientModel>,
@@ -25,7 +25,7 @@ export default class PatientService {
 	) {}
 
 	@validateDto
-	public async createPatient(
+	public async create(
 		@validDto(CreatePatientDto) patientDto: CreatePatientDto,
 		user: UserPayload,
 	): Promise<PatientModel> {
@@ -40,7 +40,7 @@ export default class PatientService {
 		return await this.repository.add(patient);
 	}
 
-	public async getAllPatients(options: IQueryParams): Promise<PatientModel[]> {
+	public async read(options: IQueryParams): Promise<PatientModel[]> {
 		if (options.filterBy) {
 			return await this.filterPatients(options.filterBy);
 		}
@@ -73,7 +73,7 @@ export default class PatientService {
 		return patients.filter((p) => p.phoneNumber === phone);
 	}
 
-	public async getPatientById(id: string): Promise<PatientModel | undefined> {
+	public async readById(id: string): Promise<PatientModel | undefined> {
 		return this.repository.get(id);
 	}
 
