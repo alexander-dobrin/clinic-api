@@ -8,8 +8,8 @@ import { DateTime } from 'luxon';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IQueryParams, IRepository } from '../common/types';
-import { AppointmentConflictError } from '../common/errors';
-import { ErrorMessageEnum } from '../common/enums';
+import { HttpError } from '../common/errors';
+import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { DoctorQueryHandler } from './helpers/doctor-query-handler';
 import AppointmentRepository from '../appointment/appointment-repository';
 import { validDto, validateDto } from '../common/decorator';
@@ -81,7 +81,8 @@ export default class DoctorService {
 		}
 		const freeSlotIdx = doctor.availableSlots.findIndex((s) => s.equals(date.toUTC()));
 		if (freeSlotIdx < 0) {
-			throw new AppointmentConflictError(
+			throw new HttpError(
+				StatusCodeEnum.CONFLICT,
 				ErrorMessageEnum.DOCTOR_NOT_AVAILABLE.replace('%s', id).replace('%s', date.toISO()),
 			);
 		}

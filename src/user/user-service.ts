@@ -3,8 +3,8 @@ import { IDataProvider, IRepository } from '../common/types';
 import { IUser } from './user-interface';
 import { CONTAINER_TYPES, SALT_ROUNDS } from '../common/constants';
 import { v4 } from 'uuid';
-import { DuplicateEntityError, UserConfilctError } from '../common/errors';
-import { ErrorMessageEnum, UserRoleEnum } from '../common/enums';
+import { HttpError } from '../common/errors';
+import { ErrorMessageEnum, StatusCodeEnum, UserRoleEnum } from '../common/enums';
 import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
@@ -23,7 +23,10 @@ export default class UserService {
 	@validateDto
 	public async createUser(@validDto(CreateUserDto) user: CreateUserDto): Promise<IUser> {
 		if (await this.isUserExist(user.email)) {
-			throw new UserConfilctError(ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email));
+			throw new HttpError(
+				StatusCodeEnum.BAD_REQUEST,
+				ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email),
+			);
 		}
 		// Review: on which criteria initial user role is defined?
 		// Should user role be set in UserService or AuthService?
@@ -71,7 +74,8 @@ export default class UserService {
 	@validateDto
 	public async updateUserById(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto) {
 		if (!this.isUserExist(userDto.email)) {
-			throw new DuplicateEntityError(
+			throw new HttpError(
+				StatusCodeEnum.BAD_REQUEST,
 				ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', userDto.email),
 			);
 		}

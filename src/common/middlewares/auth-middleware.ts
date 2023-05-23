@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { NotAuthorizedError } from '../errors';
+import { HttpError } from '../errors';
 import { ErrorMessageEnum, StatusCodeEnum } from '../enums';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../constants';
@@ -21,7 +21,7 @@ export class AuthMiddleware {
 			const token = req.header('Authorization')?.replace('Bearer ', '');
 
 			if (!token) {
-				throw new NotAuthorizedError(ErrorMessageEnum.NOT_AUTHORIZED);
+				throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.NOT_AUTHORIZED);
 			}
 
 			const decoded = jwt.verify(token, process.env.SECRET_KEY) as UserPayload;
@@ -29,14 +29,14 @@ export class AuthMiddleware {
 			// Review: shold middleware use userService to check user was not deleted?
 			const user = await this.userService.getUserById(decoded.id);
 			if (!user) {
-				throw new NotAuthorizedError(ErrorMessageEnum.NOT_AUTHORIZED);
+				throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.NOT_AUTHORIZED);
 			}
 
 			(req as AuthorizedRequest<unknown>).user = decoded;
 
 			next();
 		} catch (err) {
-			res.status(StatusCodeEnum.NOT_AUTHORIZED).json({ message: ErrorMessageEnum.NOT_AUTHORIZED });
+			next(err);
 		}
 	}
 }

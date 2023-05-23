@@ -1,8 +1,13 @@
 import { IDataProvider } from '../common/types';
 import { inject, injectable } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
-import { InvalidParameterError, NotAuthorizedError } from '../common/errors';
-import { ErrorMessageEnum, ResponseMessageEnum, TokenLifetimeEnum } from '../common/enums';
+import { HttpError } from '../common/errors';
+import {
+	ErrorMessageEnum,
+	ResponseMessageEnum,
+	StatusCodeEnum,
+	TokenLifetimeEnum,
+} from '../common/enums';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { IUser } from '../user/user-interface';
@@ -45,7 +50,7 @@ export class AuthService {
 			const token = this.signTokenForUser(foundUser as UserPayload, TokenLifetimeEnum.LOGIN_TOKEN);
 			return { user: { email: foundUser.email, role: foundUser.role, id: foundUser.id }, token };
 		} else {
-			throw new NotAuthorizedError(ErrorMessageEnum.INVALID_PASSWORD);
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.INVALID_PASSWORD);
 		}
 	}
 
@@ -53,7 +58,8 @@ export class AuthService {
 	public async resetPassword(@validDto(ResetPasswordDto) resetData: ResetPasswordDto) {
 		const user = await this.userService.getUserByEmail(resetData.email);
 		if (!user) {
-			throw new InvalidParameterError(
+			throw new HttpError(
+				StatusCodeEnum.BAD_REQUEST,
 				ErrorMessageEnum.USER_NOT_FOUND.replace('%s', resetData.email),
 			);
 		}
@@ -69,7 +75,7 @@ export class AuthService {
 		const { resetToken, password } = recoverData;
 		const user = await this.userService.getUserByResetToken(resetToken);
 		if (!user) {
-			throw new InvalidParameterError(ErrorMessageEnum.INVALID_RESET_TOKEN);
+			throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.INVALID_RESET_TOKEN);
 		}
 		await this.userService.updateUserById(
 			user.id,

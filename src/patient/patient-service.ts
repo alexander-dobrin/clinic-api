@@ -1,9 +1,14 @@
 import PatientModel from './patient-model';
-import { DuplicateEntityError, UnableToFilterError } from '../common/errors';
+import { HttpError } from '../common/errors';
 import CreatePatientDto from './dto/create-patient-dto';
 import { v4 } from 'uuid';
 import UpdatePatientDto from './dto/update-patient-dto';
-import { ErrorMessageEnum, PatietnsFilterByEnum, UserRoleEnum } from '../common/enums';
+import {
+	ErrorMessageEnum,
+	PatietnsFilterByEnum,
+	StatusCodeEnum,
+	UserRoleEnum,
+} from '../common/enums';
 import { injectable, inject } from 'inversify';
 import { IDataProvider, IFilterParam, IQueryParams, IRepository } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
@@ -51,7 +56,8 @@ export default class PatientService {
 			} else if (param.field === PatietnsFilterByEnum.PHONE) {
 				filtered = this.filterByPhone(filtered, param.value);
 			} else {
-				throw new UnableToFilterError(
+				throw new HttpError(
+					StatusCodeEnum.BAD_REQUEST,
 					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field),
 				);
 			}
@@ -106,7 +112,10 @@ export default class PatientService {
 		const patients = await this.repository.getAll();
 		const isTaken = patients.some((p) => p.phoneNumber === phone);
 		if (isTaken) {
-			throw new DuplicateEntityError(ErrorMessageEnum.PHONE_IS_TAKEN.replace('%s', phone));
+			throw new HttpError(
+				StatusCodeEnum.BAD_REQUEST,
+				ErrorMessageEnum.PHONE_IS_TAKEN.replace('%s', phone),
+			);
 		}
 	}
 

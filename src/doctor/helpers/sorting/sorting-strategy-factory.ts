@@ -1,6 +1,6 @@
 import AppointmentModel from '../../../appointment/appointment-model';
-import { DoctorsSortByEnum, ErrorMessageEnum } from '../../../common/enums';
-import { UnableToSortError } from '../../../common/errors';
+import { DoctorsSortByEnum, ErrorMessageEnum, StatusCodeEnum } from '../../../common/enums';
+import { HttpError } from '../../../common/errors';
 import { IRepository, ISortingStrategy } from '../../../common/types';
 import { SortByAppointmentsStrategy } from './sort-by-appointments-strategy';
 import { SortByNameStrategy } from './sort-by-name-strategy';
@@ -15,7 +15,10 @@ export class SortingStrategyFactory {
 			case DoctorsSortByEnum.APPOINTMENTS:
 				return new SortByAppointmentsStrategy(await this.appointmentsRepository.getAll());
 			default:
-				throw new UnableToSortError(ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', sortBy));
+				throw new HttpError(
+					StatusCodeEnum.BAD_REQUEST,
+					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', sortBy),
+				);
 		}
 	}
 }

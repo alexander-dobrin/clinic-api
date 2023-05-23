@@ -11,8 +11,8 @@ import { merge } from 'lodash';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IFilterParam, IQueryParams } from '../common/types';
-import { AppointmentsFilterByEnum, ErrorMessageEnum } from '../common/enums';
-import { UnableToFilterError } from '../common/errors';
+import { AppointmentsFilterByEnum, ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
+import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator';
 
 @injectable()
@@ -69,7 +69,8 @@ export default class AppointmentService {
 			} else if (param.field === AppointmentsFilterByEnum.PATIENTS) {
 				filtered = this.filterByPatients(appointments, param.value);
 			} else {
-				throw new UnableToFilterError(
+				throw new HttpError(
+					StatusCodeEnum.BAD_REQUEST,
 					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field),
 				);
 			}

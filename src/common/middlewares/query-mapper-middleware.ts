@@ -1,5 +1,5 @@
-import { ErrorMessageEnum } from '../enums';
-import { InvalidParameterError } from '../errors';
+import { ErrorMessageEnum, StatusCodeEnum } from '../enums';
+import { HttpError } from '../errors';
 import { IFilterParam, IQueryParams, ISortParam } from '../types';
 import { Request, Response, NextFunction } from 'express';
 
@@ -54,7 +54,8 @@ export class QueryMapperMiddleware {
 		const [field, value] = param.split(':');
 
 		if (value == undefined) {
-			throw new InvalidParameterError(
+			throw new HttpError(
+				StatusCodeEnum.BAD_REQUEST,
 				ErrorMessageEnum.INVALID_FILTER_PARAMETER.replace('%s', param),
 			);
 		}

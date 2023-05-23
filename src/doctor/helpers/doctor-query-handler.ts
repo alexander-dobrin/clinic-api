@@ -1,5 +1,5 @@
-import { DoctorsSortByEnum, ErrorMessageEnum } from '../../common/enums';
-import { InvalidParameterError, UnableToSortError } from '../../common/errors';
+import { DoctorsSortByEnum, ErrorMessageEnum, StatusCodeEnum } from '../../common/enums';
+import { HttpError } from '../../common/errors';
 import {
 	IFilterParam,
 	IQueryParams,
@@ -37,7 +37,8 @@ export class DoctorQueryHandler {
 		filterParams.forEach((filterParam: IFilterParam) => {
 			doctors = doctors.filter((doctor: DoctorModel) => {
 				if (!(filterParam.field in doctor)) {
-					throw new InvalidParameterError(
+					throw new HttpError(
+						StatusCodeEnum.BAD_REQUEST,
 						ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', filterParam.field),
 					);
 				}
@@ -49,7 +50,8 @@ export class DoctorQueryHandler {
 
 	private async sort(doctors: DoctorModel[], sortParams: ISortParam[]): Promise<DoctorModel[]> {
 		if (doctors.length < 1) {
-			throw new UnableToSortError(
+			throw new HttpError(
+				StatusCodeEnum.BAD_REQUEST,
 				ErrorMessageEnum.UNABLE_TO_SORT.replace('%s', DoctorsSortByEnum.APPOINTMENTS),
 			);
 		}

@@ -1,6 +1,6 @@
 import { ClassConstructor, plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
-import { HttpError, UnprocessableEntityError } from './errors';
+import { HttpError } from './errors';
 import { METADATA } from './constants';
 import {
 	registerDecorator,
@@ -60,13 +60,18 @@ export function validateDto<T extends object>(
 						validationClassConstructor,
 						paramToValidate,
 					);
-					await validateOrReject(dtoValidatorClassInstance);
+					await validateOrReject(dtoValidatorClassInstance, {
+						whitelist: true,
+						forbidNonWhitelisted: true,
+					});
 				}),
 			);
-			await Reflect.apply(originalMethod, this, params);
+			return await Reflect.apply(originalMethod, this, params);
 		} catch (errors) {
 			if (Array.isArray(errors)) {
-				const message = errors.map((error) => Object.values(error.constraints).join('; ')).join('; ');
+				const message = errors
+					.map((error) => Object.values(error.constraints).join('; '))
+					.join('; ');
 				throw new HttpError(StatusCodeEnum.UNPROCESSABLE_ENTITY, message);
 			}
 			throw errors;
