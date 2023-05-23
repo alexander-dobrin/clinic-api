@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsDateString } from 'class-validator';
+import { IsNotInThePast } from '../../common/decorator';
 
 export class CreateAppointmentDto {
 	@IsNotEmpty()
@@ -8,6 +9,7 @@ export class CreateAppointmentDto {
 	public readonly doctorId: string;
 
 	@IsDateString()
+	@IsNotInThePast()
 	public readonly date: string;
 
 	constructor(patientId: string, doctorId: string, date: string) {

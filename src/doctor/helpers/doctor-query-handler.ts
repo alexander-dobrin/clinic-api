@@ -11,7 +11,7 @@ import DoctorModel from '../doctor-model';
 import AppointmentModel from '../../appointment/appointment-model';
 import { SortingStrategyFactory } from './sorting/sorting-strategy-factory';
 
-// Review: декомпозировать это все в отдельные классы или оставить методами сервиса докторов?
+// Review: декомпозировать это все в отдельные классы или оставить методами DoctorService?
 export class DoctorQueryHandler {
 	private readonly sortingStrategy;
 
