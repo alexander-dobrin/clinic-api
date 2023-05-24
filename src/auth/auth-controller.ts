@@ -58,8 +58,8 @@ export class AuthController {
 		next: NextFunction,
 	) {
 		try {
-			const result = await this.authService.recoverPassword(req.body);
-			res.json({ message: result });
+			await this.authService.recoverPassword(req.body);
+			res.json({ message: 'Password has been successfully recovered' });
 		} catch (error) {
 			next(error);
 		}

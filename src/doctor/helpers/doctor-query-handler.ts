@@ -50,10 +50,7 @@ export class DoctorQueryHandler {
 
 	private async sort(doctors: DoctorModel[], sortParams: ISortParam[]): Promise<DoctorModel[]> {
 		if (doctors.length < 1) {
-			throw new HttpError(
-				StatusCodeEnum.BAD_REQUEST,
-				ErrorMessageEnum.UNABLE_TO_SORT.replace('%s', DoctorsSortByEnum.APPOINTMENTS),
-			);
+			return doctors;
 		}
 		for (const param of sortParams) {
 			const strategy: ISortingStrategy = await this.sortingStrategy.create(

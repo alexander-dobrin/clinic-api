@@ -112,10 +112,7 @@ export class PatientService {
 		const patients = await this.repository.getAll();
 		const isTaken = patients.some((p) => p.phoneNumber === phone);
 		if (isTaken) {
-			throw new HttpError(
-				StatusCodeEnum.BAD_REQUEST,
-				ErrorMessageEnum.PHONE_IS_TAKEN.replace('%s', phone),
-			);
+			throw new HttpError(StatusCodeEnum.BAD_REQUEST, `Phone [${phone}] is already in use`);
 		}
 	}
 

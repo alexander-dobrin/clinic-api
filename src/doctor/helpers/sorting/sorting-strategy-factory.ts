@@ -12,13 +12,26 @@ export class SortingStrategyFactory {
 		switch (sortBy.toLowerCase()) {
 			case DoctorsSortByEnum.NAME:
 				return new SortByNameStrategy();
-			case DoctorsSortByEnum.APPOINTMENTS:
-				return new SortByAppointmentsStrategy(await this.appointmentsRepository.getAll());
+			case DoctorsSortByEnum.APPOINTMENTS: {
+				const appointments = await this.getAppointments();
+				return new SortByAppointmentsStrategy(appointments);
+			}
 			default:
 				throw new HttpError(
 					StatusCodeEnum.BAD_REQUEST,
 					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', sortBy),
 				);
 		}
+	}
+
+	private async getAppointments() {
+		const appointments = await this.appointmentsRepository.getAll();
+		if (appointments.length < 1) {
+			throw new HttpError(
+				StatusCodeEnum.BAD_REQUEST,
+				`Unable to process sorting based on [${DoctorsSortByEnum.APPOINTMENTS}] data as it is currently empty`,
+			);
+		}
+		return appointments;
 	}
 }

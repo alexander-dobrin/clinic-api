@@ -1,12 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { HttpError } from '../common/errors';
-import {
-	ErrorMessageEnum,
-	ResponseMessageEnum,
-	StatusCodeEnum,
-	TokenLifetimeEnum,
-} from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum, TokenLifetimeEnum } from '../common/enums';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { UserService } from '../user/user-service';
@@ -43,7 +38,7 @@ export class AuthService {
 			const token = this.signTokenForUser(foundUser as UserPayload, TokenLifetimeEnum.LOGIN_TOKEN);
 			return { user: { email: foundUser.email, role: foundUser.role, id: foundUser.id }, token };
 		} else {
-			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.INVALID_PASSWORD);
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.INCORRECT_PASSWORD);
 		}
 	}
 
@@ -63,7 +58,6 @@ export class AuthService {
 			user.id,
 			new UpdateUserDto(user.email, password, user.firstName, user.role, user.resetToken),
 		);
-		return ResponseMessageEnum.PASSWORD_RECOVERED;
 	}
 
 	private signTokenForUser(user: UserPayload, lifetime: string) {

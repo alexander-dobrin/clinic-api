@@ -81,7 +81,7 @@ export class DoctorService {
 		if (freeSlotIdx < 0) {
 			throw new HttpError(
 				StatusCodeEnum.CONFLICT,
-				ErrorMessageEnum.DOCTOR_NOT_AVAILABLE.replace('%s', id).replace('%s', date.toISO()),
+				`Doctor [${id}] is unavailable at [${date.toISO()}]`,
 			);
 		}
 		doctor.availableSlots.splice(freeSlotIdx, 1);

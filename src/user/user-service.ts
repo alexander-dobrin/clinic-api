@@ -25,7 +25,7 @@ export class UserService {
 		if (await this.isUserExist(user.email)) {
 			throw new HttpError(
 				StatusCodeEnum.BAD_REQUEST,
-				ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', user.email),
+				`Email adress [${user.email}] is allready in use`,
 			);
 		}
 		// Review: should user role be set in UserService or AuthService?
@@ -53,10 +53,7 @@ export class UserService {
 		const users = await this.provider.read();
 		const foundUser = users.find((u) => u.email === email);
 		if (!foundUser) {
-			throw new HttpError(
-				StatusCodeEnum.NOT_FOUND,
-				ErrorMessageEnum.USER_NOT_FOUND.replace('%s', email),
-			);
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User does not exist`);
 		}
 		return foundUser;
 	}
@@ -65,10 +62,7 @@ export class UserService {
 		const users = await this.provider.read();
 		const foundUser = users.find((u) => u?.resetToken === token);
 		if (!foundUser) {
-			throw new HttpError(
-				StatusCodeEnum.NOT_FOUND,
-				ErrorMessageEnum.USER_NOT_FOUND.replace('%s', token),
-			);
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User not found`);
 		}
 		return foundUser;
 	}
@@ -88,13 +82,10 @@ export class UserService {
 		if (!this.isUserExist(userDto.email)) {
 			throw new HttpError(
 				StatusCodeEnum.BAD_REQUEST,
-				ErrorMessageEnum.USER_ALLREADY_EXISTS.replace('%s', userDto.email),
+				`Email adress [${userDto.email}] is allready in use`,
 			);
 		}
-		const user = await this.provider.readById(id);
-		if (!user) {
-			return;
-		}
+		const user = await this.getById(id);
 		if (userDto.password) {
 			userDto.password = await bcrypt.hash(userDto.password, SALT_ROUNDS);
 		}

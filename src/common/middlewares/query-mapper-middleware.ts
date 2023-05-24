@@ -56,7 +56,7 @@ export class QueryMapperMiddleware {
 		if (value == undefined) {
 			throw new HttpError(
 				StatusCodeEnum.BAD_REQUEST,
-				ErrorMessageEnum.INVALID_FILTER_PARAMETER.replace('%s', param),
+				`Invalid filter parameter [${param}]. Please use the field:value format`,
 			);
 		}
 
