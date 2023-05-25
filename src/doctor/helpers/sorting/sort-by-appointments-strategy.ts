@@ -10,10 +10,11 @@ export class SortByAppointmentsStrategy implements ISortingStrategy {
 			acc.set(appointment.doctorId, (acc.get(appointment.doctorId) || 0) + 1);
 			return acc;
 		}, new Map<string, number>());
-		return doctors.sort((a, b) => {
-			const aCount = doctorsAppointmentsCount[a.id] ?? 0;
-			const bCount = doctorsAppointmentsCount[b.id] ?? 0;
+		const sorted = doctors.sort((a, b) => {
+			const aCount = doctorsAppointmentsCount.get(a.id) ?? 0;
+			const bCount = doctorsAppointmentsCount.get(b.id) ?? 0;
 			return bCount - aCount;
 		});
+		return sorted;
 	}
 }

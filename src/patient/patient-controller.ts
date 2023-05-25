@@ -33,10 +33,7 @@ export class PatientController implements IHttpController {
 		}
 		res.json(patient);
 	}
-
-	// Review: у пациента теперь часть полей находится в сущности пользователя
-	// значит ли это, что для создания пациента теперь необходима авторизация, ведь в ней
-	// и находятся данные о пользователе
+	
 	public async post(
 		req: AuthorizedRequest<CreatePatientDto>,
 		res: Response,

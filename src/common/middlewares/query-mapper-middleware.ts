@@ -3,14 +3,6 @@ import { HttpError } from '../errors';
 import { IFilterParam, IQueryParams, ISortParam } from '../types';
 import { Request, Response, NextFunction } from 'express';
 
-// Review: как должна выглядеть строка запроса для массива параметров разных
-// категорий (сортировки и фильтрации)? Я выбрал вариант как ниже:
-// /doctors?sortBy=name&sortBy=age&filterBy=speciality:dentist
-// Express сам преобразует ее в массив параметров и это хорошо, но
-// для параметра фильтрации приходится придумывать свой
-// формат [field]:[value] и потом парсить его в middleware ниже.
-// Нормально ли так делать? И следует ли делать регистронезависимое тело и параметры запроса?
-// Если нет, то как и где парсить? В каком формате?
 export class QueryMapperMiddleware {
 	public map(req: Request, res: Response, next: NextFunction): void {
 		try {

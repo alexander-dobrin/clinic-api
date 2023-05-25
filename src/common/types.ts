@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response, Router } from 'express';
-import DoctorModel from '../doctor/doctor-model';
+import { DoctorModel } from '../doctor/doctor-model';
 
 export interface IDataProvider<TModel> {
 	create(model: TModel): Promise<TModel>;

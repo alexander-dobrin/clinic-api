@@ -62,7 +62,6 @@ export class AuthService {
 
 	private signTokenForUser(user: UserPayload, lifetime: string) {
 		// Review: Use email, role and id for token payload?
-		// Can i consider payload as auth data I want to share with client after auth?
 		return jwt.sign(
 			{
 				email: user.email,

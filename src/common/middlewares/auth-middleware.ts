@@ -26,7 +26,6 @@ export class AuthMiddleware {
 
 			const decoded = jwt.verify(token, process.env.SECRET_KEY) as UserPayload;
 
-			// Review: shold middleware use userService to check user was not deleted?
 			const user = await this.userService.getById(decoded.id);
 			if (!user) {
 				throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.NOT_AUTHORIZED);
