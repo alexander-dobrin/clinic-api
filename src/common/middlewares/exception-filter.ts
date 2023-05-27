@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../errors';
 import { StatusCodeEnum } from '../enums';
 import { injectable } from 'inversify';
-import { TokenExpiredError } from 'jsonwebtoken';
+import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 
 @injectable()
 export class ExceptionFilter {
@@ -10,7 +10,7 @@ export class ExceptionFilter {
 		if (err instanceof HttpError) {
 			return res.status(err.code).json({ error: { message: err.message } });
 		}
-		if (err instanceof TokenExpiredError) {
+		if (err instanceof TokenExpiredError || err instanceof JsonWebTokenError) {
 			return res.status(StatusCodeEnum.NOT_AUTHORIZED).json({ error: { message: err.message } });
 		}
 		console.log(err);

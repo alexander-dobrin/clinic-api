@@ -4,11 +4,16 @@ import { injectable, inject } from 'inversify';
 import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
+import { AuthMiddleware } from '../auth/auth-middleware';
+import { iocContainer } from '../inversify.config';
 
 @injectable()
 export class DoctorRoutes implements IRoutes {
 	private readonly _router: Router;
 	private readonly queryMapper = new QueryMapperMiddleware();
+	private readonly authMiddleware = iocContainer.get<AuthMiddleware>(
+		CONTAINER_TYPES.AUTH_MIDDLEWARE,
+	);
 
 	constructor(
 		@inject(CONTAINER_TYPES.DOCTORS_CONTROLLER) private readonly doctorsController: IHttpController,
@@ -26,7 +31,10 @@ export class DoctorRoutes implements IRoutes {
 				this.queryMapper.map.bind(this.queryMapper),
 				this.doctorsController.get.bind(this.doctorsController),
 			)
-			.post(this.doctorsController.post.bind(this.doctorsController));
+			.post(
+				this.authMiddleware.auth.bind(this.authMiddleware),
+				this.doctorsController.post.bind(this.doctorsController),
+			);
 
 		this._router
 			.route('/:id')

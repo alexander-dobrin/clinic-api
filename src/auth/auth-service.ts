@@ -53,6 +53,7 @@ export class AuthService {
 	@validateDto
 	public async recoverPassword(@validDto(RecoverPasswordDto) recoverData: RecoverPasswordDto) {
 		const { resetToken, password } = recoverData;
+		jwt.verify(resetToken, process.env.SECRET_KEY);
 		const user = await this.userService.getByResetToken(resetToken);
 		await this.userService.update(
 			user.id,

@@ -7,12 +7,14 @@ import { merge } from 'lodash';
 import { DateTime } from 'luxon';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
-import { IQueryParams, IRepository } from '../common/types';
+import { IDataProvider, IQueryParams, IRepository } from '../common/types';
 import { HttpError } from '../common/errors';
 import { StatusCodeEnum } from '../common/enums';
 import { DoctorQueryHandler } from './helpers/doctor-query-handler';
 import { AppointmentRepository } from '../appointment/appointment-repository';
 import { validDto, validateDto } from '../common/decorator';
+import { UserPayload } from '../auth/auth-types';
+import { IUser } from '../user/user-interface';
 
 @injectable()
 export class DoctorService {
@@ -21,13 +23,19 @@ export class DoctorService {
 		private readonly doctorsRepository: IRepository<DoctorModel>,
 		@inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY)
 		private readonly appointmentsRepository: AppointmentRepository,
+		@inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly userProvider: IDataProvider<IUser>,
 	) {}
 
 	@validateDto
 	public async createDoctor(
 		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
+		user: UserPayload,
 	): Promise<DoctorModel> {
-		const doctor = plainToClass(DoctorModel, { id: v4(), ...doctorDto });
+		const doctorUser = await this.userProvider.readById(user.id);
+		if (!doctorUser) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
+		}
+		const doctor = plainToClass(DoctorModel, { id: v4(), userId: doctorUser.id, ...doctorDto });
 		return this.doctorsRepository.add(doctor);
 	}
 

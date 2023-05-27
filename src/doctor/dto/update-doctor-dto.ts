@@ -3,9 +3,6 @@ import { IsNotInThePast } from '../../common/decorator';
 
 export class UpdateDoctorDto {
 	@IsOptional()
-	public readonly firstName?: string;
-
-	@IsOptional()
 	public readonly speciality?: string;
 
 	@IsOptional()
@@ -13,8 +10,7 @@ export class UpdateDoctorDto {
 	@IsNotInThePast({ each: true })
 	public readonly availableSlots: string[];
 
-	constructor(firstName?: string, speciality?: string, availableSlots: string[] = []) {
-		this.firstName = firstName;
+	constructor(speciality?: string, availableSlots: string[] = []) {
 		this.speciality = speciality;
 		this.availableSlots = availableSlots;
 	}

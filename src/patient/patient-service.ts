@@ -3,12 +3,7 @@ import { HttpError } from '../common/errors';
 import { CreatePatientDto } from './dto/create-patient-dto';
 import { v4 } from 'uuid';
 import { UpdatePatientDto } from './dto/update-patient-dto';
-import {
-	ErrorMessageEnum,
-	PatietnsFilterByEnum,
-	StatusCodeEnum,
-	UserRoleEnum,
-} from '../common/enums';
+import { ErrorMessageEnum, PatietnsFilterByEnum, StatusCodeEnum } from '../common/enums';
 import { injectable, inject } from 'inversify';
 import { IDataProvider, IFilterParam, IQueryParams, IRepository } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';

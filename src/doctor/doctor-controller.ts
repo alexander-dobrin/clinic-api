@@ -6,6 +6,7 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { DoctorService } from './doctor-service';
 import { CreateDoctorDto } from './dto/create-doctor-dto';
 import { UpdateDoctorDto } from './dto/update-doctor-dto';
+import { AuthorizedRequest } from '../auth/auth-middleware';
 
 @injectable()
 export class DoctorController implements IHttpController {
@@ -43,12 +44,12 @@ export class DoctorController implements IHttpController {
 	}
 
 	public async post(
-		req: Request<object, object, CreateDoctorDto>,
+		req: AuthorizedRequest<CreateDoctorDto>,
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const doctor = await this.doctorsService.createDoctor(req.body);
+			const doctor = await this.doctorsService.createDoctor(req.body, req.user);
 			res.status(StatusCodeEnum.CREATED).json(doctor);
 		} catch (err) {
 			next(err);
