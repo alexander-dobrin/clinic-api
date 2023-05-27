@@ -31,6 +31,9 @@ export class PatientService {
 	): Promise<PatientModel> {
 		await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		const patientUser = await this.userProvider.readById(user.id);
+		if (!patientUser) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
+		}
 		const patient = new PatientModel(v4(), patientUser, patientDto.phoneNumber);
 
 		// Review: should assign role here?
@@ -52,9 +55,9 @@ export class PatientService {
 		for (const param of filterParams) {
 			param.field = param.field.toLowerCase();
 			if (param.field === PatietnsFilterByEnum.NAME) {
-				filtered = this.filterByName(filtered, param.value);
+				filtered = filtered.filter((p) => p.user.firstName === param.value);
 			} else if (param.field === PatietnsFilterByEnum.PHONE) {
-				filtered = this.filterByPhone(filtered, param.value);
+				filtered = filtered.filter((p) => p.phoneNumber === param.value);
 			} else {
 				throw new HttpError(
 					StatusCodeEnum.BAD_REQUEST,
@@ -65,30 +68,23 @@ export class PatientService {
 		return filtered;
 	}
 
-	private filterByName(patients: PatientModel[], name: string): PatientModel[] {
-		return patients.filter((p) => p.user.firstName === name);
-	}
-
-	private filterByPhone(patients: PatientModel[], phone: string): PatientModel[] {
-		return patients.filter((p) => p.phoneNumber === phone);
-	}
-
 	public async readById(id: string): Promise<PatientModel | undefined> {
-		return this.repository.get(id);
+		const patient = await this.repository.get(id);
+		if (!patient) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+		}
+		return patient;
 	}
 
 	@validateDto
 	public async updatePatientById(
 		id: string,
 		@validDto(UpdatePatientDto) patientDto: UpdatePatientDto,
-	): Promise<PatientModel | undefined> {
+	): Promise<PatientModel> {
 		if (patientDto.phoneNumber) {
 			await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		}
-		const patient = await this.repository.get(id);
-		if (!patient) {
-			return;
-		}
+		const patient = await this.readById(id);
 		const { phoneNumber = patient.phoneNumber, firstName = patient.user.firstName } = patientDto;
 		patient.phoneNumber = phoneNumber;
 
@@ -99,12 +95,8 @@ export class PatientService {
 		return await this.repository.update(patient);
 	}
 
-	public async deletePatientById(id: string): Promise<PatientModel | undefined> {
-		const patient = await this.repository.get(id);
-		if (!patient) {
-			return;
-		}
-
+	public async deletePatientById(id: string): Promise<PatientModel> {
+		const patient = await this.readById(id);
 		return this.repository.remove(patient);
 	}
 

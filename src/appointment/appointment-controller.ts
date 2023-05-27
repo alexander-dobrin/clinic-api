@@ -21,10 +21,6 @@ export class AppointmentController implements IHttpController {
 	): Promise<void> {
 		try {
 			const created = await this.appointmentService.create(req.body);
-			if (!created) {
-				res.sendStatus(StatusCodeEnum.NOT_FOUND);
-				return;
-			}
 			res.status(StatusCodeEnum.CREATED).json(created);
 		} catch (err) {
 			next(err);
@@ -42,13 +38,17 @@ export class AppointmentController implements IHttpController {
 		res.json(appointments);
 	}
 
-	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const appointment = await this.appointmentService.getAppointmentById(req.params.id);
-		if (!appointment) {
-			res.sendStatus(StatusCodeEnum.NOT_FOUND);
-			return;
+	public async getById(
+		req: Request<{ id: string }>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const appointment = await this.appointmentService.getAppointmentById(req.params.id);
+			res.json(appointment);
+		} catch (err) {
+			next(err);
 		}
-		res.json(appointment);
 	}
 
 	public async put(
@@ -58,22 +58,22 @@ export class AppointmentController implements IHttpController {
 	): Promise<void> {
 		try {
 			const updated = await this.appointmentService.update(req.params.id, req.body);
-			if (!updated) {
-				res.sendStatus(StatusCodeEnum.NOT_FOUND);
-				return;
-			}
 			res.json(updated);
 		} catch (err) {
 			next(err);
 		}
 	}
 
-	public async delete(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const removed = await this.appointmentService.delete(req.params.id);
-		if (!removed) {
-			res.sendStatus(StatusCodeEnum.NOT_FOUND);
-			return;
+	public async delete(
+		req: Request<{ id: string }>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const removed = await this.appointmentService.delete(req.params.id);
+			res.json(removed);
+		} catch (err) {
+			next(err);
 		}
-		res.json(removed);
 	}
 }

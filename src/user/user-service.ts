@@ -46,7 +46,11 @@ export class UserService {
 
 	public async getById(id: string) {
 		const users = await this.provider.read();
-		return users.find((u) => u.id === id);
+		const user = users.find((u) => u.id === id);
+		if (!user) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+		}
+		return user;
 	}
 
 	public async getByEmail(email: string): Promise<IUser> {
@@ -69,10 +73,6 @@ export class UserService {
 
 	public async updateResetToken(email: string, token: string | null): Promise<IUser> {
 		const user = await this.getByEmail(email);
-		if (!user) {
-			return;
-		}
-
 		user.resetToken = token;
 		return this.provider.updateById(user.id, user);
 	}
@@ -94,12 +94,12 @@ export class UserService {
 	}
 
 	public async delete(id: string) {
-		const user = this.getById(id);
-		if (!user) {
-			return;
+		const deletedUser = this.provider.deleteById(id);
+		if (!deletedUser) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
 		}
 		await this.deleteAssociatedPatients(id);
-		return this.provider.deleteById(id);
+		return deletedUser;
 	}
 
 	private async deleteAssociatedPatients(id: string) {

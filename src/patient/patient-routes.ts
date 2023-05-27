@@ -4,7 +4,7 @@ import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IHttpController } from '../common/types';
 import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
-import { AuthMiddleware } from '../common/middlewares/auth-middleware';
+import { AuthMiddleware } from '../auth/auth-middleware';
 import { iocContainer } from '../inversify.config';
 
 @injectable()

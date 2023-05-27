@@ -9,7 +9,7 @@ import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { IQueryParams, IRepository } from '../common/types';
 import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
+import { StatusCodeEnum } from '../common/enums';
 import { DoctorQueryHandler } from './helpers/doctor-query-handler';
 import { AppointmentRepository } from '../appointment/appointment-repository';
 import { validDto, validateDto } from '../common/decorator';
@@ -39,7 +39,11 @@ export class DoctorService {
 	}
 
 	public async getById(id: string): Promise<DoctorModel | undefined> {
-		const doctor = plainToClass(DoctorModel, await this.doctorsRepository.get(id));
+		const foundDoctor = await this.doctorsRepository.get(id);
+		if (!foundDoctor) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+		}
+		const doctor = plainToClass(DoctorModel, foundDoctor);
 		return doctor;
 	}
 
@@ -49,34 +53,21 @@ export class DoctorService {
 		@validDto(UpdateDoctorDto) doctorDto: UpdateDoctorDto,
 	): Promise<DoctorModel | undefined> {
 		const doctor = await this.getById(id);
-
-		if (!doctor) {
-			return;
-		}
 		merge(doctor, doctorDto);
-
 		return this.doctorsRepository.update(doctor);
 	}
 
 	public async delete(id: string): Promise<DoctorModel | undefined> {
 		const doctor = await this.getById(id);
-		if (!doctor) {
-			return;
-		}
-
 		const deletedDoctor = await this.doctorsRepository.remove(doctor);
 		if (deletedDoctor) {
 			this.appointmentsRepository.removeAllDoctorAppointments(deletedDoctor.id);
 		}
-
 		return deletedDoctor;
 	}
 
-	public async takeFreeSlot(id: string, date: DateTime): Promise<boolean> {
+	public async takeFreeSlot(id: string, date: DateTime): Promise<void> {
 		const doctor = await this.getById(id);
-		if (!doctor) {
-			return false;
-		}
 		const freeSlotIdx = doctor.availableSlots.findIndex((s) => s.equals(date.toUTC()));
 		if (freeSlotIdx < 0) {
 			throw new HttpError(
@@ -86,10 +77,5 @@ export class DoctorService {
 		}
 		doctor.availableSlots.splice(freeSlotIdx, 1);
 		this.doctorsRepository.update(doctor);
-		return true;
-	}
-
-	public async isExists(id: string): Promise<boolean> {
-		return (await this.getById(id)) ? true : false;
 	}
 }

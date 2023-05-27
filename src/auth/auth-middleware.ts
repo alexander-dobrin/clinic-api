@@ -1,38 +1,23 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../errors';
-import { ErrorMessageEnum, StatusCodeEnum } from '../enums';
-import { injectable, inject } from 'inversify';
-import { CONTAINER_TYPES } from '../constants';
-import { UserService } from '../../user/user-service';
-import { UserPayload } from '../../auth/auth-types';
+import { HttpError } from '../common/errors';
+import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
+import { UserPayload } from './auth-types';
 
 export interface AuthorizedRequest<T = unknown> extends Request {
 	user: UserPayload;
 	body: T;
 }
 
-@injectable()
 export class AuthMiddleware {
-	constructor(@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService) {}
-
 	public async auth(req: Request, res: Response, next: NextFunction) {
 		try {
 			const token = req.header('Authorization')?.replace('Bearer ', '');
-
 			if (!token) {
 				throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.NOT_AUTHORIZED);
 			}
-
 			const decoded = jwt.verify(token, process.env.SECRET_KEY) as UserPayload;
-
-			const user = await this.userService.getById(decoded.id);
-			if (!user) {
-				throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.NOT_AUTHORIZED);
-			}
-
 			(req as AuthorizedRequest<unknown>).user = decoded;
-
 			next();
 		} catch (err) {
 			next(err);

@@ -29,13 +29,17 @@ export class DoctorController implements IHttpController {
 		}
 	}
 
-	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const doctor = await this.doctorsService.getById(req.params.id);
-		if (!doctor) {
-			res.sendStatus(StatusCodeEnum.NOT_FOUND);
-			return;
+	public async getById(
+		req: Request<{ id: string }>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const doctor = await this.doctorsService.getById(req.params.id);
+			res.json(doctor);
+		} catch (err) {
+			next(err);
 		}
-		res.json(doctor);
 	}
 
 	public async post(
@@ -58,22 +62,22 @@ export class DoctorController implements IHttpController {
 	): Promise<void> {
 		try {
 			const doctor = await this.doctorsService.update(req.params.id, req.body);
-			if (!doctor) {
-				res.sendStatus(StatusCodeEnum.NOT_FOUND);
-				return;
-			}
 			res.json(doctor);
 		} catch (err) {
 			next(err);
 		}
 	}
 
-	public async delete(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const doctor = await this.doctorsService.delete(req.params.id);
-		if (!doctor) {
-			res.sendStatus(StatusCodeEnum.NOT_FOUND);
-			return;
+	public async delete(
+		req: Request<{ id: string }>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const doctor = await this.doctorsService.delete(req.params.id);
+			res.json(doctor);
+		} catch (err) {
+			next(err);
 		}
-		res.json(doctor);
 	}
 }

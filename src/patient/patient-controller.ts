@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { IHttpController, IQueryParams } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
-import { AuthorizedRequest } from '../common/middlewares/auth-middleware';
+import { AuthorizedRequest } from '../auth/auth-middleware';
 import { PatientService } from './patient-service';
 import { CreatePatientDto } from './dto/create-patient-dto';
 import { UpdatePatientDto } from './dto/update-patient-dto';
@@ -33,7 +33,7 @@ export class PatientController implements IHttpController {
 		}
 		res.json(patient);
 	}
-	
+
 	public async post(
 		req: AuthorizedRequest<CreatePatientDto>,
 		res: Response,

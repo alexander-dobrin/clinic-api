@@ -27,24 +27,15 @@ export class AppointmentService {
 	@validateDto
 	public async create(
 		@validDto(CreateAppointmentDto) appointmentDto: CreateAppointmentDto,
-	): Promise<AppointmentModel | undefined> {
+	): Promise<AppointmentModel> {
 		const { patientId, doctorId, date } = appointmentDto;
 
-		const doParticipantsExist =
-			(await this.patientsService.isExists(patientId)) &&
-			(await this.doctorsService.isExists(doctorId));
-		if (!doParticipantsExist) {
-			return;
+		if (!(await this.patientsService.isExists(patientId))) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${patientId}] not found`);
 		}
 
 		const appointment = plainToClass(AppointmentModel, { id: v4(), ...appointmentDto });
-		const isScheduled = await this.doctorsService.takeFreeSlot(
-			doctorId,
-			DateTime.fromISO(date, { zone: 'utc' }),
-		);
-		if (!isScheduled) {
-			return;
-		}
+		await this.doctorsService.takeFreeSlot(doctorId, DateTime.fromISO(date, { zone: 'utc' }));
 
 		return this.repository.add(appointment);
 	}
@@ -89,27 +80,25 @@ export class AppointmentService {
 		return appointments.filter((a) => a.patientId === patientId);
 	}
 
-	public async getAppointmentById(id: string): Promise<AppointmentModel | undefined> {
-		return this.repository.get(id);
+	public async getAppointmentById(id: string): Promise<AppointmentModel> {
+		const appointment = await this.repository.get(id);
+		if (!appointment) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
+		}
+		return appointment;
 	}
 
 	@validateDto
 	public async update(
 		id: string,
 		@validDto(UpdateAppointmentDto) appointmentDto: UpdateAppointmentDto,
-	): Promise<AppointmentModel | undefined> {
-		let appointment = await this.repository.get(id);
-		if (!appointment) {
-			return;
-		}
+	): Promise<AppointmentModel> {
+		let appointment = await this.getAppointmentById(id);
 
 		const { patientId = appointment.patientId, doctorId = appointment.doctorId } = appointmentDto;
 
-		const doParticipantsExist =
-			(await this.patientsService.isExists(patientId)) &&
-			(await this.doctorsService.isExists(doctorId));
-		if (!doParticipantsExist) {
-			return;
+		if (!(await this.patientsService.isExists(patientId))) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${patientId}] not found`);
 		}
 		// Review: use merge or create new appointment manually with constructor
 		merge(appointment, appointmentDto);
@@ -119,11 +108,8 @@ export class AppointmentService {
 		return this.repository.update(appointment);
 	}
 
-	public async delete(id: string): Promise<AppointmentModel | undefined> {
-		const appointment = await this.repository.get(id);
-		if (!appointment) {
-			return;
-		}
+	public async delete(id: string): Promise<AppointmentModel> {
+		const appointment = await this.getAppointmentById(id);
 		return this.repository.remove(appointment);
 	}
 

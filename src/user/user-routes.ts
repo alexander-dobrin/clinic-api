@@ -4,7 +4,7 @@ import { inject, injectable } from 'inversify';
 import { UserController } from './user-controller';
 import { CONTAINER_TYPES } from '../common/constants';
 import { iocContainer } from '../inversify.config';
-import { AuthMiddleware } from '../common/middlewares/auth-middleware';
+import { AuthMiddleware } from '../auth/auth-middleware';
 
 @injectable()
 export class UserRoutes implements IRoutes {

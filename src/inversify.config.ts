@@ -7,7 +7,7 @@ import { appointmentModule } from './appointment/appointment-module';
 import { CONTAINER_TYPES } from './common/constants';
 import { authModule } from './auth/auth-module';
 import { userModule } from './user/user-module';
-import { AuthMiddleware } from './common/middlewares/auth-middleware';
+import { AuthMiddleware } from './auth/auth-middleware';
 
 export const iocContainer = new Container();
 
