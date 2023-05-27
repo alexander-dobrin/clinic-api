@@ -37,8 +37,11 @@ export enum AppointmentsFilterByEnum {
 }
 
 export enum PatietnsFilterByEnum {
-	NAME = 'name',
-	PHONE = 'phonenumber',
+	PHONE = 'phoneNumber',
+}
+
+export enum UserFilterByEnum {
+	NAME = 'firstName',
 }
 
 export enum UserRoleEnum {

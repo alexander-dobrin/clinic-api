@@ -3,12 +3,14 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../common/errors';
 import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { UserPayload } from './auth-types';
+import { injectable } from 'inversify';
 
 export interface AuthorizedRequest<T = unknown> extends Request {
 	user: UserPayload;
 	body: T;
 }
 
+@injectable()
 export class AuthMiddleware {
 	public async auth(req: Request, res: Response, next: NextFunction) {
 		try {

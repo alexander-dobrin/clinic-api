@@ -1,16 +1,11 @@
-import { IsNotEmpty, IsOptional, IsPhoneNumber } from 'class-validator';
+import { IsOptional, IsPhoneNumber } from 'class-validator';
 
 export class UpdatePatientDto {
-	@IsOptional()
-	@IsNotEmpty()
-	public readonly firstName?: string;
-
 	@IsOptional()
 	@IsPhoneNumber()
 	public readonly phoneNumber?: string;
 
-	constructor(firstName?: string, phoneNumber?: string) {
-		this.firstName = firstName;
+	constructor(phoneNumber?: string) {
 		this.phoneNumber = phoneNumber;
 	}
 }

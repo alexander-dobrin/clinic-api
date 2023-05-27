@@ -1,10 +1,10 @@
 import { inject, injectable } from 'inversify';
-import { IDataProvider, IRepository } from '../common/types';
+import { IDataProvider, IFilterParam, IQueryParams, IRepository } from '../common/types';
 import { IUser } from './user-interface';
 import { CONTAINER_TYPES, SALT_ROUNDS } from '../common/constants';
 import { v4 } from 'uuid';
 import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum, UserRoleEnum } from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum, UserFilterByEnum, UserRoleEnum } from '../common/enums';
 import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
@@ -40,8 +40,26 @@ export class UserService {
 		return users.some((u) => u.email === email);
 	}
 
-	public async get() {
+	public async get(options: IQueryParams) {
+		if (options.filterBy) {
+			return this.filterUsers(options.filterBy);
+		}
 		return this.provider.read();
+	}
+
+	private async filterUsers(filterParams: IFilterParam[]) {
+		let filtered = await this.provider.read();
+		for (const param of filterParams) {
+			if (param.field === UserFilterByEnum.NAME) {
+				filtered = filtered.filter((u) => u.firstName === param.value);
+			} else {
+				throw new HttpError(
+					StatusCodeEnum.BAD_REQUEST,
+					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field),
+				);
+			}
+		}
+		return filtered;
 	}
 
 	public async getById(id: string) {
@@ -104,7 +122,7 @@ export class UserService {
 
 	private async deleteAssociatedPatients(id: string) {
 		const patients = await this.patientsRepository.getAll();
-		const patientsToDelete = patients.filter((p) => p.user.id === id);
+		const patientsToDelete = patients.filter((p) => p.userId === id);
 		const promises = patientsToDelete.map((p) => this.patientsRepository.remove(p));
 		await Promise.all(promises);
 	}

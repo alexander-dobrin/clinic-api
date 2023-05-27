@@ -6,6 +6,7 @@ import { StatusCodeEnum } from '../common/enums';
 import { AuthorizedRequest } from '../auth/auth-middleware';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
+import { IQueryParams } from '../common/types';
 
 @injectable()
 export class UserController {
@@ -24,13 +25,21 @@ export class UserController {
 		}
 	}
 
-	public async get(req: Request, res: Response, next: NextFunction) {
-		const users = await this.userService.get();
-		if (users.length < 1) {
-			res.sendStatus(StatusCodeEnum.NO_CONTENT);
-			return;
+	public async get(
+		req: Request<object, object, object, IQueryParams>,
+		res: Response,
+		next: NextFunction,
+	) {
+		try {
+			const users = await this.userService.get(req.query);
+			if (users.length < 1) {
+				res.sendStatus(StatusCodeEnum.NO_CONTENT);
+				return;
+			}
+			res.json(users);
+		} catch (err) {
+			next(err);
 		}
-		res.json(users);
 	}
 
 	public async getById(req: Request<{ id: string }>, res: Response, next: NextFunction) {

@@ -56,7 +56,7 @@ export class AuthService {
 		const user = await this.userService.getByResetToken(resetToken);
 		await this.userService.update(
 			user.id,
-			new UpdateUserDto(user.email, password, user.firstName, user.role, user.resetToken),
+			new UpdateUserDto(user.email, password, user.firstName, user.role, null),
 		);
 	}
 

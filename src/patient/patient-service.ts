@@ -34,12 +34,7 @@ export class PatientService {
 		if (!patientUser) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
 		}
-		const patient = new PatientModel(v4(), patientUser, patientDto.phoneNumber);
-
-		// Review: should assign role here?
-		patientUser.role = UserRoleEnum.DOCTOR;
-		this.userProvider.updateById(patientUser.id, patientUser);
-
+		const patient = new PatientModel(v4(), user.id, patientDto.phoneNumber);
 		return await this.repository.add(patient);
 	}
 
@@ -53,10 +48,7 @@ export class PatientService {
 	private async filterPatients(filterParams: IFilterParam[]): Promise<PatientModel[]> {
 		let filtered = await this.repository.getAll();
 		for (const param of filterParams) {
-			param.field = param.field.toLowerCase();
-			if (param.field === PatietnsFilterByEnum.NAME) {
-				filtered = filtered.filter((p) => p.user.firstName === param.value);
-			} else if (param.field === PatietnsFilterByEnum.PHONE) {
+			if (param.field === PatietnsFilterByEnum.PHONE) {
 				filtered = filtered.filter((p) => p.phoneNumber === param.value);
 			} else {
 				throw new HttpError(
@@ -85,13 +77,8 @@ export class PatientService {
 			await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		}
 		const patient = await this.readById(id);
-		const { phoneNumber = patient.phoneNumber, firstName = patient.user.firstName } = patientDto;
+		const { phoneNumber = patient.phoneNumber } = patientDto;
 		patient.phoneNumber = phoneNumber;
-
-		// Review: should update user that straightforward way since patients user part was updated?
-		patient.user.firstName = firstName;
-		await this.userProvider.updateById(patient.user.id, patient.user);
-
 		return await this.repository.update(patient);
 	}
 

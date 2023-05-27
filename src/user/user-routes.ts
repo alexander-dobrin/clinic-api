@@ -5,6 +5,7 @@ import { UserController } from './user-controller';
 import { CONTAINER_TYPES } from '../common/constants';
 import { iocContainer } from '../inversify.config';
 import { AuthMiddleware } from '../auth/auth-middleware';
+import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
 
 @injectable()
 export class UserRoutes implements IRoutes {
@@ -12,6 +13,7 @@ export class UserRoutes implements IRoutes {
 	private readonly authMiddleware = iocContainer.get<AuthMiddleware>(
 		CONTAINER_TYPES.AUTH_MIDDLEWARE,
 	);
+	private readonly queryMapperMiddleware = new QueryMapperMiddleware();
 
 	constructor(
 		@inject(CONTAINER_TYPES.USER_CONTROLLER) private readonly userController: UserController,
@@ -22,7 +24,10 @@ export class UserRoutes implements IRoutes {
 	private setupRoutes() {
 		this._router
 			.route('/')
-			.get(this.userController.get.bind(this.userController))
+			.get(
+				this.queryMapperMiddleware.map.bind(this.queryMapperMiddleware),
+				this.userController.get.bind(this.userController)
+			)
 			.post(this.userController.post.bind(this.userController));
 		this._router
 			.route('/profile')
