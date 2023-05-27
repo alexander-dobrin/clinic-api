@@ -28,7 +28,6 @@ export enum RequestMethodEnum {
 
 export enum DoctorsSortByEnum {
 	APPOINTMENTS = 'appointments',
-	NAME = 'name',
 }
 
 export enum AppointmentsFilterByEnum {
@@ -41,6 +40,10 @@ export enum PatietnsFilterByEnum {
 }
 
 export enum UserFilterByEnum {
+	NAME = 'firstName',
+}
+
+export enum UserSortByEnum {
 	NAME = 'firstName',
 }
 

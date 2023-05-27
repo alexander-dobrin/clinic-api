@@ -1,10 +1,22 @@
 import { inject, injectable } from 'inversify';
-import { IDataProvider, IFilterParam, IQueryParams, IRepository } from '../common/types';
+import {
+	IDataProvider,
+	IFilterParam,
+	IQueryParams,
+	IRepository,
+	ISortParam,
+} from '../common/types';
 import { IUser } from './user-interface';
 import { CONTAINER_TYPES, SALT_ROUNDS } from '../common/constants';
 import { v4 } from 'uuid';
 import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum, UserFilterByEnum, UserRoleEnum } from '../common/enums';
+import {
+	ErrorMessageEnum,
+	StatusCodeEnum,
+	UserFilterByEnum,
+	UserRoleEnum,
+	UserSortByEnum,
+} from '../common/enums';
 import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
@@ -28,8 +40,6 @@ export class UserService {
 				`Email adress [${user.email}] is allready in use`,
 			);
 		}
-		// Review: should user role be set in UserService or AuthService?
-		// Should role be set during login or registration?
 		user.password = await bcrypt.hash(user.password, SALT_ROUNDS);
 		const newUser: IUser = { id: v4(), role: user.role ?? UserRoleEnum.GUEST, ...user };
 		return this.provider.create(newUser);
@@ -41,10 +51,14 @@ export class UserService {
 	}
 
 	public async get(options: IQueryParams) {
+		let users = await this.provider.read();
 		if (options.filterBy) {
-			return this.filterUsers(options.filterBy);
+			users = await this.filterUsers(options.filterBy);
 		}
-		return this.provider.read();
+		if (options.sortBy) {
+			users = await this.sortUsers(options.sortBy);
+		}
+		return users;
 	}
 
 	private async filterUsers(filterParams: IFilterParam[]) {
@@ -60,6 +74,24 @@ export class UserService {
 			}
 		}
 		return filtered;
+	}
+
+	private async sortUsers(sortParams: ISortParam[]) {
+		let sorted = await this.provider.read();
+		sortParams.forEach((param) => {
+			if (param.field === UserSortByEnum.NAME) {
+				sorted = sorted.sort((a, b) => a.firstName.localeCompare(b.firstName));
+				if (param.order === 'desc') {
+					sorted = sorted.reverse();
+				}
+			} else {
+				throw new HttpError(
+					StatusCodeEnum.BAD_REQUEST,
+					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field),
+				);
+			}
+		});
+		return sorted;
 	}
 
 	public async getById(id: string) {

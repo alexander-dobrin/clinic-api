@@ -10,7 +10,7 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { IDataProvider, IQueryParams, IRepository } from '../common/types';
 import { HttpError } from '../common/errors';
 import { StatusCodeEnum } from '../common/enums';
-import { DoctorQueryHandler } from './helpers/doctor-query-handler';
+import { DoctorQueryHelper } from './helpers/doctor-query-helper';
 import { AppointmentRepository } from '../appointment/appointment-repository';
 import { validDto, validateDto } from '../common/decorator';
 import { UserPayload } from '../auth/auth-types';
@@ -43,7 +43,7 @@ export class DoctorService {
 		const objects = await this.doctorsRepository.getAll();
 		const doctors = objects.map((d) => plainToClass(DoctorModel, d));
 
-		return new DoctorQueryHandler(this.appointmentsRepository).applyRequestQuery(doctors, options);
+		return new DoctorQueryHelper(this.appointmentsRepository).applyRequestQuery(doctors, options);
 	}
 
 	public async getById(id: string): Promise<DoctorModel | undefined> {
