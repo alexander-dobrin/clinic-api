@@ -8,8 +8,14 @@ import { CONTAINER_TYPES } from './common/constants';
 import { authModule } from './auth/auth-module';
 import { userModule } from './user/user-module';
 import { AuthMiddleware } from './auth/auth-middleware';
+import { DataSource } from 'typeorm';
+import { AppDataSource } from './typeorm.config';
 
 export const iocContainer = new Container();
+
+iocContainer
+	.bind<DataSource>(CONTAINER_TYPES.DB_CONNECTION)
+	.toDynamicValue(() => AppDataSource);
 
 iocContainer.load(userModule);
 iocContainer.load(authModule);
