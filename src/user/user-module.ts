@@ -10,6 +10,7 @@ import { UserController } from './user-controller';
 import { UserModel } from './user-model';
 import { DataSource, Repository } from 'typeorm';
 import { iocContainer } from '../inversify.config';
+import { UserRepository } from './user-repository';
 
 export const userModule = new ContainerModule((bind) => {
 	bind<UserRoutes>(CONTAINER_TYPES.USER_ROUTES).to(UserRoutes).inSingletonScope();
@@ -21,10 +22,10 @@ export const userModule = new ContainerModule((bind) => {
 		.toDynamicValue(() => new FileDataProvider(resolve('assets', 'users.json')))
 		.inSingletonScope();
 
-	bind<Repository<UserModel>>(CONTAINER_TYPES.USER_REPOSITORY)
-		.toDynamicValue(() =>
-			// TODO: USE OWN REPO
-			iocContainer.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION).getRepository(UserModel),
-		)
+	bind<UserRepository>(CONTAINER_TYPES.USER_REPOSITORY)
+		.toDynamicValue(() =>{
+			const provider = iocContainer.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION);
+			return new UserRepository(provider);
+		})
 		.inSingletonScope();
 });

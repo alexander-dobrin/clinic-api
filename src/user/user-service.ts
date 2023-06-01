@@ -24,14 +24,14 @@ import bcrypt from 'bcrypt';
 import { PatientModel } from '../patient/patient-model';
 import { validDto, validateDto } from '../common/decorator';
 import { UserModel } from './user-model';
-import { Repository } from 'typeorm';
+import { UserRepository } from './user-repository';
 
 @injectable()
 export class UserService {
 	constructor(
 		// TODO: MIGRARE FROM THE PROVIDER
 		@inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly provider: IDataProvider<IUser>,
-		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: Repository<UserModel>,
+		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
 		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
 		private readonly patientsRepository: IRepository<PatientModel>,
 	) {}
