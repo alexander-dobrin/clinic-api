@@ -62,7 +62,6 @@ export class AuthService {
 	}
 
 	private signTokenForUser(user: UserPayload, lifetime: string) {
-		// Review: Use email, role and id for token payload?
 		return jwt.sign(
 			{
 				email: user.email,

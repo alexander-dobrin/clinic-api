@@ -1,25 +1,22 @@
 import { inject, injectable } from 'inversify';
-import { GetOptions, IRepository } from '../common/types';
-import { IUser } from './user-interface';
+import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES, SALT_ROUNDS } from '../common/constants';
 import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
+import { StatusCodeEnum } from '../common/enums';
 import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import bcrypt from 'bcrypt';
-import { PatientModel } from '../patient/patient-model';
 import { validDto, validateDto } from '../common/decorator';
 import { UserModel } from './user-model';
 import { UserRepository } from './user-repository';
-import { EntityPropertyNotFoundError, QueryFailedError } from 'typeorm';
+import { QueryFailedError } from 'typeorm';
+import { Repository } from '../common/utils';
 
 @injectable()
 export class UserService {
 	constructor(
 		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
-		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
-		private readonly patientsRepository: IRepository<PatientModel>,
 	) {}
 
 	@validateDto
@@ -43,22 +40,11 @@ export class UserService {
 		}
 	}
 
-	public async get(options: GetOptions) {
-		try {
-			const users = await this.userRepository.find({
-				where: options.filter,
-				order: options.sort ?? { createdAt: 'DESC' },
-			});
-			return users;
-		} catch (err) {
-			if (err instanceof EntityPropertyNotFoundError) {
-				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
-			}
-			throw err;
-		}
+	public async get(options: GetOptions): Promise<UserModel[]> {
+		return Repository.findMatchingOptions(this.userRepository, options);
 	}
 
-	public async getById(id: string) {
+	public async getById(id: string): Promise<UserModel> {
 		try {
 			const user = await this.userRepository.findOneBy({ id });
 			if (!user) {
@@ -73,7 +59,7 @@ export class UserService {
 		}
 	}
 
-	public async getByEmail(email: string): Promise<IUser> {
+	public async getByEmail(email: string): Promise<UserModel> {
 		const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 		if (!user) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User does not exist`);
@@ -81,8 +67,7 @@ export class UserService {
 		return user;
 	}
 
-	// TODO: ADD TYPES FOR METHODS
-	public async getByResetToken(token: string) {
+	public async getByResetToken(token: string): Promise<UserModel> {
 		const user = await this.userRepository.findOneBy({ resetToken: token });
 		if (!user) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User not found`);
@@ -90,15 +75,18 @@ export class UserService {
 		return user;
 	}
 
-	public async updateResetToken(email: string, token: string | null): Promise<IUser> {
+	public async updateResetToken(email: string, token: string | null): Promise<UserModel> {
 		const user = await this.getByEmail(email);
 		user.resetToken = token;
 		return this.userRepository.save(user);
 	}
 
 	@validateDto
-	public async update(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto) {
-		if (userDto.email) {
+	public async update(
+		id: string,
+		@validDto(UpdateUserDto) userDto: UpdateUserDto,
+	): Promise<UserModel> {
+		if (userDto.resetToken === undefined && userDto.email) {
 			await this.throwIfEmailTaken(userDto.email);
 		}
 		const user = await this.getById(id);
@@ -111,17 +99,16 @@ export class UserService {
 	}
 
 	public async delete(id: string): Promise<void> {
-		const res = await this.userRepository.delete(id);
-		if (!res.affected) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+		try {
+			const res = await this.userRepository.delete(id);
+			if (!res.affected) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			}
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			}
+			throw err;
 		}
-		await this.deleteAssociatedPatients(id); // TODO: DELETE CASCADE
-	}
-
-	private async deleteAssociatedPatients(id: string) {
-		const patients = await this.patientsRepository.getAll();
-		const patientsToDelete = patients.filter((p) => p.userId === id);
-		const promises = patientsToDelete.map((p) => this.patientsRepository.remove(p));
-		await Promise.all(promises);
 	}
 }

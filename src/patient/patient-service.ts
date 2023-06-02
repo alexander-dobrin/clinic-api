@@ -1,22 +1,25 @@
 import { PatientModel } from './patient-model';
 import { HttpError } from '../common/errors';
 import { CreatePatientDto } from './dto/create-patient-dto';
-import { v4 } from 'uuid';
 import { UpdatePatientDto } from './dto/update-patient-dto';
-import { ErrorMessageEnum, PatietnsFilterByEnum, StatusCodeEnum } from '../common/enums';
+import { StatusCodeEnum } from '../common/enums';
 import { injectable, inject } from 'inversify';
-import { IDataProvider, IFilterParam, IQueryParams, IRepository } from '../common/types';
+import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
-import { IUser } from '../user/user-interface';
 import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator';
+import { UserRepository } from '../user/user-repository';
+import { PatientRepository } from './patient-repository';
+import { Repository } from '../common/utils';
+import { QueryFailedError } from 'typeorm';
 
 @injectable()
 export class PatientService {
 	constructor(
 		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
-		private readonly repository: IRepository<PatientModel>,
-		@inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly userProvider: IDataProvider<IUser>,
+		private readonly patientRepository: PatientRepository,
+		// TODO: USE SERVICE?
+		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
 	) {}
 
 	@validateDto
@@ -25,42 +28,31 @@ export class PatientService {
 		user: UserPayload,
 	): Promise<PatientModel> {
 		await this.throwIfPhoneTaken(patientDto.phoneNumber);
-		const patientUser = await this.userProvider.readById(user.id);
+		const patientUser = await this.userRepository.findOneBy({ id: user.id });
 		if (!patientUser) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
 		}
-		const patient = new PatientModel(v4(), user.id, patientDto.phoneNumber);
-		return await this.repository.add(patient);
+		const patient = new PatientModel(user.id, patientDto.phoneNumber);
+		return this.patientRepository.save(patient);
 	}
 
-	public async read(options: IQueryParams): Promise<PatientModel[]> {
-		if (options.filterBy) {
-			return await this.filterPatients(options.filterBy);
-		}
-		return this.repository.getAll();
+	public async get(options: GetOptions): Promise<PatientModel[]> {
+		return Repository.findMatchingOptions(this.patientRepository, options);
 	}
 
-	private async filterPatients(filterParams: IFilterParam[]): Promise<PatientModel[]> {
-		let filtered = await this.repository.getAll();
-		for (const param of filterParams) {
-			if (param.field === PatietnsFilterByEnum.PHONE) {
-				filtered = filtered.filter((p) => p.phoneNumber === param.value);
-			} else {
-				throw new HttpError(
-					StatusCodeEnum.BAD_REQUEST,
-					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field),
-				);
+	public async getById(id: string): Promise<PatientModel | undefined> {
+		try {
+			const patient = await this.patientRepository.findOneBy({ id });
+			if (!patient) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
 			}
+			return patient;
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			}
+			throw err;
 		}
-		return filtered;
-	}
-
-	public async readById(id: string): Promise<PatientModel | undefined> {
-		const patient = await this.repository.get(id);
-		if (!patient) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
-		}
-		return patient;
 	}
 
 	@validateDto
@@ -71,26 +63,41 @@ export class PatientService {
 		if (patientDto.phoneNumber) {
 			await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		}
-		const patient = await this.readById(id);
+		const patient = await this.getById(id);
 		const { phoneNumber = patient.phoneNumber } = patientDto;
+
 		patient.phoneNumber = phoneNumber;
-		return await this.repository.update(patient);
+
+		return this.patientRepository.save(patient);
 	}
 
-	public async deletePatientById(id: string): Promise<PatientModel> {
-		const patient = await this.readById(id);
-		return this.repository.remove(patient);
+	public async deletePatientById(id: string): Promise<void> {
+		try {
+			const res = await this.patientRepository.delete(id);
+			if (!res.affected) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+			}
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+			}
+			throw err;
+		}
 	}
 
 	private async throwIfPhoneTaken(phone: string) {
-		const patients = await this.repository.getAll();
-		const isTaken = patients.some((p) => p.phoneNumber === phone);
+		const isTaken = await this.patientRepository.findOneBy({ phoneNumber: phone });
 		if (isTaken) {
 			throw new HttpError(StatusCodeEnum.BAD_REQUEST, `Phone [${phone}] is already in use`);
 		}
 	}
 
+	// TODO: IS NEEDED
 	public async isExists(id: string): Promise<boolean> {
-		return (await this.repository.get(id)) ? true : false;
+		const patient = await this.patientRepository.findOneBy({ id });
+		if (!patient) {
+			return false;
+		}
+		return true;
 	}
 }

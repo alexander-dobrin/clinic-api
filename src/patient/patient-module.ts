@@ -5,12 +5,9 @@ import { PatientRoutes } from './patient-routes';
 import { PatientController } from './patient-controller';
 import { IHttpController } from '../common/types';
 import { PatientService } from './patient-service';
-import { IRepository } from '../common/types';
 import { PatientRepository } from './patient-repository';
-import { PatientModel } from './patient-model';
-import { IDataProvider } from '../common/types';
-import { FileDataProvider } from '../common/providers/file-data-provider';
-import * as path from 'path';
+import { iocContainer } from '../inversify.config';
+import { DataSource } from 'typeorm';
 
 export const patientModule = new ContainerModule((bind: interfaces.Bind) => {
 	bind<IRoutes>(CONTAINER_TYPES.PATIENTS_ROUTES).to(PatientRoutes).inSingletonScope();
@@ -18,12 +15,10 @@ export const patientModule = new ContainerModule((bind: interfaces.Bind) => {
 		.to(PatientController)
 		.inSingletonScope();
 	bind<PatientService>(CONTAINER_TYPES.PATIENTS_SERVICE).to(PatientService).inSingletonScope();
-	bind<IRepository<PatientModel>>(CONTAINER_TYPES.PATIENTS_REPOSITORY)
-		.to(PatientRepository)
-		.inSingletonScope();
-	bind<IDataProvider<PatientModel>>(CONTAINER_TYPES.PATIENTS_DATA_PROVIDER)
-		.toDynamicValue(() => {
-			return new FileDataProvider(path.resolve('assets', 'patients.json'));
+	bind<PatientRepository>(CONTAINER_TYPES.PATIENTS_REPOSITORY)
+		.toDynamicValue(() =>{
+			const provider = iocContainer.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION);
+			return new PatientRepository(provider);
 		})
 		.inSingletonScope();
 });

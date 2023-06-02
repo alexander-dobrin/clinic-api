@@ -1,6 +1,6 @@
 import { StatusCodeEnum } from '../common/enums';
 import { Request, Response, NextFunction } from 'express';
-import { IHttpController, IQueryParams } from '../common/types';
+import { GetOptions, IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { AuthorizedRequest } from '../auth/auth-middleware';
@@ -15,23 +15,36 @@ export class PatientController implements IHttpController {
 	) {}
 
 	public async get(
-		req: Request<object, object, object, IQueryParams>,
+		req: Request<object, object, object, GetOptions>,
 		res: Response,
+		next: NextFunction,
 	): Promise<void> {
-		const patients = await this.patientsService.read(req.query);
-		if (patients.length < 1) {
-			res.status(StatusCodeEnum.NO_CONTENT);
+		try {
+			const patients = await this.patientsService.get(req.query);
+			if (patients.length < 1) {
+				res.status(StatusCodeEnum.NO_CONTENT);
+			}
+			res.json(patients);
+		} catch (err) {
+			next(err);
 		}
-		res.json(patients);
 	}
 
-	public async getById(req: Request<{ id: string }>, res: Response): Promise<void> {
-		const patient = await this.patientsService.readById(req.params.id);
-		if (!patient) {
-			res.sendStatus(StatusCodeEnum.NOT_FOUND);
-			return;
+	public async getById(
+		req: Request<{ id: string }>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const patient = await this.patientsService.getById(req.params.id);
+			if (!patient) {
+				res.sendStatus(StatusCodeEnum.NOT_FOUND);
+				return;
+			}
+			res.json(patient);
+		} catch (err) {
+			next(err);
 		}
-		res.json(patient);
 	}
 
 	public async post(
@@ -70,12 +83,8 @@ export class PatientController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const patient = await this.patientsService.deletePatientById(req.params.id);
-			if (!patient) {
-				res.sendStatus(StatusCodeEnum.NOT_FOUND);
-				return;
-			}
-			res.json(patient);
+			await this.patientsService.deletePatientById(req.params.id);
+			res.sendStatus(StatusCodeEnum.NO_CONTENT);
 		} catch (err) {
 			next(err);
 		}

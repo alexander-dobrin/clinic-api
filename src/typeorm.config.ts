@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
 import { UserModel } from './user/user-model';
+import { PatientModel } from './patient/patient-model';
 
 dotenv.config();
 
@@ -11,7 +12,7 @@ export const AppDataSource = new DataSource({
 	database: process.env.PGDATABASE,
 	port: Number(process.env.PGPORT),
 	synchronize: true,
-	entities: [UserModel],
+	entities: [UserModel, PatientModel],
 	migrations: [],
 });
 

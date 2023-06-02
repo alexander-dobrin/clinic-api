@@ -6,7 +6,15 @@ import { In } from 'typeorm';
 export class QueryMapperMiddleware {
 	public map(req: Request, res: Response, next: NextFunction): void {
 		try {
-			const string = qs.stringify(req.query);
+			const string = qs.stringify(req.query, {
+				filter: (prefix: string, value: any): any => {
+					if (typeof value === 'string' && value.startsWith(' ')) {
+						return value.replace(' ', '+');
+					}
+					return value;
+				},
+			});
+			
 			req.query = qs.parse(string, { allowDots: true });
 
 			if (req.query.filter) {
@@ -19,7 +27,6 @@ export class QueryMapperMiddleware {
 					}
 				}
 			}
-
 			next();
 		} catch (err) {
 			next(err);
