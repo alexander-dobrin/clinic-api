@@ -7,8 +7,7 @@ import { IDataProvider } from '../common/types';
 import { UserService } from './user-service';
 import { UserRoutes } from './user-routes';
 import { UserController } from './user-controller';
-import { UserModel } from './user-model';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { iocContainer } from '../inversify.config';
 import { UserRepository } from './user-repository';
 

@@ -1,57 +1,28 @@
-import { ErrorMessageEnum, StatusCodeEnum } from '../enums';
-import { HttpError } from '../errors';
-import { IFilterParam, IQueryParams, ISortParam } from '../types';
 import { Request, Response, NextFunction } from 'express';
+import qs from 'qs';
+import { In } from 'typeorm';
 
+// TODO: MAKE DECORATOR and/or rename to TypeOrmGetOptionsParser +-
 export class QueryMapperMiddleware {
 	public map(req: Request, res: Response, next: NextFunction): void {
 		try {
-			const mappedQuery: IQueryParams = {};
+			const string = qs.stringify(req.query);
+			req.query = qs.parse(string, { allowDots: true });
 
-			if (req.query.filterBy) {
-				mappedQuery.filterBy = this.mapFilterParams(req.query.filterBy);
-			}
-			if (req.query.sortBy) {
-				mappedQuery.sortBy = this.mapSortParams(
-					req.query.sortBy as string | string[],
-					req.query.order as string,
-				);
+			if (req.query.filter) {
+				for (const key in req.query.filter as object) {
+					if (Object.prototype.hasOwnProperty.call(req.query.filter, key)) {
+						const values = req.query.filter[key];
+						if (Array.isArray(values)) {
+							req.query.filter[key] = In(values);
+						}
+					}
+				}
 			}
 
-			Object.assign(req.query, mappedQuery);
 			next();
 		} catch (err) {
 			next(err);
 		}
-	}
-
-	private mapSortParams(sortBy: string | string[], order?: string): ISortParam[] {
-		order ??= 'asc';
-
-		if (Array.isArray(sortBy)) {
-			return sortBy.map((sortParam) => ({ field: sortParam, order }));
-		} else {
-			return [{ field: sortBy, order }];
-		}
-	}
-
-	private mapFilterParams(filterBy: any): IFilterParam[] {
-		if (Array.isArray(filterBy)) {
-			return filterBy.map(this.parseFilterParam);
-		}
-		return [this.parseFilterParam(filterBy)];
-	}
-
-	private parseFilterParam(param: string): IFilterParam {
-		const [field, value] = param.split(':');
-
-		if (value == undefined) {
-			throw new HttpError(
-				StatusCodeEnum.BAD_REQUEST,
-				`Invalid filter parameter [${param}]. Please use the field:value format`,
-			);
-		}
-
-		return { field, value };
 	}
 }

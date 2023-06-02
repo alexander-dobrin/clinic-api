@@ -6,7 +6,7 @@ import { StatusCodeEnum } from '../common/enums';
 import { AuthorizedRequest } from '../auth/auth-middleware';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
-import { IQueryParams } from '../common/types';
+import { GetOptions } from '../common/types';
 
 @injectable()
 export class UserController {
@@ -26,7 +26,7 @@ export class UserController {
 	}
 
 	public async get(
-		req: Request<object, object, object, IQueryParams>,
+		req: Request<object, object, object, GetOptions>,
 		res: Response,
 		next: NextFunction,
 	) {
@@ -75,8 +75,8 @@ export class UserController {
 
 	public async delete(req: Request<{ id: string }>, res: Response, next: NextFunction) {
 		try {
-			const user = await this.userService.delete(req.params.id);
-			res.json(user);
+			await this.userService.delete(req.params.id);
+			res.sendStatus(StatusCodeEnum.NO_CONTENT);
 		} catch (err) {
 			next(err);
 		}

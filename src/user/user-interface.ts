@@ -1,5 +1,6 @@
 import { UserRoleEnum } from '../common/enums';
 
+// TODO: MIGRATE TO UserModel
 export interface IUser {
 	id: string;
 	email: string;

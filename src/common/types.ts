@@ -17,9 +17,15 @@ export interface IFindable {
 	id: string;
 }
 
+// TODO: MIGRATE TO GetOptions
 export interface IQueryParams {
 	sortBy?: ISortParam[];
 	filterBy?: IFilterParam[];
+}
+
+export interface GetOptions {
+	sort?: object;
+	filter?: object;
 }
 
 export interface ISortParam {

@@ -10,6 +10,7 @@ export enum StatusCodeEnum {
 }
 
 export enum ErrorMessageEnum {
+	// TODO: MAKE IT NOT REPLACEABLE
 	UNKNOWN_QUERY_PARAMETER = 'Unknown query parameter [%s]',
 	INCORRECT_PASSWORD = 'Incorrect password',
 	INVALID_RESET_TOKEN = 'Invalid reset token',

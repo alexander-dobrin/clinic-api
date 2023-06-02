@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { UserRoleEnum } from '../../common/enums';
 
 export class UpdateUserDto {
@@ -15,7 +15,7 @@ export class UpdateUserDto {
 	public readonly firstName?: string;
 
 	@IsOptional()
-	@IsNotEmpty()
+	@IsEnum(UserRoleEnum)
 	public readonly role?: UserRoleEnum;
 
 	@IsOptional()
