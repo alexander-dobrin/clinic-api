@@ -5,6 +5,7 @@ import {
 	JoinColumn,
 	ManyToOne,
 	PrimaryGeneratedColumn,
+	RelationId,
 } from 'typeorm';
 import { UserModel } from '../user/user-model';
 
@@ -15,13 +16,14 @@ export class PatientModel {
 
 	@ManyToOne(() => UserModel, { onDelete: 'CASCADE', nullable: false })
 	@JoinColumn({ name: 'user_id' })
+	@RelationId((patient: PatientModel) => patient.userId)
 	userId: string;
 
 	@Column({ name: 'phone_number', type: 'varchar', unique: true })
 	phoneNumber: string;
 
 	@CreateDateColumn({ name: 'created_at' })
-	public createdAt: Date;
+	createdAt: Date;
 
 	constructor(userId?: string, phoneNumber?: string) {
 		this.userId = userId;
