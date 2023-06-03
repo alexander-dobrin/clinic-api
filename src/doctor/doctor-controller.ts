@@ -75,8 +75,8 @@ export class DoctorController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const doctor = await this.doctorsService.delete(req.params.id);
-			res.json(doctor);
+			await this.doctorsService.delete(req.params.id);
+			res.sendStatus(StatusCodeEnum.NO_CONTENT);
 		} catch (err) {
 			next(err);
 		}

@@ -46,6 +46,7 @@ export interface IHttpController {
 	delete(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
+// TODO: DELETE
 export interface IRepository<T> {
 	add(model: T): Promise<T>;
 	getAll(): Promise<T[]>;

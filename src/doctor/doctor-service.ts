@@ -1,29 +1,30 @@
-import { v4 } from 'uuid';
 import { DoctorModel } from './doctor-model';
 import { CreateDoctorDto } from './dto/create-doctor-dto';
-import { plainToClass } from 'class-transformer';
 import { UpdateDoctorDto } from './dto/update-doctor-dto';
-import { merge } from 'lodash';
 import { DateTime } from 'luxon';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
-import { IDataProvider, IQueryParams, IRepository } from '../common/types';
+import { GetOptions } from '../common/types';
 import { HttpError } from '../common/errors';
 import { StatusCodeEnum } from '../common/enums';
-import { DoctorQueryHelper } from './helpers/doctor-query-helper';
 import { AppointmentRepository } from '../appointment/appointment-repository';
 import { validDto, validateDto } from '../common/decorator';
 import { UserPayload } from '../auth/auth-types';
-import { IUser } from '../user/user-interface';
+import { DoctorRepository } from './doctor-repository';
+import { UserRepository } from '../user/user-repository';
+import { Repository } from '../common/utils';
+import { QueryFailedError } from 'typeorm';
 
 @injectable()
 export class DoctorService {
 	constructor(
 		@inject(CONTAINER_TYPES.DOCTORS_REPOSITORY)
-		private readonly doctorsRepository: IRepository<DoctorModel>,
+		private readonly doctorsRepository: DoctorRepository,
+		// TODO: DELETE or AppointmentService
 		@inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY)
 		private readonly appointmentsRepository: AppointmentRepository,
-		@inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly userProvider: IDataProvider<IUser>,
+		// TODO: UserService?
+		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
 	) {}
 
 	@validateDto
@@ -31,47 +32,68 @@ export class DoctorService {
 		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
 		user: UserPayload,
 	): Promise<DoctorModel> {
-		const doctorUser = await this.userProvider.readById(user.id);
+		const doctorUser = await this.userRepository.findOneBy({ id: user.id });
 		if (!doctorUser) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
 		}
-		const doctor = plainToClass(DoctorModel, { id: v4(), userId: doctorUser.id, ...doctorDto });
-		return this.doctorsRepository.add(doctor);
+		const doctor = new DoctorModel();
+		doctor.availableSlots = doctorDto.availableSlots.map((s) =>
+			DateTime.fromISO(s, { zone: 'utc' }),
+		);
+		doctor.speciality = doctorDto.speciality;
+		doctor.userId = user.id;
+		return this.doctorsRepository.save(doctor);
 	}
 
-	public async read(options: IQueryParams): Promise<DoctorModel[]> {
-		const objects = await this.doctorsRepository.getAll();
-		const doctors = objects.map((d) => plainToClass(DoctorModel, d));
-
-		return new DoctorQueryHelper(this.appointmentsRepository).applyRequestQuery(doctors, options);
+	public async read(options: GetOptions): Promise<DoctorModel[]> {
+		return Repository.findMatchingOptions(this.doctorsRepository, options);
 	}
 
-	public async getById(id: string): Promise<DoctorModel | undefined> {
-		const foundDoctor = await this.doctorsRepository.get(id);
-		if (!foundDoctor) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+	public async getById(id: string): Promise<DoctorModel | null> {
+		try {
+			const doctor = await this.doctorsRepository.findOneBy({ id });
+			console.log(doctor);
+			if (!doctor) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+			}
+			return doctor;
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+			}
+			throw err;
 		}
-		const doctor = plainToClass(DoctorModel, foundDoctor);
-		return doctor;
 	}
 
 	@validateDto
 	public async update(
 		id: string,
 		@validDto(UpdateDoctorDto) doctorDto: UpdateDoctorDto,
-	): Promise<DoctorModel | undefined> {
+	): Promise<DoctorModel | null> {
 		const doctor = await this.getById(id);
-		merge(doctor, doctorDto);
-		return this.doctorsRepository.update(doctor);
+		const { speciality = doctor.speciality } = doctorDto;
+		if (doctorDto.availableSlots) {
+			doctor.availableSlots = doctorDto.availableSlots.map((s) =>
+				DateTime.fromISO(s, { zone: 'utc' }),
+			);
+		}
+		doctor.speciality = speciality;
+		return this.doctorsRepository.save(doctor);
 	}
 
-	public async delete(id: string): Promise<DoctorModel | undefined> {
-		const doctor = await this.getById(id);
-		const deletedDoctor = await this.doctorsRepository.remove(doctor);
-		if (deletedDoctor) {
-			this.appointmentsRepository.removeAllDoctorAppointments(deletedDoctor.id);
+	public async delete(id: string): Promise<void> {
+		try {
+			const res = await this.doctorsRepository.delete(id);
+			if (!res.affected) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+			}
+			this.appointmentsRepository.removeAllDoctorAppointments(id);
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+			}
+			throw err;
 		}
-		return deletedDoctor;
 	}
 
 	public async takeFreeSlot(id: string, date: DateTime): Promise<void> {
@@ -84,6 +106,6 @@ export class DoctorService {
 			);
 		}
 		doctor.availableSlots.splice(freeSlotIdx, 1);
-		this.doctorsRepository.update(doctor);
+		this.doctorsRepository.save(doctor);
 	}
 }

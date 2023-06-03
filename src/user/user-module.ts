@@ -16,11 +16,6 @@ export const userModule = new ContainerModule((bind) => {
 	bind<UserController>(CONTAINER_TYPES.USER_CONTROLLER).to(UserController).inSingletonScope();
 	bind<UserService>(CONTAINER_TYPES.USER_SERVICE).to(UserService).inSingletonScope();
 
-	// TODO: DELETE DEPENDENCY
-	bind<IDataProvider<IUser>>(CONTAINER_TYPES.USER_DATA_PROVIDER)
-		.toDynamicValue(() => new FileDataProvider(resolve('assets', 'users.json')))
-		.inSingletonScope();
-
 	bind<UserRepository>(CONTAINER_TYPES.USER_REPOSITORY)
 		.toDynamicValue(() =>{
 			const provider = iocContainer.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION);
