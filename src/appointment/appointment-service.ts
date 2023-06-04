@@ -64,19 +64,23 @@ export class AppointmentService {
 		@validDto(UpdateAppointmentDto) appointmentDto: UpdateAppointmentDto,
 	): Promise<AppointmentModel> {
 		const appointment = await this.getById(id);
-
 		const { patientId = appointment.patientId, doctorId = appointment.doctorId } = appointmentDto;
-		if (!(await this.patientsService.isExists(patientId))) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${patientId}] not found`);
-		}
 		if (appointmentDto.date) {
 			appointment.date = DateTime.fromISO(appointmentDto.date, { zone: 'utc' });
 		}
 		appointment.doctorId = doctorId;
 		appointment.patientId = patientId;
-		await this.doctorsService.takeFreeSlot(doctorId, appointment.date);
-		// TODO: NOT SAVING DATE BUT IN DB SAVED
-		return this.appointmentRepository.save(appointment);
+		try {
+			// TODO: TRANSACTION?
+			const saved = await this.appointmentRepository.save(appointment);
+			await this.doctorsService.takeFreeSlot(doctorId, appointment.date);
+			return saved;
+		} catch (err) {
+			if (err instanceof QueryFailedError) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+			}
+			throw err;
+		}
 	}
 
 	public async delete(id: string): Promise<void> {

@@ -7,24 +7,19 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { GetOptions } from '../common/types';
 import { HttpError } from '../common/errors';
 import { StatusCodeEnum } from '../common/enums';
-import { AppointmentRepository } from '../appointment/appointment-repository';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
 import { DoctorRepository } from './doctor-repository';
-import { UserRepository } from '../user/user-repository';
 import { RepositoryUtils } from '../common/util/repository-utils';
 import { QueryFailedError } from 'typeorm';
+import { UserService } from '../user/user-service';
 
 @injectable()
 export class DoctorService {
 	constructor(
 		@inject(CONTAINER_TYPES.DOCTORS_REPOSITORY)
 		private readonly doctorsRepository: DoctorRepository,
-		// TODO: DELETE or AppointmentService
-		@inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY)
-		private readonly appointmentsRepository: AppointmentRepository,
-		// TODO: UserService?
-		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
+		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
 	) {}
 
 	@validateDto
@@ -32,16 +27,13 @@ export class DoctorService {
 		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
 		user: UserPayload,
 	): Promise<DoctorModel> {
-		const doctorUser = await this.userRepository.findOneBy({ id: user.id });
-		if (!doctorUser) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
-		}
+		const doctorUser = await this.userService.getById(user.id);
 		const doctor = new DoctorModel();
 		doctor.availableSlots = doctorDto.availableSlots.map((s) =>
 			DateTime.fromISO(s, { zone: 'utc' }),
 		);
 		doctor.speciality = doctorDto.speciality;
-		doctor.userId = user.id;
+		doctor.userId = doctorUser.id;
 		return this.doctorsRepository.save(doctor);
 	}
 
@@ -86,7 +78,6 @@ export class DoctorService {
 			if (!res.affected) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
 			}
-			// TODO: this.appointmentsRepository.removeAllDoctorAppointments(id);
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);

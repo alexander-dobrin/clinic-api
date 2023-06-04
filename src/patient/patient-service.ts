@@ -8,18 +8,17 @@ import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { UserRepository } from '../user/user-repository';
 import { PatientRepository } from './patient-repository';
 import { RepositoryUtils } from '../common/util/repository-utils';
 import { QueryFailedError } from 'typeorm';
+import { UserService } from '../user/user-service';
 
 @injectable()
 export class PatientService {
 	constructor(
 		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
 		private readonly patientRepository: PatientRepository,
-		// TODO: USE SERVICE?
-		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
+		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
 	) {}
 
 	@validateDto
@@ -28,11 +27,8 @@ export class PatientService {
 		user: UserPayload,
 	): Promise<PatientModel> {
 		await this.throwIfPhoneTaken(patientDto.phoneNumber);
-		const patientUser = await this.userRepository.findOneBy({ id: user.id });
-		if (!patientUser) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
-		}
-		const patient = new PatientModel(user.id, patientDto.phoneNumber);
+		const patientUser = await this.userService.getById(user.id);
+		const patient = new PatientModel(patientUser.id, patientDto.phoneNumber);
 		return this.patientRepository.save(patient);
 	}
 
@@ -49,7 +45,7 @@ export class PatientService {
 			return patient;
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
 			}
 			throw err;
 		}
