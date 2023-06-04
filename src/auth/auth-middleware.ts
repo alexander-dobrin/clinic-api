@@ -2,14 +2,8 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../common/errors';
 import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
-import { UserPayload } from './auth-types';
+import { AuthorizedRequest, UserPayload } from './auth-types';
 import { injectable } from 'inversify';
-
-// TODO: MOVE TO FILES
-export interface AuthorizedRequest<T = unknown> extends Request {
-	user: UserPayload;
-	body: T;
-}
 
 @injectable()
 export class AuthMiddleware {
