@@ -52,7 +52,6 @@ export class DoctorService {
 	public async getById(id: string): Promise<DoctorModel | null> {
 		try {
 			const doctor = await this.doctorsRepository.findOneBy({ id });
-			console.log(doctor);
 			if (!doctor) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
 			}
@@ -87,7 +86,7 @@ export class DoctorService {
 			if (!res.affected) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
 			}
-			this.appointmentsRepository.removeAllDoctorAppointments(id);
+			// TODO: this.appointmentsRepository.removeAllDoctorAppointments(id);
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);

@@ -92,12 +92,19 @@ export class PatientService {
 		}
 	}
 
-	// TODO: IS NEEDED
+	// Review TODO: IS NEEDED
 	public async isExists(id: string): Promise<boolean> {
-		const patient = await this.patientRepository.findOneBy({ id });
-		if (!patient) {
-			return false;
+		try {
+			const patient = await this.patientRepository.findOneBy({ id });
+			if (!patient) {
+				return false;
+			}
+			return true;
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				return false;
+			}
+			throw err;
 		}
-		return true;
 	}
 }

@@ -1,6 +1,6 @@
 import { StatusCodeEnum } from '../common/enums';
 import { Request, Response, NextFunction } from 'express';
-import { IQueryParams, IHttpController } from '../common/types';
+import { GetOptions, IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { DoctorService } from './doctor-service';
@@ -15,7 +15,7 @@ export class DoctorController implements IHttpController {
 	) {}
 
 	public async get(
-		req: Request<object, object, IQueryParams>,
+		req: Request<object, object, object, GetOptions>,
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {

@@ -1,18 +1,38 @@
-import { Transform } from 'class-transformer';
 import { DateTime } from 'luxon';
+import {
+	Column,
+	CreateDateColumn,
+	Entity,
+	ManyToOne,
+	PrimaryGeneratedColumn,
+	RelationId,
+} from 'typeorm';
+import { PatientModel } from '../patient/patient-model';
+import { DoctorModel } from '../doctor/doctor-model';
+import { DateTimeColumn } from '../common/date-time-column';
 
+@Entity('appointment')
 export class AppointmentModel {
-	public id: string;
-	public patientId: string;
-	public doctorId: string;
+	@PrimaryGeneratedColumn('uuid', { name: 'appointment_id' })
+	id: string;
 
-	@Transform(({ value }) => DateTime.fromISO(value, { zone: 'utc' }))
-	public date: DateTime;
+	@ManyToOne(() => PatientModel, { onDelete: 'CASCADE', nullable: false })
+	patient: PatientModel;
 
-	constructor(id: string, patientId: string, doctorId: string, date: string) {
-		this.id = id;
-		this.patientId = patientId;
-		this.doctorId = doctorId;
-		this.date = DateTime.fromISO(date, { zone: 'utc' });
-	}
+	@Column({ type: 'uuid' })
+	@RelationId((appointment: AppointmentModel) => appointment.patient)
+	patientId: string;
+
+	@ManyToOne(() => DoctorModel, { onDelete: 'CASCADE', nullable: false })
+	doctor: DoctorModel;
+
+	@Column({ type: 'uuid' })
+	@RelationId((appointment: AppointmentModel) => appointment.doctor)
+	doctorId: string;
+
+	@Column({ name: 'date', type: 'timestamptz', transformer: new DateTimeColumn() })
+	date: DateTime;
+
+	@CreateDateColumn({ name: 'created_at' })
+	createdAt: Date;
 }
