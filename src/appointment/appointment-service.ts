@@ -1,4 +1,4 @@
-import { AppointmentModel } from './appointment-model';
+import { Appointment } from './appointment';
 import { DateTime } from 'luxon';
 import { AppointmentRepository } from './appointment-repository';
 import { PatientService } from '../patient/patient-service';
@@ -26,7 +26,7 @@ export class AppointmentService {
 	@validateDto
 	public async create(
 		@validDto(CreateAppointmentDto) appointmentDto: CreateAppointmentDto,
-	): Promise<AppointmentModel> {
+	): Promise<Appointment> {
 		const { patientId, doctorId, date } = appointmentDto;
 		const doctor = await this.doctorsService.getById(doctorId);
 		const patient = await this.patientsService.getById(patientId);
@@ -39,11 +39,11 @@ export class AppointmentService {
 		return this.appointmentRepository.save(appointment);
 	}
 
-	public async read(options: GetOptions): Promise<AppointmentModel[]> {
+	public async read(options: GetOptions): Promise<Appointment[]> {
 		return RepositoryUtils.findMatchingOptions(this.appointmentRepository, options);
 	}
 
-	public async getById(id: string): Promise<AppointmentModel | null> {
+	public async getById(id: string): Promise<Appointment | null> {
 		try {
 			const appointment = await this.appointmentRepository.findOneBy({ id });
 			if (!appointment) {
@@ -62,7 +62,7 @@ export class AppointmentService {
 	public async update(
 		id: string,
 		@validDto(UpdateAppointmentDto) appointmentDto: UpdateAppointmentDto,
-	): Promise<AppointmentModel> {
+	): Promise<Appointment> {
 		const appointment = await this.getById(id);
 		const { patientId = appointment.patientId, doctorId = appointment.doctorId } = appointmentDto;
 		if (appointmentDto.date) {

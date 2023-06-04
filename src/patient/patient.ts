@@ -7,16 +7,16 @@ import {
 	PrimaryGeneratedColumn,
 	RelationId,
 } from 'typeorm';
-import { UserModel } from '../user/user-model';
+import { User } from '../user/user';
 
 @Entity('patient')
-export class PatientModel {
+export class Patient {
 	@PrimaryGeneratedColumn('uuid', { name: 'patient_id' })
 	id: string;
 
-	@ManyToOne(() => UserModel, { onDelete: 'CASCADE', nullable: false })
+	@ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false })
 	@JoinColumn({ name: 'user_id' })
-	@RelationId((patient: PatientModel) => patient.userId)
+	@RelationId((patient: Patient) => patient.userId)
 	userId: string;
 
 	@Column({ name: 'phone_number', type: 'varchar', unique: true })

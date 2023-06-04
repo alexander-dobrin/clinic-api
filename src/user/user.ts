@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 import { UserRoleEnum } from '../common/enums';
 
 @Entity({ name: 'user' })
-export class UserModel {
+export class User {
 	@PrimaryGeneratedColumn('uuid', { name: 'user_id' })
 	public id: string;
 

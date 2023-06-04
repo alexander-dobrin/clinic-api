@@ -1,4 +1,4 @@
-import { PatientModel } from './patient-model';
+import { Patient } from './patient';
 import { HttpError } from '../common/errors';
 import { CreatePatientDto } from './dto/create-patient-dto';
 import { UpdatePatientDto } from './dto/update-patient-dto';
@@ -25,18 +25,18 @@ export class PatientService {
 	public async create(
 		@validDto(CreatePatientDto) patientDto: CreatePatientDto,
 		user: UserPayload,
-	): Promise<PatientModel> {
+	): Promise<Patient> {
 		await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		const patientUser = await this.userService.getById(user.id);
-		const patient = new PatientModel(patientUser.id, patientDto.phoneNumber);
+		const patient = new Patient(patientUser.id, patientDto.phoneNumber);
 		return this.patientRepository.save(patient);
 	}
 
-	public async get(options: GetOptions): Promise<PatientModel[]> {
+	public async get(options: GetOptions): Promise<Patient[]> {
 		return RepositoryUtils.findMatchingOptions(this.patientRepository, options);
 	}
 
-	public async getById(id: string): Promise<PatientModel | undefined> {
+	public async getById(id: string): Promise<Patient | undefined> {
 		try {
 			const patient = await this.patientRepository.findOneBy({ id });
 			if (!patient) {
@@ -55,7 +55,7 @@ export class PatientService {
 	public async updatePatientById(
 		id: string,
 		@validDto(UpdatePatientDto) patientDto: UpdatePatientDto,
-	): Promise<PatientModel> {
+	): Promise<Patient> {
 		if (patientDto.phoneNumber) {
 			await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		}

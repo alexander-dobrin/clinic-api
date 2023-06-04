@@ -8,17 +8,17 @@ import {
 	PrimaryGeneratedColumn,
 	RelationId,
 } from 'typeorm';
-import { UserModel } from '../user/user-model';
+import { User } from '../user/user';
 import { DateTimeArrayColumn } from '../common/util/date-time-array-column';
 
 @Entity('doctor')
-export class DoctorModel {
+export class Doctor {
 	@PrimaryGeneratedColumn('uuid', { name: 'doctor_id' })
 	id: string;
 
-	@ManyToOne(() => UserModel, { onDelete: 'CASCADE', nullable: false, eager: true })
+	@ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false, eager: true })
 	@JoinColumn({ name: 'user_id' })
-	@RelationId((doctor: DoctorModel) => doctor.userId) // Review TODO: is it ok that eager stopps working
+	@RelationId((doctor: Doctor) => doctor.userId) // Review TODO: is it ok that eager stopps working
 	userId: string;
 
 	@Column({ type: 'varchar' })

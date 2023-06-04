@@ -5,6 +5,7 @@ import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { UserPayload } from './auth-types';
 import { injectable } from 'inversify';
 
+// TODO: MOVE TO FILES
 export interface AuthorizedRequest<T = unknown> extends Request {
 	user: UserPayload;
 	body: T;

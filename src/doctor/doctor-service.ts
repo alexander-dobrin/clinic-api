@@ -1,4 +1,4 @@
-import { DoctorModel } from './doctor-model';
+import { Doctor } from './doctor';
 import { CreateDoctorDto } from './dto/create-doctor-dto';
 import { UpdateDoctorDto } from './dto/update-doctor-dto';
 import { DateTime } from 'luxon';
@@ -26,9 +26,9 @@ export class DoctorService {
 	public async createDoctor(
 		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
 		user: UserPayload,
-	): Promise<DoctorModel> {
+	): Promise<Doctor> {
 		const doctorUser = await this.userService.getById(user.id);
-		const doctor = new DoctorModel();
+		const doctor = new Doctor();
 		doctor.availableSlots = doctorDto.availableSlots.map((s) =>
 			DateTime.fromISO(s, { zone: 'utc' }),
 		);
@@ -37,11 +37,11 @@ export class DoctorService {
 		return this.doctorsRepository.save(doctor);
 	}
 
-	public async read(options: GetOptions): Promise<DoctorModel[]> {
+	public async read(options: GetOptions): Promise<Doctor[]> {
 		return RepositoryUtils.findMatchingOptions(this.doctorsRepository, options);
 	}
 
-	public async getById(id: string): Promise<DoctorModel | null> {
+	public async getById(id: string): Promise<Doctor | null> {
 		try {
 			const doctor = await this.doctorsRepository.findOneBy({ id });
 			if (!doctor) {
@@ -60,7 +60,7 @@ export class DoctorService {
 	public async update(
 		id: string,
 		@validDto(UpdateDoctorDto) doctorDto: UpdateDoctorDto,
-	): Promise<DoctorModel | null> {
+	): Promise<Doctor | null> {
 		const doctor = await this.getById(id);
 		const { speciality = doctor.speciality } = doctorDto;
 		if (doctorDto.availableSlots) {

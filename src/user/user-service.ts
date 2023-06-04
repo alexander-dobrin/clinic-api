@@ -8,7 +8,7 @@ import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import bcrypt from 'bcrypt';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { UserModel } from './user-model';
+import { User } from './user';
 import { UserRepository } from './user-repository';
 import { QueryFailedError } from 'typeorm';
 import { RepositoryUtils } from '../common/util/repository-utils';
@@ -20,9 +20,9 @@ export class UserService {
 	) {}
 
 	@validateDto
-	public async create(@validDto(CreateUserDto) user: CreateUserDto): Promise<UserModel> {
+	public async create(@validDto(CreateUserDto) user: CreateUserDto): Promise<User> {
 		await this.throwIfEmailTaken(user.email);
-		const createdUser = new UserModel();
+		const createdUser = new User();
 		createdUser.email = user.email.toLowerCase();
 		createdUser.role = user.role;
 		createdUser.firstName = user.firstName;
@@ -40,11 +40,11 @@ export class UserService {
 		}
 	}
 
-	public async get(options: GetOptions): Promise<UserModel[]> {
+	public async get(options: GetOptions): Promise<User[]> {
 		return RepositoryUtils.findMatchingOptions(this.userRepository, options);
 	}
 
-	public async getById(id: string): Promise<UserModel> {
+	public async getById(id: string): Promise<User> {
 		try {
 			const user = await this.userRepository.findOneBy({ id });
 			if (!user) {
@@ -59,7 +59,7 @@ export class UserService {
 		}
 	}
 
-	public async getByEmail(email: string): Promise<UserModel> {
+	public async getByEmail(email: string): Promise<User> {
 		const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 		if (!user) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User does not exist`);
@@ -67,7 +67,7 @@ export class UserService {
 		return user;
 	}
 
-	public async getByResetToken(token: string): Promise<UserModel> {
+	public async getByResetToken(token: string): Promise<User> {
 		const user = await this.userRepository.findOneBy({ resetToken: token });
 		if (!user) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User not found`);
@@ -75,17 +75,14 @@ export class UserService {
 		return user;
 	}
 
-	public async updateResetToken(email: string, token: string | null): Promise<UserModel> {
+	public async updateResetToken(email: string, token: string | null): Promise<User> {
 		const user = await this.getByEmail(email);
 		user.resetToken = token;
 		return this.userRepository.save(user);
 	}
 
 	@validateDto
-	public async update(
-		id: string,
-		@validDto(UpdateUserDto) userDto: UpdateUserDto,
-	): Promise<UserModel> {
+	public async update(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto): Promise<User> {
 		if (userDto.resetToken === undefined && userDto.email) {
 			await this.throwIfEmailTaken(userDto.email);
 		}

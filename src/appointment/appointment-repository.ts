@@ -1,8 +1,8 @@
-import { AppointmentModel } from './appointment-model';
+import { Appointment } from './appointment';
 import { DataSource, Repository } from 'typeorm';
 
-export class AppointmentRepository extends Repository<AppointmentModel> {
+export class AppointmentRepository extends Repository<Appointment> {
 	constructor(provider: DataSource) {
-		super(AppointmentModel, provider.createEntityManager());
+		super(Appointment, provider.createEntityManager());
 	}
 }

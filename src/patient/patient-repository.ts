@@ -1,8 +1,8 @@
-import { PatientModel } from './patient-model';
+import { Patient } from './patient';
 import { DataSource, Repository } from 'typeorm';
 
-export class PatientRepository extends Repository<PatientModel> {
+export class PatientRepository extends Repository<Patient> {
 	constructor(provider: DataSource) {
-		super(PatientModel, provider.createEntityManager());
+		super(Patient, provider.createEntityManager());
 	}
 }
