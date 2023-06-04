@@ -10,8 +10,7 @@ export enum StatusCodeEnum {
 }
 
 export enum ErrorMessageEnum {
-	// TODO: MAKE IT NOT REPLACEABLE
-	UNKNOWN_QUERY_PARAMETER = 'Unknown query parameter [%s]',
+	UNKNOWN_QUERY_PARAMETER = 'Unknown query parameters',
 	INCORRECT_PASSWORD = 'Incorrect password',
 	INVALID_RESET_TOKEN = 'Invalid reset token',
 	NOT_AUTHORIZED = 'Authorization required',
@@ -25,27 +24,6 @@ export enum TokenLifetimeEnum {
 
 export enum RequestMethodEnum {
 	GET = 'GET',
-}
-
-export enum DoctorsSortByEnum {
-	APPOINTMENTS = 'appointments',
-}
-
-export enum AppointmentsFilterByEnum {
-	DOCTORS = 'doctorid',
-	PATIENTS = 'patientid',
-}
-
-export enum PatietnsFilterByEnum {
-	PHONE = 'phoneNumber',
-}
-
-export enum UserFilterByEnum {
-	NAME = 'firstName',
-}
-
-export enum UserSortByEnum {
-	NAME = 'firstName',
 }
 
 export enum UserRoleEnum {

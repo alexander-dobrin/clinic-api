@@ -10,8 +10,8 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { GetOptions } from '../common/types';
 import { StatusCodeEnum } from '../common/enums';
 import { HttpError } from '../common/errors';
-import { validDto, validateDto } from '../common/decorator';
-import { Repository } from '../common/utils';
+import { validDto, validateDto } from '../common/decorator/validate-dto';
+import { RepositoryUtils } from '../common/util/repository-utils';
 import { QueryFailedError } from 'typeorm';
 
 @injectable()
@@ -40,7 +40,7 @@ export class AppointmentService {
 	}
 
 	public async read(options: GetOptions): Promise<AppointmentModel[]> {
-		return Repository.findMatchingOptions(this.appointmentRepository, options);
+		return RepositoryUtils.findMatchingOptions(this.appointmentRepository, options);
 	}
 
 	public async getById(id: string): Promise<AppointmentModel | null> {

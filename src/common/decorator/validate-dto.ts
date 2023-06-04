@@ -1,20 +1,9 @@
 import { ClassConstructor, plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
-import { HttpError } from './errors';
-import { METADATA } from './constants';
-import {
-	registerDecorator,
-	ValidationOptions,
-	ValidatorConstraint,
-	ValidatorConstraintInterface,
-} from 'class-validator';
-import { DateTime } from 'luxon';
-import { StatusCodeEnum } from './enums';
-
-export interface ValidDtoParamInfo<T extends object> {
-	index: number;
-	validationClassConstructor: ClassConstructor<T>;
-}
+import { HttpError } from '../errors';
+import { METADATA } from '../constants';
+import { StatusCodeEnum } from '../enums';
+import { ValidDtoParamInfo } from '../types';
 
 export function validDto<T extends object>(dtoValidationClassConstructor: ClassConstructor<T>) {
 	return function (target: any, propertyKey: string, parameterIndex: number) {
@@ -76,29 +65,5 @@ export function validateDto<T extends object>(
 			}
 			throw errors;
 		}
-	};
-}
-
-@ValidatorConstraint()
-class IsNotInThePastConstraint implements ValidatorConstraintInterface {
-	validate(utcDate: string) {
-		const currentDate = DateTime.utc();
-		const inputDate = DateTime.fromISO(utcDate, { zone: 'utc' });
-		return inputDate > currentDate;
-	}
-
-	defaultMessage(): string {
-		return '$property date can not be in the past';
-	}
-}
-
-export function IsNotInThePast(validationOptions?: ValidationOptions) {
-	return function (object: object, propertyName: string) {
-		registerDecorator({
-			target: object.constructor,
-			propertyName: propertyName,
-			options: validationOptions,
-			validator: IsNotInThePastConstraint,
-		});
 	};
 }

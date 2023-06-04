@@ -1,5 +1,5 @@
 import { App } from './app';
-import { ExceptionFilter } from './common/middlewares/exception-filter';
+import { ErrorFilterMiddleware } from './common/middleware/error-filter-middleware';
 import { Container } from 'inversify';
 import { patientModule } from './patient/patient-module';
 import { doctorModule } from './doctor/doctor-module';
@@ -13,9 +13,7 @@ import { AppDataSource } from './typeorm.config';
 
 export const iocContainer = new Container();
 
-iocContainer
-	.bind<DataSource>(CONTAINER_TYPES.DB_CONNECTION)
-	.toDynamicValue(() => AppDataSource);
+iocContainer.bind<DataSource>(CONTAINER_TYPES.DB_CONNECTION).toDynamicValue(() => AppDataSource);
 
 iocContainer.load(userModule);
 iocContainer.load(authModule);
@@ -24,8 +22,8 @@ iocContainer.load(doctorModule);
 iocContainer.load(appointmentModule);
 
 iocContainer
-	.bind<ExceptionFilter>(CONTAINER_TYPES.EXCEPTION_FILTER)
-	.to(ExceptionFilter)
+	.bind<ErrorFilterMiddleware>(CONTAINER_TYPES.ERROR_FILTER_MIDDLEWARE)
+	.to(ErrorFilterMiddleware)
 	.inSingletonScope();
 
 iocContainer

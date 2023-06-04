@@ -7,11 +7,11 @@ import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import bcrypt from 'bcrypt';
-import { validDto, validateDto } from '../common/decorator';
+import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserModel } from './user-model';
 import { UserRepository } from './user-repository';
 import { QueryFailedError } from 'typeorm';
-import { Repository } from '../common/utils';
+import { RepositoryUtils } from '../common/util/repository-utils';
 
 @injectable()
 export class UserService {
@@ -41,7 +41,7 @@ export class UserService {
 	}
 
 	public async get(options: GetOptions): Promise<UserModel[]> {
-		return Repository.findMatchingOptions(this.userRepository, options);
+		return RepositoryUtils.findMatchingOptions(this.userRepository, options);
 	}
 
 	public async getById(id: string): Promise<UserModel> {

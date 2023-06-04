@@ -7,10 +7,10 @@ import { injectable, inject } from 'inversify';
 import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { UserPayload } from '../auth/auth-types';
-import { validDto, validateDto } from '../common/decorator';
+import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserRepository } from '../user/user-repository';
 import { PatientRepository } from './patient-repository';
-import { Repository } from '../common/utils';
+import { RepositoryUtils } from '../common/util/repository-utils';
 import { QueryFailedError } from 'typeorm';
 
 @injectable()
@@ -37,7 +37,7 @@ export class PatientService {
 	}
 
 	public async get(options: GetOptions): Promise<PatientModel[]> {
-		return Repository.findMatchingOptions(this.patientRepository, options);
+		return RepositoryUtils.findMatchingOptions(this.patientRepository, options);
 	}
 
 	public async getById(id: string): Promise<PatientModel | undefined> {

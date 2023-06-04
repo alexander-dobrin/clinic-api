@@ -11,7 +11,7 @@ import { RegisterDto } from './dto/register-dto';
 import { AuthedUser, UserPayload } from './auth-types';
 import { ResetPasswordDto } from './dto/reset-password-dto';
 import { RecoverPasswordDto } from './dto/recover-password-dto';
-import { validDto, validateDto } from '../common/decorator';
+import { validDto, validateDto } from '../common/decorator/validate-dto';
 
 @injectable()
 export class AuthService {

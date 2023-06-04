@@ -1,9 +1,9 @@
-import { ErrorMessageEnum, StatusCodeEnum } from './enums';
-import { HttpError } from './errors';
-import { GetOptions } from './types';
+import { ErrorMessageEnum, StatusCodeEnum } from '../enums';
+import { HttpError } from '../errors';
+import { GetOptions } from '../types';
 import { Repository as BaseRepository, EntityPropertyNotFoundError } from 'typeorm';
 
-export abstract class Repository {
+export abstract class RepositoryUtils {
 	public static async findMatchingOptions<T>(
 		repository: BaseRepository<T>,
 		options: GetOptions,

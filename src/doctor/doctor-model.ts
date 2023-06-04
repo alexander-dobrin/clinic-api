@@ -9,7 +9,7 @@ import {
 	RelationId,
 } from 'typeorm';
 import { UserModel } from '../user/user-model';
-import { DateTimeArrayColumn } from '../common/date-time-array-column';
+import { DateTimeArrayColumn } from '../common/util/date-time-array-column';
 
 @Entity('doctor')
 export class DoctorModel {

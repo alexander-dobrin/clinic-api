@@ -3,7 +3,7 @@ import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
-import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
+import { QueryMapperMiddleware } from '../common/middleware/query-mapper-middleware';
 
 @injectable()
 export class AppointmentRoutes implements IRoutes {

@@ -1,5 +1,5 @@
 import { IsDateString, IsOptional } from 'class-validator';
-import { IsNotInThePast } from '../../common/decorator';
+import { IsNotInThePast } from '../../common/decorator/constraints'; 
 
 export class UpdateDoctorDto {
 	@IsOptional()

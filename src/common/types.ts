@@ -1,3 +1,4 @@
+import { ClassConstructor } from 'class-transformer';
 import { NextFunction, Request, Response, Router } from 'express';
 
 export interface GetOptions {
@@ -15,4 +16,9 @@ export interface IHttpController {
 
 export interface IRoutes {
 	get router(): Router;
+}
+
+export interface ValidDtoParamInfo<T extends object> {
+	index: number;
+	validationClassConstructor: ClassConstructor<T>;
 }

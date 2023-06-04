@@ -5,7 +5,7 @@ import { injectable } from 'inversify';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 
 @injectable()
-export class ExceptionFilter {
+export class ErrorFilterMiddleware {
 	public catch(err: Error, req: Request, res: Response, next: NextFunction) {
 		if (err instanceof HttpError) {
 			return res.status(err.code).json({ error: { message: err.message } });

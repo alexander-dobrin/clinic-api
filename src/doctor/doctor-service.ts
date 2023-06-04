@@ -8,11 +8,11 @@ import { GetOptions } from '../common/types';
 import { HttpError } from '../common/errors';
 import { StatusCodeEnum } from '../common/enums';
 import { AppointmentRepository } from '../appointment/appointment-repository';
-import { validDto, validateDto } from '../common/decorator';
+import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
 import { DoctorRepository } from './doctor-repository';
 import { UserRepository } from '../user/user-repository';
-import { Repository } from '../common/utils';
+import { RepositoryUtils } from '../common/util/repository-utils';
 import { QueryFailedError } from 'typeorm';
 
 @injectable()
@@ -46,7 +46,7 @@ export class DoctorService {
 	}
 
 	public async read(options: GetOptions): Promise<DoctorModel[]> {
-		return Repository.findMatchingOptions(this.doctorsRepository, options);
+		return RepositoryUtils.findMatchingOptions(this.doctorsRepository, options);
 	}
 
 	public async getById(id: string): Promise<DoctorModel | null> {

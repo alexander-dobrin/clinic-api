@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { PatientModel } from '../patient/patient-model';
 import { DoctorModel } from '../doctor/doctor-model';
-import { DateTimeColumn } from '../common/date-time-column';
+import { DateTimeColumn } from '../common/util/date-time-column';
 
 @Entity('appointment')
 export class AppointmentModel {

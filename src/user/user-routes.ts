@@ -5,7 +5,7 @@ import { UserController } from './user-controller';
 import { CONTAINER_TYPES } from '../common/constants';
 import { iocContainer } from '../inversify.config';
 import { AuthMiddleware } from '../auth/auth-middleware';
-import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
+import { QueryMapperMiddleware } from '../common/middleware/query-mapper-middleware';
 
 @injectable()
 export class UserRoutes implements IRoutes {
@@ -26,7 +26,7 @@ export class UserRoutes implements IRoutes {
 			.route('/')
 			.get(
 				this.queryMapperMiddleware.map.bind(this.queryMapperMiddleware),
-				this.userController.get.bind(this.userController)
+				this.userController.get.bind(this.userController),
 			)
 			.post(this.userController.post.bind(this.userController));
 		this._router

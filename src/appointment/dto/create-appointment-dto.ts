@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsDateString } from 'class-validator';
-import { IsNotInThePast } from '../../common/decorator';
+import { IsNotInThePast } from '../../common/decorator/constraints';
 
 export class CreateAppointmentDto {
 	@IsNotEmpty()
