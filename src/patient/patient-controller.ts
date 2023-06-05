@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { GetOptions, IHttpController } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
-import { AuthorizedRequest } from '../auth/auth-middleware';
+import { AuthorizedRequest } from '../auth/auth-types';
 import { PatientService } from './patient-service';
 import { CreatePatientDto } from './dto/create-patient-dto';
 import { UpdatePatientDto } from './dto/update-patient-dto';

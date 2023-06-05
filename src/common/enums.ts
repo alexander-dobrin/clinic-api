@@ -30,4 +30,5 @@ export enum UserRoleEnum {
 	GUEST = 'guest',
 	USER = 'user',
 	DOCTOR = 'doctor',
+	PATIENT = 'patient',
 }

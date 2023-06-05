@@ -4,6 +4,7 @@ import { User } from './user/user';
 import { Patient } from './patient/patient';
 import { Doctor } from './doctor/doctor';
 import { Appointment } from './appointment/appointment';
+import { InitialPopulation1685954857153 } from './migration/1685954857153-initialPopulation';
 
 dotenv.config();
 
@@ -15,6 +16,6 @@ export const AppDataSource = new DataSource({
 	port: Number(process.env.PGPORT),
 	synchronize: true,
 	entities: [User, Patient, Doctor, Appointment],
-	migrations: [],
+	migrations: [InitialPopulation1685954857153],
 	useUTC: true,
 });

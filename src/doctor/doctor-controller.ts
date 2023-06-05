@@ -6,7 +6,7 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { DoctorService } from './doctor-service';
 import { CreateDoctorDto } from './dto/create-doctor-dto';
 import { UpdateDoctorDto } from './dto/update-doctor-dto';
-import { AuthorizedRequest } from '../auth/auth-middleware';
+import { AuthorizedRequest } from '../auth/auth-types';
 
 @injectable()
 export class DoctorController implements IHttpController {

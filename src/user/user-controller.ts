@@ -3,7 +3,7 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { NextFunction, Request, Response } from 'express';
 import { UserService } from './user-service';
 import { StatusCodeEnum } from '../common/enums';
-import { AuthorizedRequest } from '../auth/auth-middleware';
+import { AuthorizedRequest } from '../auth/auth-types';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { GetOptions } from '../common/types';
