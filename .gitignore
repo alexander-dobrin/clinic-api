@@ -133,3 +133,4 @@ dist
 
 assets/
 .vscode/
+.vscodecounter/

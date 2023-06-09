@@ -10,14 +10,14 @@ import { iocContainer } from '../inversify.config';
 import { DataSource } from 'typeorm';
 
 export const appointmentModule = new ContainerModule((bind: interfaces.Bind) => {
-	bind<IRoutes>(CONTAINER_TYPES.APPOINTMENTS_ROUTES).to(AppointmentRoutes).inSingletonScope();
-	bind<IHttpController>(CONTAINER_TYPES.APPOINTMENTS_CONTROLLER)
+	bind<IRoutes>(CONTAINER_TYPES.APPOINTMENT_ROUTES).to(AppointmentRoutes).inSingletonScope();
+	bind<IHttpController>(CONTAINER_TYPES.APPOINTMENT_CONTROLLER)
 		.to(AppointmentController)
 		.inSingletonScope();
-	bind<AppointmentService>(CONTAINER_TYPES.APPOINTMENTS_SERVICE)
+	bind<AppointmentService>(CONTAINER_TYPES.APPOINTMENT_SERVICE)
 		.to(AppointmentService)
 		.inSingletonScope();
-	bind<AppointmentRepository>(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY)
+	bind<AppointmentRepository>(CONTAINER_TYPES.APPOINTMENT_REPOSITORY)
 		.toDynamicValue(() => {
 			const provider = iocContainer.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION);
 			return new AppointmentRepository(provider);

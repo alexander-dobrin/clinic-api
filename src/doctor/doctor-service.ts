@@ -6,7 +6,7 @@ import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { GetOptions } from '../common/types';
 import { HttpError } from '../common/errors';
-import { StatusCodeEnum } from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
 import { DoctorRepository } from './doctor-repository';
@@ -17,8 +17,8 @@ import { UserService } from '../user/user-service';
 @injectable()
 export class DoctorService {
 	constructor(
-		@inject(CONTAINER_TYPES.DOCTORS_REPOSITORY)
-		private readonly doctorsRepository: DoctorRepository,
+		@inject(CONTAINER_TYPES.DOCTOR_REPOSITORY)
+		private readonly doctorRepository: DoctorRepository,
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
 	) {}
 
@@ -34,16 +34,30 @@ export class DoctorService {
 		);
 		doctor.speciality = doctorDto.speciality;
 		doctor.userId = doctorUser.id;
-		return this.doctorsRepository.save(doctor);
+		return this.doctorRepository.save(doctor);
 	}
 
-	public async read(options: GetOptions): Promise<Doctor[]> {
-		return RepositoryUtils.findMatchingOptions(this.doctorsRepository, options);
+	public async get(options: GetOptions): Promise<Doctor[]> {
+		if (this.isAppointmentsOption(options)) {
+			return this.doctorRepository.getOrderedByAppointmentsCount(options);
+		}
+		return RepositoryUtils.findMatchingOptions(this.doctorRepository, options);
+	}
+
+	private isAppointmentsOption(options: GetOptions) {
+		try {
+			return options.sort != undefined && Object.keys(options.sort).includes('appointments');
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
+			}
+			throw err;
+		}
 	}
 
 	public async getById(id: string): Promise<Doctor | null> {
 		try {
-			const doctor = await this.doctorsRepository.findOneBy({ id });
+			const doctor = await this.doctorRepository.findOneBy({ id });
 			if (!doctor) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
 			}
@@ -69,12 +83,12 @@ export class DoctorService {
 			);
 		}
 		doctor.speciality = speciality;
-		return this.doctorsRepository.save(doctor);
+		return this.doctorRepository.save(doctor);
 	}
 
 	public async delete(id: string): Promise<void> {
 		try {
-			const res = await this.doctorsRepository.delete(id);
+			const res = await this.doctorRepository.delete(id);
 			if (!res.affected) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
 			}
@@ -96,6 +110,6 @@ export class DoctorService {
 			);
 		}
 		doctor.availableSlots.splice(freeSlotIdx, 1);
-		this.doctorsRepository.save(doctor);
+		this.doctorRepository.save(doctor);
 	}
 }

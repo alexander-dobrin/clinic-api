@@ -11,7 +11,7 @@ import { AuthorizedRequest } from '../auth/auth-types';
 @injectable()
 export class DoctorController implements IHttpController {
 	constructor(
-		@inject(CONTAINER_TYPES.DOCTORS_SERVICE) private readonly doctorsService: DoctorService,
+		@inject(CONTAINER_TYPES.DOCTOR_SERVICE) private readonly doctorsService: DoctorService,
 	) {}
 
 	public async get(
@@ -20,7 +20,7 @@ export class DoctorController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const doctors = await this.doctorsService.read(req.query);
+			const doctors = await this.doctorsService.get(req.query);
 			if (doctors.length < 1) {
 				res.status(StatusCodeEnum.NO_CONTENT);
 			}

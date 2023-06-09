@@ -10,13 +10,13 @@ import { iocContainer } from '../inversify.config';
 import { DataSource } from 'typeorm';
 
 export const patientModule = new ContainerModule((bind: interfaces.Bind) => {
-	bind<IRoutes>(CONTAINER_TYPES.PATIENTS_ROUTES).to(PatientRoutes).inSingletonScope();
-	bind<IHttpController>(CONTAINER_TYPES.PATIENTS_CONTROLLER)
+	bind<IRoutes>(CONTAINER_TYPES.PATIENT_ROUTES).to(PatientRoutes).inSingletonScope();
+	bind<IHttpController>(CONTAINER_TYPES.PATIENT_CONTROLLER)
 		.to(PatientController)
 		.inSingletonScope();
-	bind<PatientService>(CONTAINER_TYPES.PATIENTS_SERVICE).to(PatientService).inSingletonScope();
-	bind<PatientRepository>(CONTAINER_TYPES.PATIENTS_REPOSITORY)
-		.toDynamicValue(() =>{
+	bind<PatientService>(CONTAINER_TYPES.PATIENT_SERVICE).to(PatientService).inSingletonScope();
+	bind<PatientRepository>(CONTAINER_TYPES.PATIENT_REPOSITORY)
+		.toDynamicValue(() => {
 			const provider = iocContainer.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION);
 			return new PatientRepository(provider);
 		})

@@ -2,7 +2,7 @@ import { Patient } from './patient';
 import { HttpError } from '../common/errors';
 import { CreatePatientDto } from './dto/create-patient-dto';
 import { UpdatePatientDto } from './dto/update-patient-dto';
-import { StatusCodeEnum } from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { injectable, inject } from 'inversify';
 import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
@@ -16,7 +16,7 @@ import { UserService } from '../user/user-service';
 @injectable()
 export class PatientService {
 	constructor(
-		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
+		@inject(CONTAINER_TYPES.PATIENT_REPOSITORY)
 		private readonly patientRepository: PatientRepository,
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
 	) {}
@@ -33,7 +33,14 @@ export class PatientService {
 	}
 
 	public async get(options: GetOptions): Promise<Patient[]> {
-		return RepositoryUtils.findMatchingOptions(this.patientRepository, options);
+		try {
+			return RepositoryUtils.findMatchingOptions(this.patientRepository, options);
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
+			}
+			throw err;
+		}
 	}
 
 	public async getById(id: string): Promise<Patient | undefined> {

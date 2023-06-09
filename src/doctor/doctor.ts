@@ -27,6 +27,6 @@ export class Doctor {
 	@Column({ name: 'available_slots', type: 'simple-array', transformer: new DateTimeArrayColumn() })
 	availableSlots: DateTime[];
 
-	@CreateDateColumn({ name: 'created_at' })
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 }

@@ -8,7 +8,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment-dto';
 import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { GetOptions } from '../common/types';
-import { StatusCodeEnum } from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { RepositoryUtils } from '../common/util/repository-utils';
@@ -17,10 +17,10 @@ import { QueryFailedError } from 'typeorm';
 @injectable()
 export class AppointmentService {
 	constructor(
-		@inject(CONTAINER_TYPES.APPOINTMENTS_REPOSITORY)
+		@inject(CONTAINER_TYPES.APPOINTMENT_REPOSITORY)
 		private readonly appointmentRepository: AppointmentRepository,
-		@inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientService,
-		@inject(CONTAINER_TYPES.DOCTORS_SERVICE) private readonly doctorsService: DoctorService,
+		@inject(CONTAINER_TYPES.PATIENT_SERVICE) private readonly patientsService: PatientService,
+		@inject(CONTAINER_TYPES.DOCTOR_SERVICE) private readonly doctorsService: DoctorService,
 	) {}
 
 	@validateDto
@@ -39,8 +39,15 @@ export class AppointmentService {
 		return this.appointmentRepository.save(appointment);
 	}
 
-	public async read(options: GetOptions): Promise<Appointment[]> {
-		return RepositoryUtils.findMatchingOptions(this.appointmentRepository, options);
+	public async get(options: GetOptions): Promise<Appointment[]> {
+		try {
+			return await RepositoryUtils.findMatchingOptions(this.appointmentRepository, options);
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
+			}
+			throw err;
+		}
 	}
 
 	public async getById(id: string): Promise<Appointment | null> {

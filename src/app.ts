@@ -10,9 +10,9 @@ export class App {
 	private readonly app: Express;
 
 	constructor(
-		@inject(CONTAINER_TYPES.PATIENTS_ROUTES) private readonly patientsRoutes: IRoutes,
-		@inject(CONTAINER_TYPES.DOCTORS_ROUTES) private readonly doctorsRoutes: IRoutes,
-		@inject(CONTAINER_TYPES.APPOINTMENTS_ROUTES) private readonly appointmentsRoutes: IRoutes,
+		@inject(CONTAINER_TYPES.PATIENT_ROUTES) private readonly patientsRoutes: IRoutes,
+		@inject(CONTAINER_TYPES.DOCTOR_ROUTES) private readonly doctorsRoutes: IRoutes,
+		@inject(CONTAINER_TYPES.APPOINTMENT_ROUTES) private readonly appointmentsRoutes: IRoutes,
 		@inject(CONTAINER_TYPES.AUTH_ROUTES) private readonly authRoutes: IRoutes,
 		@inject(CONTAINER_TYPES.USER_ROUTES) private readonly userRoutes: IRoutes,
 		@inject(CONTAINER_TYPES.ERROR_FILTER_MIDDLEWARE)

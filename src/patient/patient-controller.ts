@@ -11,7 +11,7 @@ import { UpdatePatientDto } from './dto/update-patient-dto';
 @injectable()
 export class PatientController implements IHttpController {
 	constructor(
-		@inject(CONTAINER_TYPES.PATIENTS_SERVICE) private readonly patientsService: PatientService,
+		@inject(CONTAINER_TYPES.PATIENT_SERVICE) private readonly patientsService: PatientService,
 	) {}
 
 	public async get(

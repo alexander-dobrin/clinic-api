@@ -16,7 +16,7 @@ export class PatientRoutes implements IRoutes {
 	);
 
 	constructor(
-		@inject(CONTAINER_TYPES.PATIENTS_CONTROLLER)
+		@inject(CONTAINER_TYPES.PATIENT_CONTROLLER)
 		private readonly patientsController: IHttpController,
 	) {
 		this.setupRoutes();

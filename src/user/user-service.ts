@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES, SALT_ROUNDS } from '../common/constants';
 import { HttpError } from '../common/errors';
-import { StatusCodeEnum } from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
@@ -41,7 +41,14 @@ export class UserService {
 	}
 
 	public async get(options: GetOptions): Promise<User[]> {
-		return RepositoryUtils.findMatchingOptions(this.userRepository, options);
+		try {
+			return RepositoryUtils.findMatchingOptions(this.userRepository, options);
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
+			}
+			throw err;
+		}
 	}
 
 	public async getById(id: string): Promise<User> {

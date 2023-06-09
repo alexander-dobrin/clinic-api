@@ -10,7 +10,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment-dto';
 @injectable()
 export class AppointmentController implements IHttpController {
 	constructor(
-		@inject(CONTAINER_TYPES.APPOINTMENTS_SERVICE)
+		@inject(CONTAINER_TYPES.APPOINTMENT_SERVICE)
 		private readonly appointmentService: AppointmentService,
 	) {}
 
@@ -33,7 +33,7 @@ export class AppointmentController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const appointments = await this.appointmentService.read(req.query);
+			const appointments = await this.appointmentService.get(req.query);
 			if (appointments.length < 1) {
 				res.status(StatusCodeEnum.NO_CONTENT);
 			}

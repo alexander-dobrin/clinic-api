@@ -16,7 +16,7 @@ export class DoctorRoutes implements IRoutes {
 	);
 
 	constructor(
-		@inject(CONTAINER_TYPES.DOCTORS_CONTROLLER) private readonly doctorsController: IHttpController,
+		@inject(CONTAINER_TYPES.DOCTOR_CONTROLLER) private readonly doctorsController: IHttpController,
 	) {
 		this.doctorsController = doctorsController;
 		this._router = Router();

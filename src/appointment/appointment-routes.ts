@@ -11,7 +11,7 @@ export class AppointmentRoutes implements IRoutes {
 	private readonly mapQueryParams = new QueryMapperMiddleware();
 
 	constructor(
-		@inject(CONTAINER_TYPES.APPOINTMENTS_CONTROLLER)
+		@inject(CONTAINER_TYPES.APPOINTMENT_CONTROLLER)
 		private readonly appointmentsController: IHttpController,
 	) {
 		this._router = Router();
