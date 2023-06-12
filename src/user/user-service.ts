@@ -97,7 +97,7 @@ export class UserService {
 		if (userDto.password) {
 			userDto.password = await bcrypt.hash(userDto.password, SALT_ROUNDS);
 		}
-		// Review:
+		// Review: стоит ли использовать подобного рода неочевидные функции? Это lodash
 		merge(user, userDto);
 		return this.userRepository.save(user);
 	}

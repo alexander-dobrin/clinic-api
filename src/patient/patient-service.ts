@@ -94,20 +94,4 @@ export class PatientService {
 			throw new HttpError(StatusCodeEnum.BAD_REQUEST, `Phone [${phone}] is already in use`);
 		}
 	}
-
-	// Review TODO: IS NEEDED
-	public async isExists(id: string): Promise<boolean> {
-		try {
-			const patient = await this.patientRepository.findOneBy({ id });
-			if (!patient) {
-				return false;
-			}
-			return true;
-		} catch (err) {
-			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				return false;
-			}
-			throw err;
-		}
-	}
 }

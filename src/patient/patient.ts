@@ -22,7 +22,7 @@ export class Patient {
 	@Column({ name: 'phone_number', type: 'varchar', unique: true })
 	phoneNumber: string;
 
-	@CreateDateColumn({ name: 'created_at' })
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 
 	constructor(userId?: string, phoneNumber?: string) {

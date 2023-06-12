@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import qs from 'qs';
 import { In } from 'typeorm';
 
-// TODO: MAKE DECORATOR and/or rename to TypeOrmGetOptionsParser +-
+// TODO: MAKE DECORATOR and/or rename to ParseQueryOptions
 export class QueryMapperMiddleware {
 	public map(req: Request, res: Response, next: NextFunction): void {
 		try {
 			const string = qs.stringify(req.query, {
-				filter: (prefix: string, value: any): any => {
+				filter: (prefix: string, value: unknown): unknown => {
 					if (typeof value === 'string' && value.startsWith(' ')) {
 						return value.replace(' ', '+');
 					}

@@ -15,12 +15,12 @@ export class User {
 	@Column({ unique: true, type: 'varchar' })
 	public email: string;
 
-	@Column({ type: 'varchar' })
+	@Column({ type: 'varchar', select: false })
 	public password: string;
 
 	@Column({ name: 'reset_token', nullable: true, type: 'varchar' })
 	public resetToken: string;
 
-	@CreateDateColumn({ name: 'created_at' })
+	@CreateDateColumn({ name: 'created_at', select: false })
 	public createdAt: Date;
 }

@@ -9,8 +9,8 @@ export class DoctorRepository extends Repository<Doctor> {
 	}
 
 	public async getOrderedByAppointmentsCount(extraOptions?: GetOptions) {
-		// Review: 1. Join tables using query or using mapping in buisiness logic? 
-		// 2. getMany vs getRawMany for returning composite result?
+		// Review: 1. Использовать queryBuilder или логику для соединения разных таблиц? 
+		// 2. getMany или getRawMany для возвращения объектов, в которых информации больше чем в сущности?
 		const builder = this.createQueryBuilder('doctor')
 			.addSelect((subQuery) => {
 				return subQuery

@@ -25,7 +25,7 @@ export class DoctorService {
 	@validateDto
 	public async createDoctor(
 		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
-		user: UserPayload,
+		user: UserPayload, // Review: если мы храним id пользователя в докторе то авторизация обязательна для создания?
 	): Promise<Doctor> {
 		const doctorUser = await this.userService.getById(user.id);
 		const doctor = new Doctor();
