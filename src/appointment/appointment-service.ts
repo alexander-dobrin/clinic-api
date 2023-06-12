@@ -12,7 +12,7 @@ import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { RepositoryUtils } from '../common/util/repository-utils';
-import { DataSource, QueryFailedError } from 'typeorm';
+import { DataSource, EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { iocContainer } from '../inversify.config';
 
 @injectable()
@@ -55,12 +55,12 @@ export class AppointmentService {
 
 	public async getById(id: string): Promise<Appointment | null> {
 		try {
-			const appointment = await this.appointmentRepository.findOneBy({ id });
-			if (!appointment) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
-			}
+			const appointment = await this.appointmentRepository.findOneByOrFail({ id });
 			return appointment;
 		} catch (err) {
+			if (err instanceof EntityNotFoundError) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
+			}
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
 			}

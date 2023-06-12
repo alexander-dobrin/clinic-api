@@ -9,7 +9,7 @@ import { UpdateUserDto } from './dto/update-user-dto';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { User } from './user';
 import { UserRepository } from './user-repository';
-import { QueryFailedError } from 'typeorm';
+import { EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { RepositoryUtils } from '../common/util/repository-utils';
 
 @injectable()
@@ -52,12 +52,12 @@ export class UserService {
 
 	public async getById(id: string): Promise<User> {
 		try {
-			const user = await this.userRepository.findOneBy({ id });
-			if (!user) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
-			}
+			const user = await this.userRepository.findOneByOrFail({ id });
 			return user;
 		} catch (err) {
+			if (err instanceof EntityNotFoundError) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			}
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
 			}

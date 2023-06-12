@@ -10,7 +10,7 @@ import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { PatientRepository } from './patient-repository';
 import { RepositoryUtils } from '../common/util/repository-utils';
-import { QueryFailedError } from 'typeorm';
+import { EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { UserService } from '../user/user-service';
 
 @injectable()
@@ -45,12 +45,12 @@ export class PatientService {
 
 	public async getById(id: string): Promise<Patient | undefined> {
 		try {
-			const patient = await this.patientRepository.findOneBy({ id });
-			if (!patient) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
-			}
+			const patient = await this.patientRepository.findOneByOrFail({ id });
 			return patient;
 		} catch (err) {
+			if (err instanceof EntityNotFoundError) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+			}
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
 			}
