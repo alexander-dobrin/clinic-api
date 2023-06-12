@@ -106,11 +106,11 @@ export class AppointmentService {
 		try {
 			const res = await this.appointmentRepository.delete(id);
 			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.CONFLICT, `Appointment [${id}] might be allready deleted`);
 			}
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
 			}
 			throw err;
 		}

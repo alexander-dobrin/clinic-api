@@ -78,7 +78,7 @@ export class PatientService {
 		try {
 			const res = await this.patientRepository.delete(id);
 			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.CONFLICT, `Patient [${id}] might be allready deleted`);
 			}
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {

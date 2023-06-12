@@ -94,11 +94,11 @@ export class DoctorService {
 		try {
 			const res = await this.doctorRepository.delete(id);
 			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.CONFLICT, `Doctor [${id}] might be allready deleted`);
 			}
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
 			}
 			throw err;
 		}

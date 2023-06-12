@@ -33,7 +33,7 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 		if (user) {
 			throw new HttpError(
-				StatusCodeEnum.BAD_REQUEST,
+				StatusCodeEnum.CONFLICT,
 				`Email adress [${user.email}] is allready in use`,
 			);
 		}
@@ -102,7 +102,7 @@ export class UserService {
 		try {
 			const res = await this.userRepository.delete(id);
 			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.CONFLICT, `User [${id}] might be allready deleted`);
 			}
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {

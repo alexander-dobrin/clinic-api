@@ -6,6 +6,7 @@ import {
 	ManyToOne,
 	PrimaryGeneratedColumn,
 	RelationId,
+	VersionColumn,
 } from 'typeorm';
 import { Patient } from '../patient/patient';
 import { Doctor } from '../doctor/doctor';
@@ -35,4 +36,7 @@ export class Appointment {
 
 	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
+
+	@VersionColumn({nullable: true})
+	version?: number;
 }
