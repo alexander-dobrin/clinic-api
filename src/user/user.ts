@@ -1,5 +1,14 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+	BeforeInsert,
+	BeforeUpdate,
+	Column,
+	CreateDateColumn,
+	Entity,
+	PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserRoleEnum } from '../common/enums';
+import bcrypt from 'bcrypt';
+import { SALT_ROUNDS } from '../common/constants';
 
 @Entity({ name: 'user' })
 export class User {
@@ -15,7 +24,7 @@ export class User {
 	@Column({ unique: true, type: 'varchar' })
 	public email: string;
 
-	@Column({ type: 'varchar', select: false })
+	@Column({ type: 'varchar' })
 	public password: string;
 
 	@Column({ name: 'reset_token', nullable: true, type: 'varchar' })
@@ -23,4 +32,10 @@ export class User {
 
 	@CreateDateColumn({ name: 'created_at', select: false })
 	public createdAt: Date;
+
+	@BeforeInsert()
+	@BeforeUpdate()
+	private hashPassword() {
+		this.password = bcrypt.hashSync(this.password, SALT_ROUNDS);
+	}
 }

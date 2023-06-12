@@ -1,12 +1,11 @@
 import { inject, injectable } from 'inversify';
 import { GetOptions } from '../common/types';
-import { CONTAINER_TYPES, SALT_ROUNDS } from '../common/constants';
+import { CONTAINER_TYPES } from '../common/constants';
 import { HttpError } from '../common/errors';
 import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
-import bcrypt from 'bcrypt';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { User } from './user';
 import { UserRepository } from './user-repository';
@@ -26,7 +25,7 @@ export class UserService {
 		createdUser.email = user.email.toLowerCase();
 		createdUser.role = user.role;
 		createdUser.firstName = user.firstName;
-		createdUser.password = await bcrypt.hash(user.password, SALT_ROUNDS);
+		createdUser.password = user.password;
 		return await this.userRepository.save(createdUser);
 	}
 
@@ -94,9 +93,6 @@ export class UserService {
 			await this.throwIfEmailTaken(userDto.email);
 		}
 		const user = await this.getById(id);
-		if (userDto.password) {
-			userDto.password = await bcrypt.hash(userDto.password, SALT_ROUNDS);
-		}
 		// Review: стоит ли использовать подобного рода неочевидные функции? Это lodash
 		merge(user, userDto);
 		return this.userRepository.save(user);
