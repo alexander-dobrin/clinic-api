@@ -14,6 +14,7 @@ export enum ErrorMessageEnum {
 	INCORRECT_PASSWORD = 'Incorrect password',
 	INVALID_RESET_TOKEN = 'Invalid reset token',
 	NOT_AUTHORIZED = 'Authorization required',
+	VERSION_MISMATCH = 'Entity versions mismatch',
 }
 
 export enum TokenLifetimeEnum {

@@ -63,7 +63,7 @@ export class AppointmentController implements IHttpController {
 	): Promise<void> {
 		try {
 			const updated = await this.appointmentService.update(req.params.id, req.body);
-			res.json(updated);
+			res.setHeader('X-Entity-Version', updated.version).json(updated);
 		} catch (err) {
 			next(err);
 		}

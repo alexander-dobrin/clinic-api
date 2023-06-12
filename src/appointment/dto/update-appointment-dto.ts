@@ -1,4 +1,4 @@
-import { IsDateString, IsOptional } from 'class-validator';
+import { IsDateString, IsNumber, IsOptional, IsPositive } from 'class-validator';
 import { IsNotInThePast } from '../../common/decorator/constraints';
 
 export class UpdateAppointmentDto {
@@ -12,4 +12,8 @@ export class UpdateAppointmentDto {
 	@IsDateString()
 	@IsNotInThePast()
 	public readonly date?: string;
+
+	@IsNumber()
+	@IsPositive()
+	public readonly version: number;
 }

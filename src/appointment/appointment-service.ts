@@ -74,7 +74,12 @@ export class AppointmentService {
 		@validDto(UpdateAppointmentDto) appointmentDto: UpdateAppointmentDto,
 	): Promise<Appointment> {
 		const appointment = await this.getById(id);
-		const { patientId, doctorId, date } = appointmentDto;
+		const { patientId, doctorId = appointment.doctorId, date, version } = appointmentDto;
+
+		if (appointment.version && appointment.version != version) {
+			throw new HttpError(StatusCodeEnum.CONFLICT, ErrorMessageEnum.VERSION_MISMATCH);
+		}
+
 		appointment.doctorId = doctorId;
 		appointment.patientId = patientId;
 
@@ -106,7 +111,10 @@ export class AppointmentService {
 		try {
 			const res = await this.appointmentRepository.delete(id);
 			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.CONFLICT, `Appointment [${id}] might be allready deleted`);
+				throw new HttpError(
+					StatusCodeEnum.CONFLICT,
+					`Appointment [${id}] might be allready deleted`,
+				);
 			}
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
