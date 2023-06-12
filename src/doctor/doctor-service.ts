@@ -48,6 +48,10 @@ export class DoctorService {
 		try {
 			return options.sort != undefined && Object.keys(options.sort).includes('appointments');
 		} catch (err) {
+			// Review: typerom бросает исключение если id не в верном формате.
+			// Стоит ли мне самому проверять что id в нужном формате и бросать свое исключение
+			// Или допустить в логике неверный id и позволить typeorm выбросить исключение?
+			// Как в таком случае принято различать исключения которые бросает библиотека?
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
 			}

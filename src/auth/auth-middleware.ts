@@ -5,6 +5,8 @@ import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { AuthorizedRequest, UserPayload } from './auth-types';
 import { injectable } from 'inversify';
 
+// Review: мне кажется все middleware могут быть заменены декораторами.
+// Остались ли сценарии для использования middleware для которых декораторы не подходят.
 @injectable()
 export class AuthMiddleware {
 	public async auth(req: Request, res: Response, next: NextFunction) {

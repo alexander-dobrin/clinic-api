@@ -3,7 +3,7 @@ import qs from 'qs';
 import { In } from 'typeorm';
 
 // TODO: MAKE DECORATOR and/or rename to ParseQueryOptions
-export class QueryMapperMiddleware {
+export class ParseQueryOptionsMiddleware {
 	public map(req: Request, res: Response, next: NextFunction): void {
 		try {
 			const string = qs.stringify(req.query, {
@@ -14,7 +14,7 @@ export class QueryMapperMiddleware {
 					return value;
 				},
 			});
-			
+
 			req.query = qs.parse(string, { allowDots: true });
 
 			if (req.query.filter) {
