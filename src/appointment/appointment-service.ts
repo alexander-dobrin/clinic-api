@@ -12,7 +12,8 @@ import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { RepositoryUtils } from '../common/util/repository-utils';
-import { QueryFailedError } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
+import { iocContainer } from '../inversify.config';
 
 @injectable()
 export class AppointmentService {
@@ -71,22 +72,31 @@ export class AppointmentService {
 		@validDto(UpdateAppointmentDto) appointmentDto: UpdateAppointmentDto,
 	): Promise<Appointment> {
 		const appointment = await this.getById(id);
-		const { patientId = appointment.patientId, doctorId = appointment.doctorId } = appointmentDto;
-		if (appointmentDto.date) {
-			appointment.date = DateTime.fromISO(appointmentDto.date, { zone: 'utc' });
-		}
+		const { patientId, doctorId, date } = appointmentDto;
 		appointment.doctorId = doctorId;
 		appointment.patientId = patientId;
+
+		const queryRunner = iocContainer
+			.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION)
+			.createQueryRunner();
+		queryRunner.startTransaction();
+
 		try {
-			// TODO: TRANSACTION?
-			const saved = await this.appointmentRepository.save(appointment);
-			await this.doctorsService.takeFreeSlot(doctorId, appointment.date);
+			if (date) {
+				appointment.date = DateTime.fromISO(date, { zone: 'utc' });
+				await this.doctorsService.takeFreeSlot(doctorId, appointment.date, queryRunner.manager);
+			}
+			const saved = await queryRunner.manager.save(appointment);
+			await queryRunner.commitTransaction();
 			return saved;
 		} catch (err) {
+			await queryRunner.rollbackTransaction();
 			if (err instanceof QueryFailedError) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${patientId}] not found`);
 			}
 			throw err;
+		} finally {
+			await queryRunner.release();
 		}
 	}
 

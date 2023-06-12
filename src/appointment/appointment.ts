@@ -33,6 +33,6 @@ export class Appointment {
 	@Column({ name: 'date', type: 'timestamptz', transformer: new DateTimeColumn() })
 	date: DateTime;
 
-	@CreateDateColumn({ name: 'created_at' })
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 }

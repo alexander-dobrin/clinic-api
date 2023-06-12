@@ -11,7 +11,7 @@ import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
 import { DoctorRepository } from './doctor-repository';
 import { RepositoryUtils } from '../common/util/repository-utils';
-import { QueryFailedError } from 'typeorm';
+import { EntityManager, QueryFailedError } from 'typeorm';
 import { UserService } from '../user/user-service';
 
 @injectable()
@@ -100,7 +100,11 @@ export class DoctorService {
 		}
 	}
 
-	public async takeFreeSlot(id: string, date: DateTime): Promise<void> {
+	public async takeFreeSlot(
+		id: string,
+		date: DateTime,
+		transaction?: EntityManager,
+	): Promise<void> {
 		const doctor = await this.getById(id);
 		const freeSlotIdx = doctor.availableSlots.findIndex((s) => s.equals(date.toUTC()));
 		if (freeSlotIdx < 0) {
@@ -110,6 +114,10 @@ export class DoctorService {
 			);
 		}
 		doctor.availableSlots.splice(freeSlotIdx, 1);
-		this.doctorRepository.save(doctor);
+		if (transaction) {
+			transaction.save(doctor);
+		} else {
+			this.doctorRepository.save(doctor);
+		}
 	}
 }

@@ -13,7 +13,10 @@ import { AppDataSource } from './typeorm.config';
 
 export const iocContainer = new Container();
 
-iocContainer.bind<DataSource>(CONTAINER_TYPES.DB_CONNECTION).toDynamicValue(() => AppDataSource);
+iocContainer
+	.bind<DataSource>(CONTAINER_TYPES.DB_CONNECTION)
+	.toDynamicValue(() => AppDataSource)
+	.inSingletonScope();
 
 iocContainer.load(userModule);
 iocContainer.load(authModule);
