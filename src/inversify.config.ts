@@ -10,6 +10,7 @@ import { userModule } from './user/user-module';
 import { AuthMiddleware } from './auth/auth-middleware';
 import { DataSource } from 'typeorm';
 import { AppDataSource } from './typeorm.config';
+import { tokenModule } from './token/token-module';
 
 export const iocContainer = new Container();
 
@@ -18,6 +19,7 @@ iocContainer
 	.toDynamicValue(() => AppDataSource)
 	.inSingletonScope();
 
+iocContainer.load(tokenModule);
 iocContainer.load(userModule);
 iocContainer.load(authModule);
 iocContainer.load(patientModule);
