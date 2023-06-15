@@ -13,7 +13,6 @@ export class ErrorFilterMiddleware {
 		if (err instanceof TokenExpiredError || err instanceof JsonWebTokenError) {
 			return res.status(StatusCodeEnum.NOT_AUTHORIZED).json({ error: { message: err.message } });
 		}
-		console.log(err);
 		res.sendStatus(StatusCodeEnum.INTERNAL_SERVER_ERROR);
 		next(err);
 	}

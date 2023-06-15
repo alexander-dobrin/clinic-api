@@ -9,7 +9,8 @@ export interface UserPayload {
 
 export interface AuthedUser {
 	user: UserPayload;
-	token: string;
+	accessToken: string;
+	refreshToken: string;
 }
 
 export interface AuthorizedRequest<T = unknown> extends Request {

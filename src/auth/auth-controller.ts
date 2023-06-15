@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { AuthService } from './auth-service';
 import { CONTAINER_TYPES } from '../common/constants';
-import { StatusCodeEnum } from '../common/enums';
+import { CookieLifetimeEnum, CookieTypesEnum, StatusCodeEnum } from '../common/enums';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
 import { ResetPasswordDto } from './dto/reset-password-dto';
@@ -19,6 +19,10 @@ export class AuthController {
 	) {
 		try {
 			const registeredUser = await this.authService.register(req.body);
+			res.cookie(CookieTypesEnum.REFRESH_TOKEN, registeredUser.refreshToken, {
+				maxAge: CookieLifetimeEnum.ONE_MONTH,
+				httpOnly: true,
+			});
 			res.status(StatusCodeEnum.CREATED).json(registeredUser);
 		} catch (error) {
 			next(error);
@@ -28,7 +32,25 @@ export class AuthController {
 	public async login(req: Request<object, object, LoginDto>, res: Response, next: NextFunction) {
 		try {
 			const loginedUser = await this.authService.login(req.body);
+			res.cookie(CookieTypesEnum.REFRESH_TOKEN, loginedUser.refreshToken, {
+				maxAge: CookieLifetimeEnum.ONE_MONTH,
+				httpOnly: true,
+			});
 			res.json(loginedUser);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async refresh(req: Request, res: Response, next: NextFunction) {
+		try {
+			const { refreshToken } = req.cookies;
+			const userData = await this.authService.refresh(refreshToken);
+			res.cookie(CookieTypesEnum.REFRESH_TOKEN, userData.refreshToken, {
+				maxAge: CookieLifetimeEnum.ONE_MONTH,
+				httpOnly: true,
+			});
+			return res.json(userData);
 		} catch (error) {
 			next(error);
 		}

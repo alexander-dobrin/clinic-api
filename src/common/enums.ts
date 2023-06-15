@@ -21,6 +21,8 @@ export enum TokenLifetimeEnum {
 	RESET_TOKEN = '15m',
 	REGISTER_TOKEN = '1d',
 	LOGIN_TOKEN = '1d',
+	ACCESS_TOKEN = '1d',
+	REFRESH_TOKEN = '30d',
 }
 
 export enum RequestMethodEnum {
@@ -32,4 +34,12 @@ export enum UserRoleEnum {
 	USER = 'user',
 	DOCTOR = 'doctor',
 	PATIENT = 'patient',
+}
+
+export enum CookieLifetimeEnum {
+	ONE_MONTH = 30 * 24 * 60 * 60 * 1000,
+}
+
+export enum CookieTypesEnum {
+	REFRESH_TOKEN = 'refreshToken',
 }

@@ -4,6 +4,7 @@ import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { CONTAINER_TYPES } from './common/constants';
 import { IRoutes } from './common/types';
+import cookieParser from 'cookie-parser';
 
 @injectable()
 export class App {
@@ -27,6 +28,7 @@ export class App {
 
 	private setupMiddlewares(): void {
 		this.app.use(express.json());
+		this.app.use(cookieParser());
 	}
 
 	private setupErrorFilters(): void {
