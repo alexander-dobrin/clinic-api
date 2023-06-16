@@ -29,7 +29,7 @@ export class AuthService {
 
 		const activationLink = v4();
 		await this.userService.setActivationLink(createdUser.id, activationLink);
-		await MailUtils.sendActivationMail(
+		MailUtils.sendActivationMail(
 			createdUser.email,
 			`${process.env.API_URL}/activate/${activationLink}`,
 		);
