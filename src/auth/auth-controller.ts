@@ -42,6 +42,17 @@ export class AuthController {
 		}
 	}
 
+	public async logout(req: Request, res: Response, next: NextFunction) {
+		try {
+			const { refreshToken } = req.cookies;
+			const tokens = await this.authService.logout(refreshToken);
+			res.clearCookie(CookieTypesEnum.REFRESH_TOKEN);
+			res.json(tokens);
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	public async refresh(req: Request, res: Response, next: NextFunction) {
 		try {
 			const { refreshToken } = req.cookies;

@@ -55,6 +55,12 @@ export class AuthService {
 		}
 	}
 
+	public async logout(refreshToken: string) {
+		const deleted = await this.tokenService.delete(refreshToken);
+		const token = this.tokenService.generateLogoutToken();
+		return { refreshToken: deleted, accessToken: token };
+	}
+
 	public async refresh(refreshToken?: string) {
 		const userPayload = this.tokenService.decodeRefreshTokenOrFail(refreshToken);
 		const tokenData = await this.tokenService.get(refreshToken);

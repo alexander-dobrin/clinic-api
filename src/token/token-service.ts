@@ -8,6 +8,7 @@ import { TokenRepository } from './token-repository';
 import { Token } from './token';
 import { User } from '../user/user';
 import { HttpError } from '../common/errors';
+import { EntityNotFoundError } from 'typeorm';
 
 @injectable()
 export class TokenService {
@@ -58,8 +59,19 @@ export class TokenService {
 		return this.tokenRepository.findOneBy({ refreshToken });
 	}
 
-	public async delete(refreshToken: string): Promise<void> {
-		const token = await this.tokenRepository.findOneBy({ refreshToken });
-		this.tokenRepository.delete(token.id);
+	public async delete(refreshToken: string): Promise<string> {
+		try {
+			const token = await this.tokenRepository.findOneByOrFail({ refreshToken });
+			await this.tokenRepository.delete(token.id);
+			return token.refreshToken;
+		} catch (err) {
+			if (err instanceof EntityNotFoundError) {
+				throw new HttpError(StatusCodeEnum.BAD_REQUEST, 'Allready logged out');
+			}
+		}
+	}
+
+	public generateLogoutToken() {
+		return jwt.sign({ id: -1 }, '-1');
 	}
 }
