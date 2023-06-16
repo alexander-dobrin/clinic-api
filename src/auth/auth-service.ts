@@ -13,6 +13,8 @@ import { ResetPasswordDto } from './dto/reset-password-dto';
 import { RecoverPasswordDto } from './dto/recover-password-dto';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { TokenService } from '../token/token-service';
+import { v4 } from 'uuid';
+import { MailUtils } from '../common/util/mail-utils';
 
 @injectable()
 export class AuthService {
@@ -24,12 +26,24 @@ export class AuthService {
 	@validateDto
 	public async register(@validDto(RegisterDto) registerData: RegisterDto): Promise<AuthedUser> {
 		const createdUser = await this.userService.create(registerData);
+
+		const activationLink = v4();
+		await this.userService.setActivationLink(createdUser.id, activationLink);
+		await MailUtils.sendActivationMail(
+			createdUser.email,
+			`${process.env.API_URL}/activate/${activationLink}`,
+		);
+
 		const tokens = this.tokenService.generatePair(createdUser);
 		await this.tokenService.create(createdUser, tokens.refreshToken);
 		return {
 			user: { email: createdUser.email, role: createdUser.role, id: createdUser.id },
 			...tokens,
 		};
+	}
+
+	public async activate(activationLink: string) {
+		await this.userService.activate(activationLink);
 	}
 
 	@validateDto

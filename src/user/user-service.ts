@@ -81,6 +81,15 @@ export class UserService {
 		return user;
 	}
 
+	public async activate(link: string) {
+		const user = await this.userRepository.findOneBy({ activationLink: link });
+		if (!user) {
+			throw new HttpError(StatusCodeEnum.BAD_REQUEST, `Invalid activation link`);
+		}
+		user.isActivated = true;
+		await this.userRepository.save(user);
+	}
+
 	public async updateResetToken(email: string, token: string | null): Promise<User> {
 		const user = await this.getByEmail(email);
 		user.resetToken = token;
@@ -110,5 +119,11 @@ export class UserService {
 			}
 			throw err;
 		}
+	}
+
+	public async setActivationLink(userId: string, link: string) {
+		const user = await this.getById(userId);
+		user.activationLink = link;
+		this.userRepository.save(user);
 	}
 }

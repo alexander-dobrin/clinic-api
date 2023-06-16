@@ -1,16 +1,16 @@
-import { App } from './app';
-import { ErrorFilterMiddleware } from './common/middleware/error-filter-middleware';
+import { App } from '../../app';
+import { ErrorFilterMiddleware } from '../../common/middleware/error-filter-middleware';
 import { Container } from 'inversify';
-import { patientModule } from './patient/patient-module';
-import { doctorModule } from './doctor/doctor-module';
-import { appointmentModule } from './appointment/appointment-module';
-import { CONTAINER_TYPES } from './common/constants';
-import { authModule } from './auth/auth-module';
-import { userModule } from './user/user-module';
-import { AuthMiddleware } from './auth/auth-middleware';
+import { patientModule } from '../../patient/patient-module';
+import { doctorModule } from '../../doctor/doctor-module';
+import { appointmentModule } from '../../appointment/appointment-module';
+import { CONTAINER_TYPES } from '../../common/constants';
+import { authModule } from '../../auth/auth-module';
+import { userModule } from '../../user/user-module';
+import { AuthMiddleware } from '../../auth/auth-middleware';
 import { DataSource } from 'typeorm';
 import { AppDataSource } from './typeorm.config';
-import { tokenModule } from './token/token-module';
+import { tokenModule } from '../../token/token-module';
 
 export const iocContainer = new Container();
 

@@ -5,7 +5,7 @@ import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { ParseQueryOptionsMiddleware } from '../common/middleware/parse-query-options-middleware';
 import { AuthMiddleware } from '../auth/auth-middleware';
-import { iocContainer } from '../inversify.config';
+import { iocContainer } from '../common/config/inversify.config';
 
 @injectable()
 export class DoctorRoutes implements IRoutes {

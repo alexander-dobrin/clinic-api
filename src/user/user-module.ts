@@ -4,7 +4,7 @@ import { UserService } from './user-service';
 import { UserRoutes } from './user-routes';
 import { UserController } from './user-controller';
 import { DataSource } from 'typeorm';
-import { iocContainer } from '../inversify.config';
+import { iocContainer } from '../common/config/inversify.config';
 import { UserRepository } from './user-repository';
 
 export const userModule = new ContainerModule((bind) => {

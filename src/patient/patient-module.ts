@@ -6,7 +6,7 @@ import { PatientController } from './patient-controller';
 import { IHttpController } from '../common/types';
 import { PatientService } from './patient-service';
 import { PatientRepository } from './patient-repository';
-import { iocContainer } from '../inversify.config';
+import { iocContainer } from '../common/config/inversify.config';
 import { DataSource } from 'typeorm';
 
 export const patientModule = new ContainerModule((bind: interfaces.Bind) => {

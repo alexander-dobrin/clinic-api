@@ -13,7 +13,7 @@ import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { RepositoryUtils } from '../common/util/repository-utils';
 import { DataSource, EntityNotFoundError, QueryFailedError } from 'typeorm';
-import { iocContainer } from '../inversify.config';
+import { iocContainer } from '../common/config/inversify.config';
 
 @injectable()
 export class AppointmentService {

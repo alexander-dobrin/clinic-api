@@ -33,6 +33,12 @@ export class User {
 	@CreateDateColumn({ name: 'created_at', select: false })
 	public createdAt: Date;
 
+	@Column({ name: 'is_activated', type: 'boolean', nullable: false, default: false })
+	public isActivated: boolean;
+
+	@Column({ name: 'activation_link', type: 'varchar', nullable: true })
+	public activationLink: string;
+
 	@BeforeInsert()
 	@BeforeUpdate()
 	private hashPassword() {

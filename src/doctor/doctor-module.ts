@@ -7,7 +7,7 @@ import { DoctorRepository } from './doctor-repository';
 import { DoctorController } from './doctor-controller';
 import { DoctorRoutes } from './doctor-routes';
 import { DataSource } from 'typeorm';
-import { iocContainer } from '../inversify.config';
+import { iocContainer } from '../common/config/inversify.config';
 
 export const doctorModule = new ContainerModule((bind: interfaces.Bind) => {
 	bind<IRoutes>(CONTAINER_TYPES.DOCTOR_ROUTES).to(DoctorRoutes).inSingletonScope();

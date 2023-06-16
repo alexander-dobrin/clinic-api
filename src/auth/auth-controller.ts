@@ -53,6 +53,16 @@ export class AuthController {
 		}
 	}
 
+	public async activate(req: Request, res: Response, next: NextFunction) {
+		try {
+			const activationLink = req.params.link;
+			await this.authService.activate(activationLink);
+			res.json({ message: 'activated'});
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	public async refresh(req: Request, res: Response, next: NextFunction) {
 		try {
 			const { refreshToken } = req.cookies;

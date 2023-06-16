@@ -2,7 +2,7 @@ import { ContainerModule } from 'inversify';
 import { TokenService } from './token-service';
 import { CONTAINER_TYPES } from '../common/constants';
 import { TokenRepository } from './token-repository';
-import { iocContainer } from '../inversify.config';
+import { iocContainer } from '../common/config/inversify.config';
 import { DataSource } from 'typeorm';
 
 export const tokenModule = new ContainerModule((bind) => {
