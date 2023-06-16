@@ -76,12 +76,10 @@ export class AuthService {
 	}
 
 	public async refresh(refreshToken?: string) {
-		const userPayload = this.tokenService.decodeRefreshTokenOrFail(refreshToken);
-		const tokenData = await this.tokenService.get(refreshToken);
-		if (!userPayload || !tokenData) {
-			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Undefined refresh token');
+		const user = await this.tokenService.getRefreshTokenUser(refreshToken);
+		if (!user) {
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Invalid refresh token');
 		}
-		const user = await this.userService.getById(userPayload.id);
 		const tokens = this.tokenService.generatePair(user);
 		await this.tokenService.create(user, tokens.refreshToken);
 		return { user: { email: user.email, role: user.role, id: user.id }, ...tokens };

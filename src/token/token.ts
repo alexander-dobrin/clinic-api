@@ -1,13 +1,16 @@
 import {
+	BeforeInsert,
+	BeforeUpdate,
 	Column,
 	CreateDateColumn,
 	Entity,
 	JoinColumn,
 	OneToOne,
 	PrimaryGeneratedColumn,
-	RelationId,
 } from 'typeorm';
 import { User } from '../user/user';
+import bcrypt from 'bcrypt';
+import { SALT_ROUNDS } from '../common/constants';
 
 @Entity('token')
 export class Token {
@@ -28,4 +31,10 @@ export class Token {
 
 	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
+
+	@BeforeInsert()
+	@BeforeUpdate()
+	private hashTokenData() {
+		this.refreshToken = bcrypt.hashSync(this.refreshToken, SALT_ROUNDS);
+	}
 }

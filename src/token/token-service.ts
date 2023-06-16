@@ -35,12 +35,17 @@ export class TokenService {
 		}
 	}
 
-	public decodeRefreshTokenOrFail(token: string): UserPayload {
+	public async getRefreshTokenUser(token: string): Promise<User> {
 		if (!token) {
 			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Refresh token not provided');
 		}
 		try {
-			return jwt.verify(token, process.env.JWT_REFRESH_SECRET) as UserPayload;
+			const hashedToken = jwt.verify(token, process.env.JWT_REFRESH_SECRET) as UserPayload;
+			const refreshToken = await this.tokenRepository.findOne({
+				where: { userId: hashedToken.id },
+				relations: { user: true },
+			});
+			return refreshToken.user;
 		} catch (err) {
 			throw new JsonWebTokenError('Invalid token');
 		}
@@ -52,7 +57,10 @@ export class TokenService {
 			tokenData.refreshToken = refreshToken;
 			return this.tokenRepository.save(tokenData);
 		}
-		return this.tokenRepository.save({ user, refreshToken });
+		const token = new Token();
+		token.refreshToken = refreshToken;
+		token.user = user;
+		return this.tokenRepository.save(token);
 	}
 
 	public async get(refreshToken: string) {
