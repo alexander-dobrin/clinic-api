@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum, TokenLifetimeEnum } from '../common/enums';
+import { StatusCodeEnum, TokenLifetimeEnum } from '../common/enums';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { UserService } from '../user/user-service';
@@ -34,14 +34,25 @@ export class AuthService {
 
 	@validateDto
 	public async login(@validDto(LoginDto) loginData: LoginDto): Promise<AuthedUser> {
-		const foundUser = await this.userService.getByEmail(loginData.email);
-		const isPasswordsMatch = await bcrypt.compare(loginData.password, foundUser.password);
-		if (!isPasswordsMatch) {
-			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.INCORRECT_PASSWORD);
+		try {
+			const foundUser = await this.userService.getByEmail(loginData.email);
+			await this.verifyPassword(loginData.password, foundUser.password);
+			const tokens = this.tokenService.generatePair(foundUser);
+			await this.tokenService.create(foundUser, tokens.refreshToken);
+			return {
+				user: { email: foundUser.email, role: foundUser.role, id: foundUser.id },
+				...tokens,
+			};
+		} catch (err) {
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Wrong credentials');
 		}
-		const tokens = this.tokenService.generatePair(foundUser);
-		await this.tokenService.create(foundUser, tokens.refreshToken);
-		return { user: { email: foundUser.email, role: foundUser.role, id: foundUser.id }, ...tokens };
+	}
+
+	private async verifyPassword(plainTextPassword: string, hashedPassword: string) {
+		const isPasswordMatching = await bcrypt.compare(plainTextPassword, hashedPassword);
+		if (!isPasswordMatching) {
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Wrong credentials');
+		}
 	}
 
 	public async refresh(refreshToken?: string) {
