@@ -120,10 +120,4 @@ export class UserService {
 			throw err;
 		}
 	}
-
-	public async setActivationLink(userId: string, link: string) {
-		const user = await this.getById(userId);
-		user.activationLink = link;
-		this.userRepository.save(user);
-	}
 }

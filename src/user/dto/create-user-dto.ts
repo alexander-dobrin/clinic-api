@@ -14,4 +14,8 @@ export class CreateUserDto {
 	@IsOptional()
 	@IsEnum(UserRoleEnum)
 	public readonly role: UserRoleEnum;
+
+	@IsOptional()
+	@IsNotEmpty()
+	public readonly activationLink: string;
 }
