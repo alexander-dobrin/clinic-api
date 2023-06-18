@@ -1,6 +1,5 @@
 import {
 	BeforeInsert,
-	BeforeUpdate,
 	Column,
 	CreateDateColumn,
 	Entity,
@@ -31,7 +30,6 @@ export class Token {
 	createdAt: Date;
 
 	@BeforeInsert()
-	@BeforeUpdate()
 	private hashTokenData() {
 		this.refreshToken = bcrypt.hashSync(this.refreshToken, SALT_ROUNDS);
 	}

@@ -33,7 +33,7 @@ export class AuthService {
 		);
 
 		const tokens = this.tokenService.generatePair(createdUser);
-		await this.tokenService.create(createdUser, tokens.refreshToken);
+		await this.tokenService.create(createdUser.id, tokens.refreshToken);
 		return {
 			user: { email: createdUser.email, role: createdUser.role, id: createdUser.id },
 			...tokens,
@@ -50,7 +50,7 @@ export class AuthService {
 			const foundUser = await this.userService.getByEmail(loginData.email);
 			this.verifyPassword(loginData.password, foundUser.password);
 			const tokens = this.tokenService.generatePair(foundUser);
-			await this.tokenService.create(foundUser, tokens.refreshToken);
+			await this.tokenService.create(foundUser.id, tokens.refreshToken);
 			return {
 				user: { email: foundUser.email, role: foundUser.role, id: foundUser.id },
 				...tokens,
@@ -68,9 +68,9 @@ export class AuthService {
 	}
 
 	public async logout(refreshToken: string) {
-		const deleted = await this.tokenService.delete(refreshToken);
+		await this.tokenService.delete(refreshToken);
 		const token = this.tokenService.generateLogoutToken();
-		return { refreshToken: deleted, accessToken: token };
+		return { refreshToken: v4(), accessToken: token };
 	}
 
 	public async refresh(refreshToken?: string) {
@@ -79,7 +79,7 @@ export class AuthService {
 			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Invalid refresh token');
 		}
 		const tokens = this.tokenService.generatePair(user);
-		await this.tokenService.create(user, tokens.refreshToken);
+		await this.tokenService.create(user.id, tokens.refreshToken);
 		return { user: { email: user.email, role: user.role, id: user.id }, ...tokens };
 	}
 

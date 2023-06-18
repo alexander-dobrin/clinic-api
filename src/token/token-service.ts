@@ -8,7 +8,6 @@ import { TokenRepository } from './token-repository';
 import { Token } from './token';
 import { User } from '../user/user';
 import { HttpError } from '../common/errors';
-import { EntityNotFoundError } from 'typeorm';
 
 @injectable()
 export class TokenService {
@@ -51,15 +50,15 @@ export class TokenService {
 		}
 	}
 
-	public async create(user: User, refreshToken: string): Promise<Token> {
-		const tokenData = await this.tokenRepository.findOneBy({ user });
+	public async create(userId: string, refreshToken: string): Promise<Token> {
+		const tokenData = await this.tokenRepository.findOneBy({ userId });
 		if (tokenData) {
 			tokenData.refreshToken = refreshToken;
 			return this.tokenRepository.save(tokenData);
 		}
 		const token = new Token();
 		token.refreshToken = refreshToken;
-		token.user = user;
+		token.userId = userId;
 		return this.tokenRepository.save(token);
 	}
 
@@ -67,15 +66,13 @@ export class TokenService {
 		return this.tokenRepository.findOneBy({ refreshToken });
 	}
 
-	public async delete(refreshToken: string): Promise<string> {
+	public async delete(refreshToken: string) {
 		try {
-			const token = await this.tokenRepository.findOneByOrFail({ refreshToken });
+			const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET) as UserPayload;
+			const token = await this.tokenRepository.findOneByOrFail({ userId: payload.id });
 			await this.tokenRepository.delete(token.id);
-			return token.refreshToken;
 		} catch (err) {
-			if (err instanceof EntityNotFoundError) {
-				throw new HttpError(StatusCodeEnum.BAD_REQUEST, 'Allready logged out');
-			}
+			throw new HttpError(StatusCodeEnum.BAD_REQUEST, 'Allready logged out');
 		}
 	}
 

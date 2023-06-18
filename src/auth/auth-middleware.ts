@@ -12,7 +12,7 @@ import { CONTAINER_TYPES } from '../common/constants';
 export class AuthMiddleware {
 	constructor(@inject(CONTAINER_TYPES.TOKEN_SERVICE) private readonly tokenService: TokenService) {}
 
-	public async auth(req: Request, res: Response, next: NextFunction) {
+	public auth(req: Request, res: Response, next: NextFunction) {
 		try {
 			const token = req.header('Authorization')?.replace('Bearer ', '');
 			if (!token) {
