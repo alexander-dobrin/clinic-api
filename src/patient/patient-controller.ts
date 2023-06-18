@@ -7,6 +7,7 @@ import { AuthorizedRequest } from '../auth/auth-types';
 import { PatientService } from './patient-service';
 import { CreatePatientDto } from './dto/create-patient-dto';
 import { UpdatePatientDto } from './dto/update-patient-dto';
+import { instanceToPlain } from 'class-transformer';
 
 @injectable()
 export class PatientController implements IHttpController {
@@ -54,7 +55,7 @@ export class PatientController implements IHttpController {
 	): Promise<void> {
 		try {
 			const patient = await this.patientsService.create(req.body, req.user);
-			res.status(StatusCodeEnum.CREATED).json(patient);
+			res.status(StatusCodeEnum.CREATED).json(instanceToPlain(patient));
 		} catch (err) {
 			next(err);
 		}
