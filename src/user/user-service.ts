@@ -25,6 +25,7 @@ export class UserService {
 			role: userDto.role,
 			firstName: userDto.firstName,
 			password: userDto.password,
+			activationLink: userDto.activationLink,
 		});
 		return this.userRepository.save(user);
 	}

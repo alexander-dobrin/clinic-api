@@ -13,7 +13,6 @@ import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { TokenService } from '../token/token-service';
 import { v4 } from 'uuid';
 import { MailUtils } from '../common/util/mail-utils';
-import { merge } from 'lodash';
 
 @injectable()
 export class AuthService {
@@ -25,8 +24,9 @@ export class AuthService {
 	@validateDto
 	public async register(@validDto(RegisterDto) registerData: RegisterDto): Promise<AuthedUser> {
 		const activationLink = v4();
-		const createdUser = await this.userService.create(merge(registerData, { activationLink }));
-
+		registerData.activationLink = activationLink;
+		const createdUser = await this.userService.create(registerData);
+		
 		MailUtils.sendActivationMail(
 			createdUser.email,
 			`${process.env.API_URL}/activate/${activationLink}`,
