@@ -19,22 +19,4 @@ export class UpdateUserDto {
 	@IsOptional()
 	@IsEnum(UserRoleEnum)
 	role?: UserRoleEnum;
-
-	@IsOptional()
-	@IsNotEmpty()
-	resetToken?: string;
-
-	constructor(
-		email?: string,
-		password?: string,
-		firstName?: string,
-		role?: UserRoleEnum,
-		resetToken?: string,
-	) {
-		this.email = email;
-		this.password = password;
-		this.firstName = firstName;
-		this.role = role;
-		this.resetToken = resetToken;
-	}
 }

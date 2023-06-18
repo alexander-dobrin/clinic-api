@@ -37,7 +37,7 @@ export class UserController {
 				res.sendStatus(StatusCodeEnum.NO_CONTENT);
 				return;
 			}
-			res.json(users);
+			res.json(instanceToPlain(users));
 		} catch (err) {
 			next(err);
 		}
@@ -68,7 +68,7 @@ export class UserController {
 	) {
 		try {
 			const user = await this.userService.update(req.params.id, req.body);
-			res.json(user);
+			res.json(instanceToPlain(user));
 		} catch (err) {
 			next(err);
 		}
