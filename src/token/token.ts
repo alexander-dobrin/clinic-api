@@ -27,8 +27,6 @@ export class Token {
 	@Column({ name: 'refresh_token', type: 'varchar' })
 	refreshToken: string;
 
-	// TODO: resetToken
-
 	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 

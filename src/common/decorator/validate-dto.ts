@@ -6,7 +6,7 @@ import { StatusCodeEnum } from '../enums';
 import { ValidDtoParamInfo } from '../types';
 
 export function validDto<T extends object>(dtoValidationClassConstructor: ClassConstructor<T>) {
-	return function (target: any, propertyKey: string, parameterIndex: number) {
+	return function (target: object, propertyKey: string, parameterIndex: number) {
 		const paramToValidateIndexes: ValidDtoParamInfo<T>[] = Reflect.getMetadata(
 			METADATA.VALIDATE_DTO,
 			target,
@@ -25,7 +25,7 @@ export function validDto<T extends object>(dtoValidationClassConstructor: ClassC
 }
 
 export function validateDto<T extends object>(
-	target: any,
+	target: object,
 	propertyKey: string,
 	descriptor: PropertyDescriptor,
 ) {
@@ -40,30 +40,25 @@ export function validateDto<T extends object>(
 	}
 	const originalMethod = descriptor.value;
 
-	descriptor.value = async function (...params: any[]) {
-		try {
-			await Promise.all(
-				paramToValidateIndexes.map(async ({ index, validationClassConstructor }) => {
-					const paramToValidate = params[index];
-					const dtoValidatorClassInstance = plainToClass(
-						validationClassConstructor,
-						paramToValidate,
-					);
+	descriptor.value = async function (...params: object[]) {
+		await Promise.all(
+			paramToValidateIndexes.map(async ({ index, validationClassConstructor }) => {
+				const paramToValidate = params[index];
+				const dtoValidatorClassInstance = plainToClass(validationClassConstructor, paramToValidate);
+				try {
 					await validateOrReject(dtoValidatorClassInstance, {
 						whitelist: true,
 						forbidNonWhitelisted: true,
 					});
-				}),
-			);
-			return await Reflect.apply(originalMethod, this, params);
-		} catch (errors) {
-			if (Array.isArray(errors)) {
-				const message = errors
-					.map((error) => Object.values(error.constraints).join('; '))
-					.join('; ');
-				throw new HttpError(StatusCodeEnum.UNPROCESSABLE_ENTITY, message);
-			}
-			throw errors;
-		}
+				} catch (err) {
+					let message = err.message;
+					if (Array.isArray(err)) {
+						message = err.map((error) => Object.values(error.constraints).join('; ')).join('; ');
+					}
+					throw new HttpError(StatusCodeEnum.UNPROCESSABLE_ENTITY, message);
+				}
+			}),
+		);
+		return await Reflect.apply(originalMethod, this, params);
 	};
 }

@@ -9,35 +9,40 @@ import {
 import { UserRoleEnum } from '../common/enums';
 import bcrypt from 'bcrypt';
 import { SALT_ROUNDS } from '../common/constants';
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'user' })
 export class User {
 	@PrimaryGeneratedColumn('uuid', { name: 'user_id' })
-	public id: string;
+	id: string;
 
 	@Column({ type: 'enum', enum: UserRoleEnum, default: UserRoleEnum.GUEST })
-	public role: UserRoleEnum;
+	role: UserRoleEnum;
 
 	@Column({ name: 'first_name', type: 'varchar' })
-	public firstName: string;
+	firstName: string;
 
 	@Column({ unique: true, type: 'varchar' })
-	public email: string;
+	email: string;
 
 	@Column({ type: 'varchar' })
-	public password: string;
+	@Exclude()
+	password: string;
 
 	@Column({ name: 'reset_token', nullable: true, type: 'varchar' })
-	public resetToken: string;
+	@Exclude()
+	resetToken: string;
 
-	@CreateDateColumn({ name: 'created_at', select: false })
-	public createdAt: Date;
+	@CreateDateColumn({ name: 'created_at' })
+	@Exclude()
+	createdAt: Date;
 
 	@Column({ name: 'is_activated', type: 'boolean', nullable: false, default: false })
-	public isActivated: boolean;
+	isActivated: boolean;
 
 	@Column({ name: 'activation_link', type: 'varchar', nullable: true })
-	public activationLink: string;
+	@Exclude()
+	activationLink: string;
 
 	@BeforeInsert()
 	@BeforeUpdate()

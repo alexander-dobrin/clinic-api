@@ -4,7 +4,6 @@ import { HttpError } from '../common/errors';
 import { StatusCodeEnum } from '../common/enums';
 import bcrypt from 'bcrypt';
 import { UserService } from '../user/user-service';
-import { UpdateUserDto } from '../user/dto/update-user-dto';
 import { LoginDto } from './dto/login-dto';
 import { RegisterDto } from './dto/register-dto';
 import { AuthedUser } from './auth-types';
@@ -94,10 +93,6 @@ export class AuthService {
 	@validateDto
 	public async recoverPassword(@validDto(RecoverPasswordDto) recoverData: RecoverPasswordDto) {
 		const { resetToken, password } = recoverData;
-		const user = await this.userService.getByResetToken(resetToken);
-		await this.userService.update(
-			user.id,
-			new UpdateUserDto(user.email, password, user.firstName, user.role, null),
-		);
+		await this.userService.setNewPassword(resetToken, password);
 	}
 }

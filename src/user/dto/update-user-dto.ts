@@ -1,26 +1,28 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { UserRoleEnum } from '../../common/enums';
+import { IsUniqueMail } from '../../common/decorator/is-unique-mail';
 
 export class UpdateUserDto {
 	@IsOptional()
 	@IsEmail()
-	public readonly email?: string;
+	@IsUniqueMail()
+	email?: string;
 
 	@IsOptional()
 	@IsNotEmpty()
-	public password?: string;
+	password?: string;
 
 	@IsOptional()
 	@IsNotEmpty()
-	public readonly firstName?: string;
+	firstName?: string;
 
 	@IsOptional()
 	@IsEnum(UserRoleEnum)
-	public readonly role?: UserRoleEnum;
+	role?: UserRoleEnum;
 
 	@IsOptional()
 	@IsNotEmpty()
-	public readonly resetToken?: string;
+	resetToken?: string;
 
 	constructor(
 		email?: string,

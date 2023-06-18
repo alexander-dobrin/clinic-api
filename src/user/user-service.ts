@@ -19,24 +19,14 @@ export class UserService {
 	) {}
 
 	@validateDto
-	public async create(@validDto(CreateUserDto) user: CreateUserDto): Promise<User> {
-		await this.throwIfEmailTaken(user.email);
-		const createdUser = new User();
-		createdUser.email = user.email.toLowerCase();
-		createdUser.role = user.role;
-		createdUser.firstName = user.firstName;
-		createdUser.password = user.password;
-		return await this.userRepository.save(createdUser);
-	}
-
-	private async throwIfEmailTaken(email: string): Promise<void> {
-		const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
-		if (user) {
-			throw new HttpError(
-				StatusCodeEnum.CONFLICT,
-				`Email adress [${user.email}] is allready in use`,
-			);
-		}
+	public async create(@validDto(CreateUserDto) userDto: CreateUserDto): Promise<User> {
+		const user = this.userRepository.create({
+			email: userDto.email.toLowerCase(),
+			role: userDto.role,
+			firstName: userDto.firstName,
+			password: userDto.password,
+		});
+		return this.userRepository.save(user);
 	}
 
 	public async get(options: GetOptions): Promise<User[]> {
@@ -98,13 +88,17 @@ export class UserService {
 
 	@validateDto
 	public async update(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto): Promise<User> {
-		if (userDto.resetToken === undefined && userDto.email) {
-			await this.throwIfEmailTaken(userDto.email);
-		}
 		const user = await this.getById(id);
 		// Review: стоит ли использовать подобного рода неочевидные функции? Это lodash
 		merge(user, userDto);
 		return this.userRepository.save(user);
+	}
+
+	public async setNewPassword(resetToken: string, password: string) {
+		const user = await this.getByResetToken(resetToken);
+		user.resetToken = null;
+		user.password = password;
+		this.userRepository.save(user);
 	}
 
 	public async delete(id: string): Promise<void> {
