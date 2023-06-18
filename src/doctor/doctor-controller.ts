@@ -7,6 +7,7 @@ import { DoctorService } from './doctor-service';
 import { CreateDoctorDto } from './dto/create-doctor-dto';
 import { UpdateDoctorDto } from './dto/update-doctor-dto';
 import { AuthorizedRequest } from '../auth/auth-types';
+import { instanceToPlain } from 'class-transformer';
 
 @injectable()
 export class DoctorController implements IHttpController {
@@ -24,7 +25,7 @@ export class DoctorController implements IHttpController {
 			if (doctors.length < 1) {
 				res.status(StatusCodeEnum.NO_CONTENT);
 			}
-			res.json(doctors);
+			res.json(instanceToPlain(doctors));
 		} catch (err) {
 			next(err);
 		}
@@ -50,7 +51,7 @@ export class DoctorController implements IHttpController {
 	): Promise<void> {
 		try {
 			const doctor = await this.doctorsService.createDoctor(req.body, req.user);
-			res.status(StatusCodeEnum.CREATED).json(doctor);
+			res.status(StatusCodeEnum.CREATED).json(instanceToPlain(doctor));
 		} catch (err) {
 			next(err);
 		}
