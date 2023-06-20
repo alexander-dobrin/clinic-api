@@ -1,6 +1,6 @@
-import { transporter } from '../config/nodemailer.config';
+import { transporter } from './nodemailer.config';
 
-export class MailUtils {
+export class MailService {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private constructor() {}
 

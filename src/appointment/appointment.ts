@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Patient } from '../patient/patient';
 import { Doctor } from '../doctor/doctor';
-import { DateTimeColumn } from '../common/util/date-time-column';
+import { DateTimeColumn } from '../db/util/date-time-column';
 import { Exclude, Transform, Type } from 'class-transformer';
 
 @Entity('appointment')

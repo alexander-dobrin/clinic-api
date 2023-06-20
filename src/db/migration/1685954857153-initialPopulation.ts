@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { hashSync } from 'bcrypt';
-import { SALT_ROUNDS } from '../common/constants';
+import { SALT_ROUNDS } from '../../common/constants';
 
 export class InitialPopulation1685954857153 implements MigrationInterface {
 	public async up(queryRunner: QueryRunner): Promise<void> {
@@ -16,11 +16,11 @@ export class InitialPopulation1685954857153 implements MigrationInterface {
 	}
 
 	public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(
+		queryRunner.query(
 			`
                 DELETE FROM "user"
                 WHERE email IN ('mary@gmail.com', 'alex@gmail.com', 'guest@gmail.com');
             `,
 		);
-    }
+	}
 }

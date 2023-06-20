@@ -9,7 +9,7 @@ import { authModule } from '../../auth/auth-module';
 import { userModule } from '../../user/user-module';
 import { AuthMiddleware } from '../../auth/auth-middleware';
 import { DataSource } from 'typeorm';
-import { AppDataSource } from './typeorm.config';
+import { AppDataSource } from '../../db/typeorm.config';
 import { tokenModule } from '../../token/token-module';
 
 export const iocContainer = new Container();

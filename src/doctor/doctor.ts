@@ -9,7 +9,7 @@ import {
 	RelationId,
 } from 'typeorm';
 import { User } from '../user/user';
-import { DateTimeArrayColumn } from '../common/util/date-time-array-column';
+import { DateTimeArrayColumn } from '../db/util/date-time-array-column';
 import { Exclude, Transform, Type } from 'class-transformer';
 
 @Entity('doctor')
