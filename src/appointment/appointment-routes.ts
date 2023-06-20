@@ -3,15 +3,15 @@ import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
-import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
+import { ParseQueryOptionsMiddleware } from '../common/middleware/parse-query-options-middleware';
 
 @injectable()
 export class AppointmentRoutes implements IRoutes {
 	private readonly _router: Router;
-	private readonly mapQueryParams = new QueryMapperMiddleware();
+	private readonly mapQueryParams = new ParseQueryOptionsMiddleware();
 
 	constructor(
-		@inject(CONTAINER_TYPES.APPOINTMENTS_CONTROLLER)
+		@inject(CONTAINER_TYPES.APPOINTMENT_CONTROLLER)
 		private readonly appointmentsController: IHttpController,
 	) {
 		this._router = Router();

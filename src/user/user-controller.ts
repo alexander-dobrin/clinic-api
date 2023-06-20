@@ -3,10 +3,11 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { NextFunction, Request, Response } from 'express';
 import { UserService } from './user-service';
 import { StatusCodeEnum } from '../common/enums';
-import { AuthorizedRequest } from '../auth/auth-middleware';
+import { AuthorizedRequest } from '../auth/auth-types';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
-import { IQueryParams } from '../common/types';
+import { GetOptions } from '../common/types';
+import { instanceToPlain } from 'class-transformer';
 
 @injectable()
 export class UserController {
@@ -19,14 +20,14 @@ export class UserController {
 	) {
 		try {
 			const user = await this.userService.create(req.body);
-			res.status(StatusCodeEnum.CREATED).json(user);
+			res.status(StatusCodeEnum.CREATED).json(instanceToPlain(user));
 		} catch (err) {
 			next(err);
 		}
 	}
 
 	public async get(
-		req: Request<object, object, object, IQueryParams>,
+		req: Request<object, object, object, GetOptions>,
 		res: Response,
 		next: NextFunction,
 	) {
@@ -36,7 +37,7 @@ export class UserController {
 				res.sendStatus(StatusCodeEnum.NO_CONTENT);
 				return;
 			}
-			res.json(users);
+			res.json(instanceToPlain(users));
 		} catch (err) {
 			next(err);
 		}
@@ -67,7 +68,7 @@ export class UserController {
 	) {
 		try {
 			const user = await this.userService.update(req.params.id, req.body);
-			res.json(user);
+			res.json(instanceToPlain(user));
 		} catch (err) {
 			next(err);
 		}
@@ -75,8 +76,8 @@ export class UserController {
 
 	public async delete(req: Request<{ id: string }>, res: Response, next: NextFunction) {
 		try {
-			const user = await this.userService.delete(req.params.id);
-			res.json(user);
+			await this.userService.delete(req.params.id);
+			res.sendStatus(StatusCodeEnum.NO_CONTENT);
 		} catch (err) {
 			next(err);
 		}

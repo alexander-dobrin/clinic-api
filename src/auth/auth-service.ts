@@ -1,51 +1,91 @@
 import { inject, injectable } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum, TokenLifetimeEnum } from '../common/enums';
+import { StatusCodeEnum } from '../common/enums';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { UserService } from '../user/user-service';
-import { UpdateUserDto } from '../user/dto/update-user-dto';
 import { LoginDto } from './dto/login-dto';
 import { RegisterDto } from './dto/register-dto';
-import { AuthedUser, UserPayload } from './auth-types';
+import { AuthedUser } from './auth-types';
 import { ResetPasswordDto } from './dto/reset-password-dto';
 import { RecoverPasswordDto } from './dto/recover-password-dto';
-import { validDto, validateDto } from '../common/decorator';
+import { validDto, validateDto } from '../common/decorator/validate-dto';
+import { TokenService } from '../token/token-service';
+import { v4 } from 'uuid';
+import { MailUtils } from '../common/util/mail-utils';
 
 @injectable()
 export class AuthService {
-	constructor(@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService) {}
+	constructor(
+		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
+		@inject(CONTAINER_TYPES.TOKEN_SERVICE) private readonly tokenService: TokenService,
+	) {}
 
 	@validateDto
 	public async register(@validDto(RegisterDto) registerData: RegisterDto): Promise<AuthedUser> {
+		const activationLink = v4();
+		registerData.activationLink = activationLink;
 		const createdUser = await this.userService.create(registerData);
-		const token = this.signTokenForUser(
-			createdUser as UserPayload,
-			TokenLifetimeEnum.REGISTER_TOKEN,
+		
+		MailUtils.sendActivationMail(
+			createdUser.email,
+			`${process.env.API_URL}/activate/${activationLink}`,
 		);
+
+		const tokens = this.tokenService.generatePair(createdUser);
+		await this.tokenService.create(createdUser.id, tokens.refreshToken);
 		return {
 			user: { email: createdUser.email, role: createdUser.role, id: createdUser.id },
-			token,
+			...tokens,
 		};
+	}
+
+	public async activate(activationLink: string) {
+		await this.userService.activate(activationLink);
 	}
 
 	@validateDto
 	public async login(@validDto(LoginDto) loginData: LoginDto): Promise<AuthedUser> {
-		const foundUser = await this.userService.getByEmail(loginData.email);
-		const isMatch = await bcrypt.compare(loginData.password, foundUser.password);
-		if (isMatch) {
-			const token = this.signTokenForUser(foundUser as UserPayload, TokenLifetimeEnum.LOGIN_TOKEN);
-			return { user: { email: foundUser.email, role: foundUser.role, id: foundUser.id }, token };
-		} else {
-			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, ErrorMessageEnum.INCORRECT_PASSWORD);
+		try {
+			const foundUser = await this.userService.getByEmail(loginData.email);
+			this.verifyPassword(loginData.password, foundUser.password);
+			const tokens = this.tokenService.generatePair(foundUser);
+			await this.tokenService.create(foundUser.id, tokens.refreshToken);
+			return {
+				user: { email: foundUser.email, role: foundUser.role, id: foundUser.id },
+				...tokens,
+			};
+		} catch (err) {
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Wrong credentials');
 		}
+	}
+
+	private verifyPassword(plainTextPassword: string, hashedPassword: string) {
+		const isPasswordMatching = bcrypt.compareSync(plainTextPassword, hashedPassword);
+		if (!isPasswordMatching) {
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Wrong credentials');
+		}
+	}
+
+	public async logout(refreshToken: string) {
+		await this.tokenService.delete(refreshToken);
+		const token = this.tokenService.generateLogoutToken();
+		return { refreshToken: v4(), accessToken: token };
+	}
+
+	public async refresh(refreshToken?: string) {
+		const user = await this.tokenService.getRefreshTokenUser(refreshToken);
+		if (!user) {
+			throw new HttpError(StatusCodeEnum.NOT_AUTHORIZED, 'Invalid refresh token');
+		}
+		const tokens = this.tokenService.generatePair(user);
+		await this.tokenService.create(user.id, tokens.refreshToken);
+		return { user: { email: user.email, role: user.role, id: user.id }, ...tokens };
 	}
 
 	@validateDto
 	public async resetPassword(@validDto(ResetPasswordDto) resetData: ResetPasswordDto) {
-		const user = await this.userService.getByEmail(resetData.email);
-		const resetToken = this.signTokenForUser(user as UserPayload, TokenLifetimeEnum.RESET_TOKEN);
+		const resetToken = v4();
 		await this.userService.updateResetToken(resetData.email, resetToken);
 		return { resetToken };
 	}
@@ -53,26 +93,6 @@ export class AuthService {
 	@validateDto
 	public async recoverPassword(@validDto(RecoverPasswordDto) recoverData: RecoverPasswordDto) {
 		const { resetToken, password } = recoverData;
-		jwt.verify(resetToken, process.env.SECRET_KEY);
-		const user = await this.userService.getByResetToken(resetToken);
-		await this.userService.update(
-			user.id,
-			new UpdateUserDto(user.email, password, user.firstName, user.role, null),
-		);
-	}
-
-	private signTokenForUser(user: UserPayload, lifetime: string) {
-		// Review: Use email, role and id for token payload?
-		return jwt.sign(
-			{
-				email: user.email,
-				role: user.role,
-				id: user.id,
-			},
-			process.env.SECRET_KEY,
-			{
-				expiresIn: lifetime,
-			},
-		);
+		await this.userService.setNewPassword(resetToken, password);
 	}
 }

@@ -17,6 +17,9 @@ export class AuthRoutes implements IRoutes {
 	private setupRoutes() {
 		this._router.post('/register', this.controller.register.bind(this.controller));
 		this._router.post('/login', this.controller.login.bind(this.controller));
+		this._router.delete('/logout', this.controller.logout.bind(this.controller));
+		this._router.get('/activate/:link', this.controller.activate.bind(this.controller));
+		this._router.get('/refresh', this.controller.refresh.bind(this.controller));
 		this._router.post('/reset', this.controller.resetPassword.bind(this.controller));
 		this._router.post('/recover', this.controller.recoverPassword.bind(this.controller));
 	}

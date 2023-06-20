@@ -1,161 +1,118 @@
 import { inject, injectable } from 'inversify';
-import {
-	IDataProvider,
-	IFilterParam,
-	IQueryParams,
-	IRepository,
-	ISortParam,
-} from '../common/types';
-import { IUser } from './user-interface';
-import { CONTAINER_TYPES, SALT_ROUNDS } from '../common/constants';
-import { v4 } from 'uuid';
+import { GetOptions } from '../common/types';
+import { CONTAINER_TYPES } from '../common/constants';
 import { HttpError } from '../common/errors';
-import {
-	ErrorMessageEnum,
-	StatusCodeEnum,
-	UserFilterByEnum,
-	UserRoleEnum,
-	UserSortByEnum,
-} from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { merge } from 'lodash';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
-import bcrypt from 'bcrypt';
-import { PatientModel } from '../patient/patient-model';
-import { validDto, validateDto } from '../common/decorator';
+import { validDto, validateDto } from '../common/decorator/validate-dto';
+import { User } from './user';
+import { UserRepository } from './user-repository';
+import { EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { RepositoryUtils } from '../common/util/repository-utils';
 
 @injectable()
 export class UserService {
 	constructor(
-		@inject(CONTAINER_TYPES.USER_DATA_PROVIDER) private readonly provider: IDataProvider<IUser>,
-		@inject(CONTAINER_TYPES.PATIENTS_REPOSITORY)
-		private readonly patientsRepository: IRepository<PatientModel>,
+		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
 	) {}
 
 	@validateDto
-	public async create(@validDto(CreateUserDto) user: CreateUserDto): Promise<IUser> {
-		if (await this.isUserExist(user.email)) {
-			throw new HttpError(
-				StatusCodeEnum.BAD_REQUEST,
-				`Email adress [${user.email}] is allready in use`,
-			);
-		}
-		user.password = await bcrypt.hash(user.password, SALT_ROUNDS);
-		const newUser: IUser = { id: v4(), role: user.role ?? UserRoleEnum.GUEST, ...user };
-		return this.provider.create(newUser);
-	}
-
-	private async isUserExist(email: string): Promise<boolean> {
-		const users = await this.provider.read();
-		return users.some((u) => u.email === email);
-	}
-
-	public async get(options: IQueryParams) {
-		let users = await this.provider.read();
-		if (options.filterBy) {
-			users = await this.filterUsers(options.filterBy);
-		}
-		if (options.sortBy) {
-			users = await this.sortUsers(options.sortBy);
-		}
-		return users;
-	}
-
-	private async filterUsers(filterParams: IFilterParam[]) {
-		let filtered = await this.provider.read();
-		for (const param of filterParams) {
-			if (param.field === UserFilterByEnum.NAME) {
-				filtered = filtered.filter((u) => u.firstName === param.value);
-			} else {
-				throw new HttpError(
-					StatusCodeEnum.BAD_REQUEST,
-					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field),
-				);
-			}
-		}
-		return filtered;
-	}
-
-	private async sortUsers(sortParams: ISortParam[]) {
-		let sorted = await this.provider.read();
-		sortParams.forEach((param) => {
-			if (param.field === UserSortByEnum.NAME) {
-				sorted = sorted.sort((a, b) => a.firstName.localeCompare(b.firstName));
-				if (param.order === 'desc') {
-					sorted = sorted.reverse();
-				}
-			} else {
-				throw new HttpError(
-					StatusCodeEnum.BAD_REQUEST,
-					ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER.replace('%s', param.field),
-				);
-			}
+	public async create(@validDto(CreateUserDto) userDto: CreateUserDto): Promise<User> {
+		const user = this.userRepository.create({
+			email: userDto.email.toLowerCase(),
+			role: userDto.role,
+			firstName: userDto.firstName,
+			password: userDto.password,
+			activationLink: userDto.activationLink,
 		});
-		return sorted;
+		return this.userRepository.save(user);
 	}
 
-	public async getById(id: string) {
-		const users = await this.provider.read();
-		const user = users.find((u) => u.id === id);
+	public async get(options: GetOptions): Promise<User[]> {
+		try {
+			return RepositoryUtils.findMatchingOptions(this.userRepository, options);
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
+			}
+			throw err;
+		}
+	}
+
+	public async getById(id: string): Promise<User> {
+		try {
+			const user = await this.userRepository.findOneByOrFail({ id });
+			return user;
+		} catch (err) {
+			if (err instanceof EntityNotFoundError) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			}
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			}
+			throw err;
+		}
+	}
+
+	public async getByEmail(email: string): Promise<User> {
+		const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 		if (!user) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User does not exist`);
 		}
 		return user;
 	}
 
-	public async getByEmail(email: string): Promise<IUser> {
-		const users = await this.provider.read();
-		const foundUser = users.find((u) => u.email === email);
-		if (!foundUser) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User does not exist`);
-		}
-		return foundUser;
-	}
-
-	public async getByResetToken(token: string) {
-		const users = await this.provider.read();
-		const foundUser = users.find((u) => u?.resetToken === token);
-		if (!foundUser) {
+	public async getByResetToken(token: string): Promise<User> {
+		const user = await this.userRepository.findOneBy({ resetToken: token });
+		if (!user) {
 			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User not found`);
 		}
-		return foundUser;
+		return user;
 	}
 
-	public async updateResetToken(email: string, token: string | null): Promise<IUser> {
+	public async activate(link: string) {
+		const user = await this.userRepository.findOneBy({ activationLink: link });
+		if (!user) {
+			throw new HttpError(StatusCodeEnum.BAD_REQUEST, `Invalid activation link`);
+		}
+		user.isActivated = true;
+		await this.userRepository.save(user);
+	}
+
+	public async updateResetToken(email: string, token: string | null): Promise<User> {
 		const user = await this.getByEmail(email);
 		user.resetToken = token;
-		return this.provider.updateById(user.id, user);
+		return this.userRepository.save(user);
 	}
 
 	@validateDto
-	public async update(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto) {
-		if (!this.isUserExist(userDto.email)) {
-			throw new HttpError(
-				StatusCodeEnum.BAD_REQUEST,
-				`Email adress [${userDto.email}] is allready in use`,
-			);
-		}
+	public async update(id: string, @validDto(UpdateUserDto) userDto: UpdateUserDto): Promise<User> {
 		const user = await this.getById(id);
-		if (userDto.password) {
-			userDto.password = await bcrypt.hash(userDto.password, SALT_ROUNDS);
-		}
+		// Review: стоит ли использовать подобного рода неочевидные функции? Это lodash
 		merge(user, userDto);
-		return this.provider.updateById(user.id, user);
+		return this.userRepository.save(user);
 	}
 
-	public async delete(id: string) {
-		const deletedUser = this.provider.deleteById(id);
-		if (!deletedUser) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+	public async setNewPassword(resetToken: string, password: string) {
+		const user = await this.getByResetToken(resetToken);
+		user.resetToken = null;
+		user.password = password;
+		this.userRepository.save(user);
+	}
+
+	public async delete(id: string): Promise<void> {
+		try {
+			const res = await this.userRepository.delete(id);
+			if (!res.affected) {
+				throw new HttpError(StatusCodeEnum.CONFLICT, `User [${id}] might be allready deleted`);
+			}
+		} catch (err) {
+			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${id}] not found`);
+			}
+			throw err;
 		}
-		await this.deleteAssociatedPatients(id);
-		return deletedUser;
-	}
-
-	private async deleteAssociatedPatients(id: string) {
-		const patients = await this.patientsRepository.getAll();
-		const patientsToDelete = patients.filter((p) => p.userId === id);
-		const promises = patientsToDelete.map((p) => this.patientsRepository.remove(p));
-		await Promise.all(promises);
 	}
 }

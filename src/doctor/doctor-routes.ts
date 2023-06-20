@@ -3,20 +3,20 @@ import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { IHttpController } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
-import { QueryMapperMiddleware } from '../common/middlewares/query-mapper-middleware';
+import { ParseQueryOptionsMiddleware } from '../common/middleware/parse-query-options-middleware';
 import { AuthMiddleware } from '../auth/auth-middleware';
-import { iocContainer } from '../inversify.config';
+import { iocContainer } from '../common/config/inversify.config';
 
 @injectable()
 export class DoctorRoutes implements IRoutes {
 	private readonly _router: Router;
-	private readonly queryMapper = new QueryMapperMiddleware();
+	private readonly queryMapper = new ParseQueryOptionsMiddleware();
 	private readonly authMiddleware = iocContainer.get<AuthMiddleware>(
 		CONTAINER_TYPES.AUTH_MIDDLEWARE,
 	);
 
 	constructor(
-		@inject(CONTAINER_TYPES.DOCTORS_CONTROLLER) private readonly doctorsController: IHttpController,
+		@inject(CONTAINER_TYPES.DOCTOR_CONTROLLER) private readonly doctorsController: IHttpController,
 	) {
 		this.doctorsController = doctorsController;
 		this._router = Router();

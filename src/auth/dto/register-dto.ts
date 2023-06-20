@@ -1,19 +1,21 @@
-import { IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { UserRoleEnum } from '../../common/enums';
-import { Transform } from 'class-transformer';
 
 export class RegisterDto {
 	@IsEmail()
-	@Transform(({ value }) => value.toLowerCase())
-	public readonly email: string;
+	email: string;
 
 	@IsNotEmpty()
-	public password: string;
+	password: string;
 
 	@IsNotEmpty()
-	public readonly firstName: string;
+	firstName: string;
+
+	@IsOptional()
+	@IsEnum(UserRoleEnum)
+	role: UserRoleEnum;
 
 	@IsOptional()
 	@IsNotEmpty()
-	public readonly role: UserRoleEnum;
+	activationLink: string;
 }

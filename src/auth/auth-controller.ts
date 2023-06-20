@@ -2,12 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { AuthService } from './auth-service';
 import { CONTAINER_TYPES } from '../common/constants';
-import { StatusCodeEnum } from '../common/enums';
+import { CookieLifetimeEnum, CookieTypesEnum, StatusCodeEnum } from '../common/enums';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
 import { ResetPasswordDto } from './dto/reset-password-dto';
 import { RecoverPasswordDto } from './dto/recover-password-dto';
-import { plainToClass } from 'class-transformer';
 
 @injectable()
 export class AuthController {
@@ -19,8 +18,11 @@ export class AuthController {
 		next: NextFunction,
 	) {
 		try {
-			const registerDto = plainToClass(RegisterDto, req.body);
-			const registeredUser = await this.authService.register(registerDto);
+			const registeredUser = await this.authService.register(req.body);
+			res.cookie(CookieTypesEnum.REFRESH_TOKEN, registeredUser.refreshToken, {
+				maxAge: CookieLifetimeEnum.ONE_MONTH,
+				httpOnly: true,
+			});
 			res.status(StatusCodeEnum.CREATED).json(registeredUser);
 		} catch (error) {
 			next(error);
@@ -29,10 +31,47 @@ export class AuthController {
 
 	public async login(req: Request<object, object, LoginDto>, res: Response, next: NextFunction) {
 		try {
-			// TODO middleware all theese transformations
-			const loginDto = plainToClass(LoginDto, req.body);
-			const loginedUser = await this.authService.login(loginDto);
+			const loginedUser = await this.authService.login(req.body);
+			res.cookie(CookieTypesEnum.REFRESH_TOKEN, loginedUser.refreshToken, {
+				maxAge: CookieLifetimeEnum.ONE_MONTH,
+				httpOnly: true,
+			});
 			res.json(loginedUser);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async logout(req: Request, res: Response, next: NextFunction) {
+		try {
+			const { refreshToken } = req.cookies;
+			const tokens = await this.authService.logout(refreshToken);
+			res.clearCookie(CookieTypesEnum.REFRESH_TOKEN);
+			res.json(tokens);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async activate(req: Request, res: Response, next: NextFunction) {
+		try {
+			const activationLink = req.params.link;
+			await this.authService.activate(activationLink);
+			res.json({ message: 'activated'});
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async refresh(req: Request, res: Response, next: NextFunction) {
+		try {
+			const { refreshToken } = req.cookies;
+			const userData = await this.authService.refresh(refreshToken);
+			res.cookie(CookieTypesEnum.REFRESH_TOKEN, userData.refreshToken, {
+				maxAge: CookieLifetimeEnum.ONE_MONTH,
+				httpOnly: true,
+			});
+			return res.json(userData);
 		} catch (error) {
 			next(error);
 		}
@@ -44,8 +83,7 @@ export class AuthController {
 		next: NextFunction,
 	) {
 		try {
-			const resetDto = plainToClass(ResetPasswordDto, req.body);
-			const resetToken = await this.authService.resetPassword(resetDto);
+			const resetToken = await this.authService.resetPassword(req.body);
 			res.json(resetToken);
 		} catch (error) {
 			next(error);
