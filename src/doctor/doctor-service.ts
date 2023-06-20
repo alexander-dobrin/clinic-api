@@ -10,13 +10,7 @@ import { StatusCodeEnum, UserRoleEnum } from '../common/enums';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
 import { RepositoryUtils } from '../common/util/repository-utils';
-import {
-	DataSource,
-	EntityManager,
-	EntityNotFoundError,
-	QueryFailedError,
-	Repository,
-} from 'typeorm';
+import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
 import { UserService } from '../user/user-service';
 import { Appointment } from '../appointment/appointment';
 
@@ -41,6 +35,7 @@ export class DoctorService {
 			user: doctorUser, // TODO: ASK
 			speciality: doctorDto.speciality,
 		});
+
 		return this.doctorRepository.save(doctor);
 	}
 
@@ -82,42 +77,22 @@ export class DoctorService {
 	}
 
 	public async getById(id: string): Promise<Doctor | null> {
-		try {
-			const doctor = await this.doctorRepository.findOneByOrFail({ id });
-			return doctor;
-		} catch (err) {
-			if (err instanceof EntityNotFoundError) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
-			}
-			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
-			}
-			throw err;
-		}
+		const doctor = await this.doctorRepository.findOneByOrFail({ id });
+		return doctor;
 	}
 
+	// Review обсудить добавление отдельного метода
 	public async getByIdRestrictedToOwnData(id: string, user: UserPayload) {
-		try {
-			if (user.role === UserRoleEnum.DOCTOR) {
-				const userDoctors = await this.doctorRepository.findOne({
-					where: { user: { id: user.id } },
-					relations: { user: true },
-				});
-				if (!userDoctors) {
-					throw new HttpError(StatusCodeEnum.FORBIDDEN, 'Forbidden');
-				}
+		if (user.role === UserRoleEnum.DOCTOR) {
+			const userDoctors = await this.doctorRepository.findOne({
+				where: { user: { id: user.id } },
+				relations: { user: true },
+			});
+			if (!userDoctors) {
+				throw new HttpError(StatusCodeEnum.FORBIDDEN, 'Forbidden');
 			}
-			return this.getById(id);
-		} catch (err) {
-			if (err instanceof EntityNotFoundError) {
-				// TODO: ASK если я вынесу эту обработку в роутер то потеряю детали ошибки
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
-			}
-			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
-			}
-			throw err;
 		}
+		return this.getById(id);
 	}
 
 	@validateDto

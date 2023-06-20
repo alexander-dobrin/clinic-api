@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { User } from '../user/user';
 import { DateTimeArrayColumn } from '../db/util/date-time-array-column';
-import { Exclude, Transform, Type } from 'class-transformer';
 
 @Entity('doctor')
 export class Doctor {
@@ -27,12 +26,9 @@ export class Doctor {
 	@Column({ type: 'varchar' })
 	speciality: string;
 
-	@Type(() => DateTime)
-	@Transform(({ value }) => value.map((date: DateTime) => date.toISO()))
 	@Column({ name: 'available_slots', type: 'simple-array', transformer: new DateTimeArrayColumn() })
 	availableSlots: DateTime[];
 
-	@CreateDateColumn({ name: 'created_at' })
-	@Exclude()
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 }

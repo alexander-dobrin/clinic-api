@@ -7,7 +7,6 @@ import { DoctorService } from './doctor-service';
 import { CreateDoctorDto } from './dto/create-doctor-dto';
 import { UpdateDoctorDto } from './dto/update-doctor-dto';
 import { AuthorizedRequest } from '../auth/auth-types';
-import { instanceToPlain } from 'class-transformer';
 
 @injectable()
 export class DoctorController implements IHttpController {
@@ -22,10 +21,7 @@ export class DoctorController implements IHttpController {
 	): Promise<void> {
 		try {
 			const doctors = await this.doctorsService.get(req.query);
-			if (doctors.length < 1) {
-				res.status(StatusCodeEnum.NO_CONTENT);
-			}
-			res.json(instanceToPlain(doctors));
+			res.json(doctors);
 		} catch (err) {
 			next(err);
 		}
@@ -33,7 +29,6 @@ export class DoctorController implements IHttpController {
 
 	public async getById(req: AuthorizedRequest, res: Response, next: NextFunction): Promise<void> {
 		try {
-			// Review обсудить сигнатуру метода
 			const doctor = await this.doctorsService.getByIdRestrictedToOwnData(req.params.id, req.user);
 			res.json(doctor);
 		} catch (err) {
@@ -48,7 +43,7 @@ export class DoctorController implements IHttpController {
 	): Promise<void> {
 		try {
 			const doctor = await this.doctorsService.createDoctor(req.body, req.user);
-			res.status(StatusCodeEnum.CREATED).json(instanceToPlain(doctor));
+			res.status(StatusCodeEnum.CREATED).json(doctor);
 		} catch (err) {
 			next(err);
 		}
@@ -74,7 +69,7 @@ export class DoctorController implements IHttpController {
 	): Promise<void> {
 		try {
 			await this.doctorsService.delete(req.params.id);
-			res.sendStatus(StatusCodeEnum.NO_CONTENT);
+			res.sendStatus(StatusCodeEnum.OK);
 		} catch (err) {
 			next(err);
 		}

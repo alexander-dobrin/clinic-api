@@ -1,4 +1,5 @@
 export enum StatusCodeEnum {
+	OK = 200,
 	CREATED = 201,
 	NO_CONTENT = 204,
 	BAD_REQUEST = 400,
@@ -42,4 +43,8 @@ export enum CookieLifetimeEnum {
 
 export enum CookieTypesEnum {
 	REFRESH_TOKEN = 'refreshToken',
+}
+
+export enum TypeormErrorCodeEnum {
+	UUID_INVALID_FORMAT = '22P02',
 }

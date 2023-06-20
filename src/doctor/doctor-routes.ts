@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { NextFunction, Router, Request, Response } from 'express';
 import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { IHttpController } from '../common/types';
@@ -6,7 +6,9 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { ParseQueryOptionsMiddleware } from '../common/middleware/parse-query-options-middleware';
 import { AuthMiddleware } from '../auth/middleware/auth-middleware';
 import { RoleMiddleware } from '../auth/middleware/role-middleware';
-import { UserRoleEnum } from '../common/enums';
+import { StatusCodeEnum, TypeormErrorCodeEnum, UserRoleEnum } from '../common/enums';
+import { EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { HttpError } from '../common/errors';
 
 @injectable()
 export class DoctorRoutes implements IRoutes {
@@ -24,7 +26,7 @@ export class DoctorRoutes implements IRoutes {
 		this.setupRoutes();
 	}
 
-	private setupRoutes(): void {
+	private async setupRoutes() {
 		this._router
 			.route('/')
 			.get(
@@ -41,15 +43,31 @@ export class DoctorRoutes implements IRoutes {
 				this.doctorsController.post.bind(this.doctorsController),
 			);
 
+		// Review: правильно ли я понял подход с обработкой ошибок в роутере о котором говорили?
+		this._router.get(
+			'/:id',
+			this.authMiddleware.auth.bind(this.authMiddleware),
+			this.roleMiddleware
+				.checkRole(UserRoleEnum.ADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.PATIENT)
+				.bind(this.roleMiddleware),
+			this.doctorsController.getById.bind(this.doctorsController),
+			(err: Error, req: Request, res: Response, next: NextFunction) => {
+				if (err instanceof EntityNotFoundError) {
+					// потеряю детали ошибки о id доктора
+					throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor not found`);
+				}
+				if (
+					err instanceof QueryFailedError &&
+					err.driverError.code === TypeormErrorCodeEnum.UUID_INVALID_FORMAT
+				) {
+					throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor not found`);
+				}
+				next(err);
+			},
+		);
+
 		this._router
 			.route('/:id')
-			.get(
-				this.authMiddleware.auth.bind(this.authMiddleware),
-				this.roleMiddleware
-					.checkRole(UserRoleEnum.ADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.PATIENT)
-					.bind(this.roleMiddleware),
-				this.doctorsController.getById.bind(this.doctorsController),
-			)
 			.put(
 				this.authMiddleware.auth.bind(this.authMiddleware),
 				this.roleMiddleware
