@@ -38,7 +38,6 @@ export class AppointmentService {
 		});
 		await this.doctorsService.takeFreeSlot(doctorId, appointment.date);
 
-		// Review: возвращать созданный объект с загруженными зависимостями, или удалять эти поля?
 		return this.appointmentRepository.save(appointment);
 	}
 

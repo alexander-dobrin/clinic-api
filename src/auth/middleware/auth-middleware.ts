@@ -1,13 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
-import { AuthorizedRequest } from './auth-types';
+import { HttpError } from '../../common/errors';
+import { ErrorMessageEnum, StatusCodeEnum } from '../../common/enums';
+import { AuthorizedRequest } from '../auth-types';
 import { inject, injectable } from 'inversify';
-import { TokenService } from '../token/token-service';
-import { CONTAINER_TYPES } from '../common/constants';
+import { TokenService } from '../../token/token-service';
+import { CONTAINER_TYPES } from '../../common/constants';
 
-// Review: мне кажется все middleware могут быть заменены декораторами.
-// Остались ли сценарии для использования middleware для которых декораторы не подходят.
 @injectable()
 export class AuthMiddleware {
 	constructor(@inject(CONTAINER_TYPES.TOKEN_SERVICE) private readonly tokenService: TokenService) {}

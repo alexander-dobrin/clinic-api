@@ -3,14 +3,13 @@ import { GetOptions } from '../common/types';
 import { Doctor } from './doctor';
 import { DataSource, Repository } from 'typeorm';
 
+// TODO: DELETE
 export class DoctorRepository extends Repository<Doctor> {
 	constructor(provider: DataSource) {
 		super(Doctor, provider.createEntityManager());
 	}
 
 	public async getOrderedByAppointmentsCount(extraOptions?: GetOptions) {
-		// Review: 1. Использовать queryBuilder или логику для соединения разных таблиц? 
-		// 2. getMany или getRawMany для возвращения объектов, в которых информации больше чем в сущности?
 		const builder = this.createQueryBuilder('doctor')
 			.addSelect((subQuery) => {
 				return subQuery

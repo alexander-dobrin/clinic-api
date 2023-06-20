@@ -7,6 +7,7 @@ export enum StatusCodeEnum {
 	CONFLICT = 409,
 	UNPROCESSABLE_ENTITY = 422,
 	NOT_AUTHORIZED = 401,
+	FORBIDDEN = 403,
 }
 
 export enum ErrorMessageEnum {
@@ -30,9 +31,9 @@ export enum RequestMethodEnum {
 
 export enum UserRoleEnum {
 	GUEST = 'guest',
-	USER = 'user',
 	DOCTOR = 'doctor',
 	PATIENT = 'patient',
+	ADMIN = 'admin',
 }
 
 export enum CookieLifetimeEnum {

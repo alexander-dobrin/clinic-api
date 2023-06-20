@@ -3,7 +3,7 @@ import { IRoutes } from '../common/types';
 import { inject, injectable } from 'inversify';
 import { UserController } from './user-controller';
 import { CONTAINER_TYPES } from '../common/constants';
-import { AuthMiddleware } from '../auth/auth-middleware';
+import { AuthMiddleware } from '../auth/middleware/auth-middleware';
 import { ParseQueryOptionsMiddleware } from '../common/middleware/parse-query-options-middleware';
 
 @injectable()

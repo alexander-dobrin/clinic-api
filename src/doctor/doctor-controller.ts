@@ -31,13 +31,10 @@ export class DoctorController implements IHttpController {
 		}
 	}
 
-	public async getById(
-		req: Request<{ id: string }>,
-		res: Response,
-		next: NextFunction,
-	): Promise<void> {
+	public async getById(req: AuthorizedRequest, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const doctor = await this.doctorsService.getById(req.params.id);
+			// Review обсудить сигнатуру метода
+			const doctor = await this.doctorsService.getByIdRestrictedToOwnData(req.params.id, req.user);
 			res.json(doctor);
 		} catch (err) {
 			next(err);

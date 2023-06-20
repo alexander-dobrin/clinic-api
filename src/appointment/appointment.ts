@@ -43,6 +43,6 @@ export class Appointment {
 	@Exclude()
 	createdAt: Date;
 
-	@VersionColumn({ nullable: true })
+	@VersionColumn()
 	version?: number;
 }

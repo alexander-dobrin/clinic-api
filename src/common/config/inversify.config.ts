@@ -7,10 +7,11 @@ import { appointmentModule } from '../../appointment/appointment-module';
 import { CONTAINER_TYPES } from '../../common/constants';
 import { authModule } from '../../auth/auth-module';
 import { userModule } from '../../user/user-module';
-import { AuthMiddleware } from '../../auth/auth-middleware';
+import { AuthMiddleware } from '../../auth/middleware/auth-middleware';
 import { DataSource } from 'typeorm';
 import { AppDataSource } from '../../db/typeorm.config';
 import { tokenModule } from '../../token/token-module';
+import { RoleMiddleware } from '../../auth/middleware/role-middleware';
 
 export const iocContainer = new Container();
 
@@ -34,6 +35,11 @@ iocContainer
 iocContainer
 	.bind<AuthMiddleware>(CONTAINER_TYPES.AUTH_MIDDLEWARE)
 	.to(AuthMiddleware)
+	.inSingletonScope();
+
+iocContainer
+	.bind<RoleMiddleware>(CONTAINER_TYPES.ROLE_MIDDLEWARE)
+	.to(RoleMiddleware)
 	.inSingletonScope();
 
 iocContainer.bind<App>(CONTAINER_TYPES.APP).to(App);
