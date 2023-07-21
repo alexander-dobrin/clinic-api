@@ -14,6 +14,7 @@ export enum StatusCodeEnum {
 export enum ErrorMessageEnum {
 	UNKNOWN_QUERY_PARAMETER = 'Unknown query parameters',
 	INVALID_RESET_TOKEN = 'Invalid reset token',
+	INVALID_JSON = 'Invalid json',
 	NOT_AUTHORIZED = 'Authorization required',
 	VERSION_MISMATCH = 'Entity versions mismatch',
 }

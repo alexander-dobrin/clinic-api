@@ -9,7 +9,6 @@ import { HttpError } from '../common/errors';
 import { StatusCodeEnum, UserRoleEnum } from '../common/enums';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
-import { RepositoryUtils } from '../common/util/repository-utils';
 import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
 import { UserService } from '../user/user-service';
 import { Appointment } from '../appointment/appointment';
@@ -40,8 +39,13 @@ export class DoctorService {
 	}
 
 	public async get(options: GetOptions): Promise<Doctor[]> {
-		if (!this.isAppointmentsOption(options)) {
-			return RepositoryUtils.findMatchingOptions(this.doctorRepository, options);
+		const shouldCountAppointments =
+			options.sort != undefined && Object.keys(options.sort).includes('appointments');
+		if (!shouldCountAppointments) {
+			return this.doctorRepository.find({
+				where: options.filter,
+				order: options.sort ?? { createdAt: 'DESC' },
+			});
 		}
 
 		const builder = await this.dataSource.manager
@@ -70,10 +74,6 @@ export class DoctorService {
 		});
 
 		return builder.getMany();
-	}
-
-	private isAppointmentsOption(options: GetOptions) {
-		return options.sort != undefined && Object.keys(options.sort).includes('appointments');
 	}
 
 	public async getById(id: string): Promise<Doctor | null> {

@@ -9,7 +9,6 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { PatientRepository } from './patient-repository';
-import { RepositoryUtils } from '../common/util/repository-utils';
 import { EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { UserService } from '../user/user-service';
 
@@ -34,7 +33,10 @@ export class PatientService {
 
 	public async get(options: GetOptions): Promise<Patient[]> {
 		try {
-			return RepositoryUtils.findMatchingOptions(this.patientRepository, options);
+			return this.patientRepository.find({
+				where: options.filter,
+				order: options.sort ?? { createdAt: 'DESC' },
+			});
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);

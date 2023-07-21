@@ -11,7 +11,6 @@ import { GetOptions } from '../common/types';
 import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { RepositoryUtils } from '../common/util/repository-utils';
 import { DataSource, EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { iocContainer } from '../common/config/inversify.config';
 
@@ -43,7 +42,10 @@ export class AppointmentService {
 
 	public async get(options: GetOptions): Promise<Appointment[]> {
 		try {
-			return await RepositoryUtils.findMatchingOptions(this.appointmentRepository, options);
+			return this.appointmentRepository.find({
+				where: options.filter,
+				order: options.sort ?? { createdAt: 'DESC' },
+			});
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);

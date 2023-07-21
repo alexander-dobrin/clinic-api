@@ -10,7 +10,6 @@ import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { User } from './user';
 import { UserRepository } from './user-repository';
 import { EntityNotFoundError, QueryFailedError } from 'typeorm';
-import { RepositoryUtils } from '../common/util/repository-utils';
 
 @injectable()
 export class UserService {
@@ -32,7 +31,10 @@ export class UserService {
 
 	public async get(options: GetOptions): Promise<User[]> {
 		try {
-			return RepositoryUtils.findMatchingOptions(this.userRepository, options);
+			return this.userRepository.find({
+				where: options.filter,
+				order: options.sort ?? { createdAt: 'DESC' },
+			});
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
