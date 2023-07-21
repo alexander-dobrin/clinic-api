@@ -8,17 +8,19 @@ import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { PatientRepository } from './patient-repository';
-import { EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { DataSource, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { UserService } from '../user/user-service';
 
 @injectable()
 export class PatientService {
+	private readonly patientRepository: Repository<Patient>;
+
 	constructor(
-		@inject(CONTAINER_TYPES.PATIENT_REPOSITORY)
-		private readonly patientRepository: PatientRepository,
+		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
-	) {}
+	) {
+		this.patientRepository = dataSource.getRepository(Patient);
+	}
 
 	@validateDto
 	public async create(

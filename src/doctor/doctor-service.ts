@@ -16,6 +16,7 @@ import { Appointment } from '../appointment/appointment';
 @injectable()
 export class DoctorService {
 	private readonly doctorRepository: Repository<Doctor>;
+	
 	constructor(
 		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,

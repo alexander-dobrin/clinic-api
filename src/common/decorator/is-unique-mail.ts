@@ -6,8 +6,9 @@ import {
 	registerDecorator,
 } from 'class-validator';
 import { iocContainer } from '../config/inversify.config';
-import { UserRepository } from '../../user/user-repository';
 import { CONTAINER_TYPES } from '../constants';
+import { DataSource } from 'typeorm';
+import { User } from '../../user/user';
 
 @ValidatorConstraint()
 class IsUniqueMailConstraint implements ValidatorConstraintInterface {
@@ -15,7 +16,9 @@ class IsUniqueMailConstraint implements ValidatorConstraintInterface {
 		if (!email) {
 			return false;
 		}
-		const userRepository = iocContainer.get<UserRepository>(CONTAINER_TYPES.USER_REPOSITORY);
+		const userRepository = iocContainer
+			.get<DataSource>(CONTAINER_TYPES.DB_CONNECTION)
+			.getRepository(User);
 		const user = await userRepository.findOneBy({ email: email.toLowerCase() });
 		return user === null;
 	}

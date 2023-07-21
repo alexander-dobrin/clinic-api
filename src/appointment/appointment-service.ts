@@ -1,6 +1,5 @@
 import { Appointment } from './appointment';
 import { DateTime } from 'luxon';
-import { AppointmentRepository } from './appointment-repository';
 import { PatientService } from '../patient/patient-service';
 import { DoctorService } from '../doctor/doctor-service';
 import { CreateAppointmentDto } from './dto/create-appointment-dto';
@@ -11,17 +10,20 @@ import { GetOptions } from '../common/types';
 import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
 import { HttpError } from '../common/errors';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { DataSource, EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { DataSource, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { iocContainer } from '../common/config/inversify.config';
 
 @injectable()
 export class AppointmentService {
+	private readonly appointmentRepository: Repository<Appointment>;
+
 	constructor(
-		@inject(CONTAINER_TYPES.APPOINTMENT_REPOSITORY)
-		private readonly appointmentRepository: AppointmentRepository,
+		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 		@inject(CONTAINER_TYPES.PATIENT_SERVICE) private readonly patientsService: PatientService,
 		@inject(CONTAINER_TYPES.DOCTOR_SERVICE) private readonly doctorsService: DoctorService,
-	) {}
+	) {
+		this.appointmentRepository = dataSource.getRepository(Appointment);
+	}
 
 	@validateDto
 	public async create(

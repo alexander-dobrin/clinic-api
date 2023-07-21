@@ -8,14 +8,15 @@ import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { User } from './user';
-import { UserRepository } from './user-repository';
-import { EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { DataSource, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 
 @injectable()
 export class UserService {
-	constructor(
-		@inject(CONTAINER_TYPES.USER_REPOSITORY) private readonly userRepository: UserRepository,
-	) {}
+	private readonly userRepository: Repository<User>;
+
+	constructor(@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource) {
+		this.userRepository = dataSource.getRepository(User);
+	}
 
 	@validateDto
 	public async create(@validDto(CreateUserDto) userDto: CreateUserDto): Promise<User> {
