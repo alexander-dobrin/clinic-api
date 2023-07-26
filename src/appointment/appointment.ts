@@ -11,7 +11,7 @@ import {
 import { Patient } from '../patient/patient';
 import { Doctor } from '../doctor/doctor';
 import { DateTimeColumn } from '../db/util/date-time-column';
-import { Exclude, Transform, Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 @Entity('appointment')
 export class Appointment {
@@ -19,7 +19,6 @@ export class Appointment {
 	id: string;
 
 	@ManyToOne(() => Patient, { onDelete: 'CASCADE', nullable: false })
-	@Exclude()
 	patient: Patient;
 
 	@Column({ type: 'uuid' })
@@ -27,7 +26,6 @@ export class Appointment {
 	patientId: string;
 
 	@ManyToOne(() => Doctor, { onDelete: 'CASCADE', nullable: false })
-	@Exclude()
 	doctor: Doctor;
 
 	@Column({ type: 'uuid' })
@@ -39,8 +37,7 @@ export class Appointment {
 	@Transform(({ value }) => value.toISO())
 	date: DateTime;
 
-	@CreateDateColumn({ name: 'created_at' })
-	@Exclude()
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 
 	@VersionColumn()

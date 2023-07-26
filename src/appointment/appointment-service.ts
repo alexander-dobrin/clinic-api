@@ -58,13 +58,18 @@ export class AppointmentService {
 
 	public async getById(id: string): Promise<Appointment | null> {
 		try {
-			const appointment = await this.appointmentRepository.findOneByOrFail({ id });
+			const appointment = await this.dataSource.manager
+				.createQueryBuilder(Appointment, 'appointment')
+				.where('appointment.id = :id', { id })
+				.addSelect(['appointment.createdAt'])
+				.getOneOrFail();
+
 			return appointment;
 		} catch (err) {
-			if (err instanceof EntityNotFoundError) {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
-			}
-			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
+			if (
+				err instanceof EntityNotFoundError ||
+				(err instanceof QueryFailedError && err.driverError.file === 'uuid.c')
+			) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
 			}
 			throw err;
@@ -96,14 +101,18 @@ export class AppointmentService {
 				appointment.date = DateTime.fromISO(date, { zone: 'utc' });
 				await this.doctorsService.takeFreeSlot(doctorId, appointment.date, queryRunner.manager);
 			}
+			
 			const saved = await queryRunner.manager.save(appointment);
 			await queryRunner.commitTransaction();
+
 			return saved;
 		} catch (err) {
 			await queryRunner.rollbackTransaction();
+
 			if (err instanceof QueryFailedError) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${patientId}] not found`);
 			}
+
 			throw err;
 		} finally {
 			await queryRunner.release();
@@ -112,16 +121,10 @@ export class AppointmentService {
 
 	public async delete(id: string): Promise<void> {
 		try {
-			const res = await this.appointmentRepository.delete(id);
-			if (!res.affected) {
-				throw new HttpError(
-					StatusCodeEnum.CONFLICT,
-					`Appointment [${id}] might be allready deleted`,
-				);
-			}
+			await this.appointmentRepository.delete(id);
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Appointment [${id}] not found`);
+				return;
 			}
 			throw err;
 		}
