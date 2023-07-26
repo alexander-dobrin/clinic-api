@@ -88,6 +88,7 @@ export class DoctorService {
 			const userDoctors = await this.doctorRepository.findOne({
 				where: { user: { id: user.id } },
 				relations: { user: true },
+				// TODO select: {} 
 			});
 			if (!userDoctors) {
 				throw new HttpError(StatusCodeEnum.FORBIDDEN, 'Forbidden');

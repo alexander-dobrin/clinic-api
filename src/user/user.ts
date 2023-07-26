@@ -9,7 +9,6 @@ import {
 import { UserRoleEnum } from '../common/enums';
 import bcrypt from 'bcrypt';
 import { SALT_ROUNDS } from '../common/constants';
-import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'user' })
 export class User {
@@ -25,23 +24,19 @@ export class User {
 	@Column({ unique: true, type: 'varchar' })
 	email: string;
 
-	@Column({ type: 'varchar' })
-	@Exclude()
+	@Column({ type: 'varchar', select: false })
 	password: string;
 
-	@Column({ name: 'reset_token', nullable: true, type: 'varchar' })
-	@Exclude()
+	@Column({ name: 'reset_token', nullable: true, type: 'varchar', select: false })
 	resetToken: string;
 
-	@CreateDateColumn({ name: 'created_at' })
-	@Exclude()
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 
 	@Column({ name: 'is_activated', type: 'boolean', nullable: false, default: false })
 	isActivated: boolean;
 
-	@Column({ name: 'activation_link', type: 'varchar', nullable: true })
-	@Exclude()
+	@Column({ name: 'activation_link', type: 'varchar', nullable: true, select: false })
 	activationLink: string;
 
 	@BeforeInsert()

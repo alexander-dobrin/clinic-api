@@ -7,7 +7,6 @@ import { AuthorizedRequest } from '../auth/auth-types';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { GetOptions } from '../common/types';
-import { instanceToPlain } from 'class-transformer';
 
 @injectable()
 export class UserController {
@@ -20,7 +19,7 @@ export class UserController {
 	) {
 		try {
 			const user = await this.userService.create(req.body);
-			res.status(StatusCodeEnum.CREATED).json(instanceToPlain(user));
+			res.status(StatusCodeEnum.CREATED).json(user);
 		} catch (err) {
 			next(err);
 		}
@@ -33,11 +32,7 @@ export class UserController {
 	) {
 		try {
 			const users = await this.userService.get(req.query);
-			if (users.length < 1) {
-				res.sendStatus(StatusCodeEnum.NO_CONTENT);
-				return;
-			}
-			res.json(instanceToPlain(users));
+			res.json(users);
 		} catch (err) {
 			next(err);
 		}
@@ -68,7 +63,7 @@ export class UserController {
 	) {
 		try {
 			const user = await this.userService.update(req.params.id, req.body);
-			res.json(instanceToPlain(user));
+			res.json(user);
 		} catch (err) {
 			next(err);
 		}
@@ -77,7 +72,7 @@ export class UserController {
 	public async delete(req: Request<{ id: string }>, res: Response, next: NextFunction) {
 		try {
 			await this.userService.delete(req.params.id);
-			res.sendStatus(StatusCodeEnum.NO_CONTENT);
+			res.sendStatus(StatusCodeEnum.OK);
 		} catch (err) {
 			next(err);
 		}
