@@ -29,7 +29,7 @@ export class DoctorController implements IHttpController {
 
 	public async getById(req: AuthorizedRequest, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const doctor = await this.doctorsService.getByIdRestrictedToOwnData(req.params.id, req.user);
+			const doctor = await this.doctorsService.getById(req.params.id);
 			res.json(doctor);
 		} catch (err) {
 			next(err);
@@ -42,7 +42,7 @@ export class DoctorController implements IHttpController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const doctor = await this.doctorsService.createDoctor(req.body, req.user);
+			const doctor = await this.doctorsService.create(req.body, req.user);
 			res.status(StatusCodeEnum.CREATED).json(doctor);
 		} catch (err) {
 			next(err);

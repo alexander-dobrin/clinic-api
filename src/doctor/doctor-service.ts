@@ -16,7 +16,7 @@ import { Appointment } from '../appointment/appointment';
 @injectable()
 export class DoctorService {
 	private readonly doctorRepository: Repository<Doctor>;
-	
+
 	constructor(
 		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
@@ -25,7 +25,7 @@ export class DoctorService {
 	}
 
 	@validateDto
-	public async createDoctor(
+	public async create(
 		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
 		user: UserPayload,
 	): Promise<Doctor> {
@@ -35,8 +35,9 @@ export class DoctorService {
 			user: doctorUser, // TODO: ASK
 			speciality: doctorDto.speciality,
 		});
+		const savedDoctor = await this.doctorRepository.save(doctor);
 
-		return this.doctorRepository.save(doctor);
+		return this.doctorRepository.findOneBy({ id: savedDoctor.id });
 	}
 
 	public async get(options: GetOptions): Promise<Doctor[]> {
@@ -78,18 +79,27 @@ export class DoctorService {
 	}
 
 	public async getById(id: string): Promise<Doctor | null> {
-		const doctor = await this.doctorRepository.findOneByOrFail({ id });
+		const doctor = await this.dataSource.manager
+			.createQueryBuilder(Doctor, 'doctor')
+			.where('doctor.id = :id', { id })
+			.addSelect(['doctor.createdAt'])
+			.getOne();
+
+		if (!doctor) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+		}
+
 		return doctor;
 	}
 
-	// Review обсудить добавление отдельного метода
+	// TODO: неиспользуемый метод
 	public async getByIdRestrictedToOwnData(id: string, user: UserPayload) {
 		if (user.role === UserRoleEnum.DOCTOR) {
 			const userDoctors = await this.doctorRepository.findOne({
 				where: { user: { id: user.id } },
 				relations: { user: true },
-				// TODO select: {} 
 			});
+
 			if (!userDoctors) {
 				throw new HttpError(StatusCodeEnum.FORBIDDEN, 'Forbidden');
 			}
@@ -104,24 +114,25 @@ export class DoctorService {
 	): Promise<Doctor | null> {
 		const doctor = await this.getById(id);
 		const { speciality = doctor.speciality } = doctorDto;
+		
 		if (doctorDto.availableSlots) {
 			doctor.availableSlots = doctorDto.availableSlots.map((s) =>
 				DateTime.fromISO(s, { zone: 'utc' }),
 			);
 		}
 		doctor.speciality = speciality;
-		return this.doctorRepository.save(doctor);
+
+		const savedDoctor = await this.doctorRepository.save(doctor);
+
+		return this.doctorRepository.findOneBy({ id: savedDoctor.id });
 	}
 
 	public async delete(id: string): Promise<void> {
 		try {
-			const res = await this.doctorRepository.delete(id);
-			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.CONFLICT, `Doctor [${id}] might be allready deleted`);
-			}
+			await this.doctorRepository.delete(id);
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+				return;
 			}
 			throw err;
 		}

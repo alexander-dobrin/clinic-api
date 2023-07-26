@@ -43,7 +43,6 @@ export class DoctorRoutes implements IRoutes {
 				this.doctorsController.post.bind(this.doctorsController),
 			);
 
-		// Review: правильно ли я понял подход с обработкой ошибок в роутере о котором говорили?
 		this._router.get(
 			'/:id',
 			this.authMiddleware.auth.bind(this.authMiddleware),

@@ -27,7 +27,6 @@ export class UserService {
 			password: userDto.password,
 			activationLink: userDto.activationLink,
 		});
-		// Review: не критично делать дополнительный поиск чтоб в ответе не возвращать поля с select false?
 		const savedUser = await this.userRepository.save(user);
 		
 	    return this.userRepository.findOneBy({ id: savedUser.id });
@@ -46,9 +45,6 @@ export class UserService {
 			throw err;
 		}
 	}
-
-	// Review: так выходит, что есть группа методов getBy... и каждый возвращает немного разные данные.
-	// Пересматривать это решение?
 
 	public async getById(id: string): Promise<User> {
 		try {
