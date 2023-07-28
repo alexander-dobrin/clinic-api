@@ -2,7 +2,7 @@
     "scripts": {
         "dev": "nodemon src/index.ts",
         "prod": "tsc -p ./tsconfig.json && node dist/index.js",
-        "typeorm-run-migration": "npx typeorm-ts-node-commonjs migration:run -d src/typeorm.config.ts",
+        "typeorm-run-migration": "npx typeorm-ts-node-commonjs migration:run -d src/db/typeorm.config.ts",
         "typeorm-revert-migration": "npx typeorm-ts-node-commonjs migration:revert -d src/typeorm.config.ts"
     },
     "dependencies": {

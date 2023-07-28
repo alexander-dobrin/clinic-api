@@ -6,7 +6,7 @@ import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { CreateAppointmentDto } from './dto/create-appointment-dto';
 import { UpdateAppointmentDto } from './dto/update-appointment-dto';
-import { instanceToPlain } from 'class-transformer';
+import { }from 'class-transformer';
 
 @injectable()
 export class AppointmentController implements IHttpController {
@@ -22,7 +22,7 @@ export class AppointmentController implements IHttpController {
 	): Promise<void> {
 		try {
 			const created = await this.appointmentService.create(req.body);
-			res.status(StatusCodeEnum.CREATED).json(instanceToPlain(created));
+			res.status(StatusCodeEnum.CREATED).json(created);
 		} catch (err) {
 			next(err);
 		}
@@ -35,10 +35,7 @@ export class AppointmentController implements IHttpController {
 	): Promise<void> {
 		try {
 			const appointments = await this.appointmentService.get(req.query);
-			if (appointments.length < 1) {
-				res.status(StatusCodeEnum.NO_CONTENT);
-			}
-			res.json(instanceToPlain(appointments));
+			res.json(appointments);
 		} catch (err) {
 			next(err);
 		}
@@ -64,7 +61,7 @@ export class AppointmentController implements IHttpController {
 	): Promise<void> {
 		try {
 			const updated = await this.appointmentService.update(req.params.id, req.body);
-			res.setHeader('X-Entity-Version', updated.version).json(instanceToPlain(updated));
+			res.setHeader('X-Entity-Version', updated.version).json(updated);
 		} catch (err) {
 			next(err);
 		}
@@ -77,7 +74,7 @@ export class AppointmentController implements IHttpController {
 	): Promise<void> {
 		try {
 			await this.appointmentService.delete(req.params.id);
-			res.sendStatus(StatusCodeEnum.NO_CONTENT);
+			res.sendStatus(StatusCodeEnum.OK);
 		} catch (err) {
 			next(err);
 		}

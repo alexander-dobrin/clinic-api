@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
-import { User } from '../../user/user';
-import { Patient } from '../../patient/patient';
-import { Doctor } from '../../doctor/doctor';
-import { Appointment } from '../../appointment/appointment';
-import { InitialPopulation1685954857153 } from '../../migration/1685954857153-initialPopulation';
-import { Token } from '../../token/token';
+import { User } from '../user/user';
+import { Patient } from '../patient/patient';
+import { Doctor } from '../doctor/doctor';
+import { Appointment } from '../appointment/appointment';
+import { InitialPopulation1685954857153 } from './migration/1685954857153-initialPopulation';
+import { Token } from '../token/token';
 
 dotenv.config();
 

@@ -4,16 +4,18 @@ import { UserPayload } from '../auth/auth-types';
 import jwt, { JsonWebTokenError } from 'jsonwebtoken';
 import { StatusCodeEnum, TokenLifetimeEnum } from '../common/enums';
 import { CONTAINER_TYPES } from '../common/constants';
-import { TokenRepository } from './token-repository';
 import { Token } from './token';
 import { User } from '../user/user';
 import { HttpError } from '../common/errors';
+import { DataSource, Repository } from 'typeorm';
 
 @injectable()
 export class TokenService {
-	constructor(
-		@inject(CONTAINER_TYPES.TOKEN_REPOSITORY) private readonly tokenRepository: TokenRepository,
-	) {}
+	private readonly tokenRepository: Repository<Token>;
+
+	constructor(@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource) {
+		this.tokenRepository = dataSource.getRepository(Token);
+	}
 
 	public generatePair(payload: UserPayload): TokenPair {
 		const plainObject = { id: payload.id, email: payload.email, role: payload.role };

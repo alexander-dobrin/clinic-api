@@ -9,31 +9,26 @@ import {
 	RelationId,
 } from 'typeorm';
 import { User } from '../user/user';
-import { DateTimeArrayColumn } from '../common/util/date-time-array-column';
-import { Exclude, Transform, Type } from 'class-transformer';
+import { DateTimeArrayColumn } from '../db/util/date-time-array-column';
 
 @Entity('doctor')
 export class Doctor {
-	@PrimaryGeneratedColumn('uuid', { name: 'doctor_id' })
+	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
-	// Review: я нашел способ сохранить отношения между сущностями, чтоб например работало onDelete: 'cascade'
-	// и чтоб в объекте хранился только id сущности, а не вся она целиком. Это имеет ограничения,
-	// но в целом стоит ли так делать?
-	@ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false, eager: true })
+	@ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false })
 	@JoinColumn({ name: 'user_id' })
-	@RelationId((doctor: Doctor) => doctor.userId)
+	user: User;
+
+	@RelationId((doctor: Doctor) => doctor.user)
 	userId: string;
 
 	@Column({ type: 'varchar' })
 	speciality: string;
 
-	@Type(() => DateTime)
-	@Transform(({ value }) => value.map((date: DateTime) => date.toISO()))
 	@Column({ name: 'available_slots', type: 'simple-array', transformer: new DateTimeArrayColumn() })
 	availableSlots: DateTime[];
 
-	@CreateDateColumn({ name: 'created_at' })
-	@Exclude()
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 }

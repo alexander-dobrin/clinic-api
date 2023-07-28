@@ -8,7 +8,6 @@ import {
 	RelationId,
 } from 'typeorm';
 import { User } from '../user/user';
-import { Exclude } from 'class-transformer';
 
 @Entity('patient')
 export class Patient {
@@ -23,8 +22,7 @@ export class Patient {
 	@Column({ name: 'phone_number', type: 'varchar', unique: true })
 	phoneNumber: string;
 
-	@CreateDateColumn({ name: 'created_at' })
-	@Exclude()
+	@CreateDateColumn({ name: 'created_at', select: false })
 	createdAt: Date;
 
 	constructor(userId?: string, phoneNumber?: string) {

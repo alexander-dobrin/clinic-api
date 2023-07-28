@@ -6,72 +6,114 @@ import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { GetOptions } from '../common/types';
 import { HttpError } from '../common/errors';
-import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
+import { StatusCodeEnum, TypeormErrorCodeEnum, UserRoleEnum } from '../common/enums';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
-import { DoctorRepository } from './doctor-repository';
-import { RepositoryUtils } from '../common/util/repository-utils';
-import { EntityManager, EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
 import { UserService } from '../user/user-service';
+import { Appointment } from '../appointment/appointment';
 
 @injectable()
 export class DoctorService {
+	private readonly doctorRepository: Repository<Doctor>;
+
 	constructor(
-		@inject(CONTAINER_TYPES.DOCTOR_REPOSITORY)
-		private readonly doctorRepository: DoctorRepository,
+		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
-	) {}
+	) {
+		this.doctorRepository = dataSource.getRepository(Doctor);
+	}
 
 	@validateDto
-	public async createDoctor(
+	public async create(
 		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
-		user: UserPayload, // Review: если мы храним id пользователя в докторе то авторизация обязательна для создания?
+		user: UserPayload,
 	): Promise<Doctor> {
 		const doctorUser = await this.userService.getById(user.id);
-		const doctor = new Doctor();
-		doctor.availableSlots = doctorDto.availableSlots.map((s) =>
-			DateTime.fromISO(s, { zone: 'utc' }),
-		);
-		doctor.speciality = doctorDto.speciality;
-		doctor.userId = doctorUser.id;
-		return this.doctorRepository.save(doctor);
+		const doctor = this.doctorRepository.create({
+			availableSlots: doctorDto.availableSlots.map((s) => DateTime.fromISO(s, { zone: 'utc' })),
+			user: doctorUser, // TODO: ASK
+			speciality: doctorDto.speciality,
+		});
+		const savedDoctor = await this.doctorRepository.save(doctor);
+
+		return this.doctorRepository.findOneBy({ id: savedDoctor.id });
 	}
 
 	public async get(options: GetOptions): Promise<Doctor[]> {
-		if (this.isAppointmentsOption(options)) {
-			return this.doctorRepository.getOrderedByAppointmentsCount(options);
+		const shouldCountAppointments =
+			options.sort != undefined && Object.keys(options.sort).includes('appointments');
+		if (!shouldCountAppointments) {
+			return this.doctorRepository.find({
+				where: options.filter,
+				order: options.sort ?? { createdAt: 'DESC' },
+			});
 		}
-		return RepositoryUtils.findMatchingOptions(this.doctorRepository, options);
-	}
 
-	private isAppointmentsOption(options: GetOptions) {
-		try {
-			return options.sort != undefined && Object.keys(options.sort).includes('appointments');
-		} catch (err) {
-			// Review: typerom бросает исключение если id не в верном формате.
-			// Стоит ли мне самому проверять что id в нужном формате и бросать свое исключение
-			// Или допустить в логике неверный id и позволить typeorm выбросить исключение?
-			// Как в таком случае принято различать исключения которые бросает библиотека?
-			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
-			}
-			throw err;
+		const builder = await this.dataSource.manager
+			.createQueryBuilder(Doctor, 'doctor')
+			.select(
+				(subQuery) =>
+					subQuery
+						.select('COUNT(appointment_id)', 'appointments_count')
+						.from(Appointment, 'appointment')
+						.where('appointment.doctorId = doctor.doctor_id'),
+				'appointments_count',
+			)
+			.orderBy(
+				'appointments_count',
+				options.sort['appointments'] === '' ? 'DESC' : options.sort['appointments'].toUpperCase(),
+			);
+
+		if (options.filter) {
+			builder.where(options.filter);
 		}
+
+		const sortParams = Object.entries(options.sort).filter(([key]) => key !== 'appointments');
+
+		sortParams.forEach(([key, value]) => {
+			builder.addOrderBy(key, value.toUpperCase());
+		});
+
+		return builder.getMany();
 	}
 
 	public async getById(id: string): Promise<Doctor | null> {
 		try {
-			const doctor = await this.doctorRepository.findOneByOrFail({ id });
+			const doctor = await this.dataSource.manager
+				.createQueryBuilder(Doctor, 'doctor')
+				.where('doctor.id = :id', { id })
+				.addSelect(['doctor.createdAt'])
+				.getOne();
+
+			if (!doctor) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+			}
+
 			return doctor;
 		} catch (err) {
-			if (err instanceof EntityNotFoundError) {
+			if (
+				err instanceof QueryFailedError &&
+				err.driverError.code === TypeormErrorCodeEnum.UUID_INVALID_FORMAT
+			) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
 			}
-			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
-			}
-			throw err;
 		}
+	}
+
+	// TODO: неиспользуемый метод
+	public async getByIdRestrictedToOwnData(id: string, user: UserPayload) {
+		if (user.role === UserRoleEnum.DOCTOR) {
+			const userDoctors = await this.doctorRepository.findOne({
+				where: { user: { id: user.id } },
+				relations: { user: true },
+			});
+
+			if (!userDoctors) {
+				throw new HttpError(StatusCodeEnum.FORBIDDEN, 'Forbidden');
+			}
+		}
+		return this.getById(id);
 	}
 
 	@validateDto
@@ -81,24 +123,25 @@ export class DoctorService {
 	): Promise<Doctor | null> {
 		const doctor = await this.getById(id);
 		const { speciality = doctor.speciality } = doctorDto;
+
 		if (doctorDto.availableSlots) {
 			doctor.availableSlots = doctorDto.availableSlots.map((s) =>
 				DateTime.fromISO(s, { zone: 'utc' }),
 			);
 		}
 		doctor.speciality = speciality;
-		return this.doctorRepository.save(doctor);
+
+		const savedDoctor = await this.doctorRepository.save(doctor);
+
+		return this.doctorRepository.findOneBy({ id: savedDoctor.id });
 	}
 
 	public async delete(id: string): Promise<void> {
 		try {
-			const res = await this.doctorRepository.delete(id);
-			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.CONFLICT, `Doctor [${id}] might be allready deleted`);
-			}
+			await this.doctorRepository.delete(id);
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+				return;
 			}
 			throw err;
 		}

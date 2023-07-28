@@ -8,18 +8,19 @@ import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { PatientRepository } from './patient-repository';
-import { RepositoryUtils } from '../common/util/repository-utils';
-import { EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { DataSource, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { UserService } from '../user/user-service';
 
 @injectable()
 export class PatientService {
+	private readonly patientRepository: Repository<Patient>;
+
 	constructor(
-		@inject(CONTAINER_TYPES.PATIENT_REPOSITORY)
-		private readonly patientRepository: PatientRepository,
+		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
-	) {}
+	) {
+		this.patientRepository = dataSource.getRepository(Patient);
+	}
 
 	@validateDto
 	public async create(
@@ -29,12 +30,16 @@ export class PatientService {
 		await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		const patientUser = await this.userService.getById(user.id);
 		const patient = new Patient(patientUser.id, patientDto.phoneNumber);
+		
 		return this.patientRepository.save(patient);
 	}
 
 	public async get(options: GetOptions): Promise<Patient[]> {
 		try {
-			return RepositoryUtils.findMatchingOptions(this.patientRepository, options);
+			return this.patientRepository.find({
+				where: options.filter,
+				order: options.sort ?? { createdAt: 'DESC' },
+			});
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.BAD_REQUEST, ErrorMessageEnum.UNKNOWN_QUERY_PARAMETER);
@@ -45,12 +50,18 @@ export class PatientService {
 
 	public async getById(id: string): Promise<Patient | undefined> {
 		try {
-			const patient = await this.patientRepository.findOneByOrFail({ id });
+			const patient = await this.dataSource.manager
+				.createQueryBuilder(Patient, 'patient')
+				.where('patient.id = :id', { id })
+				.addSelect(['patient.createdAt'])
+				.getOneOrFail();
+
 			return patient;
 		} catch (err) {
 			if (err instanceof EntityNotFoundError) {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
 			}
+
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
 				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
 			}
@@ -59,30 +70,27 @@ export class PatientService {
 	}
 
 	@validateDto
-	public async updatePatientById(
+	public async update(
 		id: string,
 		@validDto(UpdatePatientDto) patientDto: UpdatePatientDto,
 	): Promise<Patient> {
 		if (patientDto.phoneNumber) {
 			await this.throwIfPhoneTaken(patientDto.phoneNumber);
 		}
+
 		const patient = await this.getById(id);
 		const { phoneNumber = patient.phoneNumber } = patientDto;
-
 		patient.phoneNumber = phoneNumber;
 
 		return this.patientRepository.save(patient);
 	}
 
-	public async deletePatientById(id: string): Promise<void> {
+	public async delete(id: string): Promise<void> {
 		try {
-			const res = await this.patientRepository.delete(id);
-			if (!res.affected) {
-				throw new HttpError(StatusCodeEnum.CONFLICT, `Patient [${id}] might be allready deleted`);
-			}
+			await this.patientRepository.delete(id);
 		} catch (err) {
 			if (err instanceof QueryFailedError && err.driverError.file === 'uuid.c') {
-				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Patient [${id}] not found`);
+				return;
 			}
 			throw err;
 		}

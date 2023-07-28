@@ -1,4 +1,5 @@
 export enum StatusCodeEnum {
+	OK = 200,
 	CREATED = 201,
 	NO_CONTENT = 204,
 	BAD_REQUEST = 400,
@@ -7,11 +8,13 @@ export enum StatusCodeEnum {
 	CONFLICT = 409,
 	UNPROCESSABLE_ENTITY = 422,
 	NOT_AUTHORIZED = 401,
+	FORBIDDEN = 403,
 }
 
 export enum ErrorMessageEnum {
 	UNKNOWN_QUERY_PARAMETER = 'Unknown query parameters',
 	INVALID_RESET_TOKEN = 'Invalid reset token',
+	INVALID_JSON = 'Invalid json',
 	NOT_AUTHORIZED = 'Authorization required',
 	VERSION_MISMATCH = 'Entity versions mismatch',
 }
@@ -30,9 +33,9 @@ export enum RequestMethodEnum {
 
 export enum UserRoleEnum {
 	GUEST = 'guest',
-	USER = 'user',
 	DOCTOR = 'doctor',
 	PATIENT = 'patient',
+	ADMIN = 'admin',
 }
 
 export enum CookieLifetimeEnum {
@@ -41,4 +44,8 @@ export enum CookieLifetimeEnum {
 
 export enum CookieTypesEnum {
 	REFRESH_TOKEN = 'refreshToken',
+}
+
+export enum TypeormErrorCodeEnum {
+	UUID_INVALID_FORMAT = '22P02',
 }

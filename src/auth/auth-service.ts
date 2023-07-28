@@ -12,7 +12,7 @@ import { RecoverPasswordDto } from './dto/recover-password-dto';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { TokenService } from '../token/token-service';
 import { v4 } from 'uuid';
-import { MailUtils } from '../common/util/mail-utils';
+import { MailService } from '../mail/mail-service';
 
 @injectable()
 export class AuthService {
@@ -26,8 +26,8 @@ export class AuthService {
 		const activationLink = v4();
 		registerData.activationLink = activationLink;
 		const createdUser = await this.userService.create(registerData);
-		
-		MailUtils.sendActivationMail(
+
+		MailService.sendActivationMail(
 			createdUser.email,
 			`${process.env.API_URL}/activate/${activationLink}`,
 		);
