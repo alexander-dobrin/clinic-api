@@ -6,7 +6,7 @@ import { injectable, inject } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { GetOptions } from '../common/types';
 import { HttpError } from '../common/errors';
-import { StatusCodeEnum, UserRoleEnum } from '../common/enums';
+import { StatusCodeEnum, TypeormErrorCodeEnum, UserRoleEnum } from '../common/enums';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { UserPayload } from '../auth/auth-types';
 import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
@@ -79,17 +79,26 @@ export class DoctorService {
 	}
 
 	public async getById(id: string): Promise<Doctor | null> {
-		const doctor = await this.dataSource.manager
-			.createQueryBuilder(Doctor, 'doctor')
-			.where('doctor.id = :id', { id })
-			.addSelect(['doctor.createdAt'])
-			.getOne();
+		try {
+			const doctor = await this.dataSource.manager
+				.createQueryBuilder(Doctor, 'doctor')
+				.where('doctor.id = :id', { id })
+				.addSelect(['doctor.createdAt'])
+				.getOne();
 
-		if (!doctor) {
-			throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+			if (!doctor) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+			}
+
+			return doctor;
+		} catch (err) {
+			if (
+				err instanceof QueryFailedError &&
+				err.driverError.code === TypeormErrorCodeEnum.UUID_INVALID_FORMAT
+			) {
+				throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor [${id}] not found`);
+			}
 		}
-
-		return doctor;
 	}
 
 	// TODO: неиспользуемый метод
@@ -114,7 +123,7 @@ export class DoctorService {
 	): Promise<Doctor | null> {
 		const doctor = await this.getById(id);
 		const { speciality = doctor.speciality } = doctorDto;
-		
+
 		if (doctorDto.availableSlots) {
 			doctor.availableSlots = doctorDto.availableSlots.map((s) =>
 				DateTime.fromISO(s, { zone: 'utc' }),

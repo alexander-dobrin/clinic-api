@@ -1,4 +1,4 @@
-import { NextFunction, Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { IRoutes } from '../common/types';
 import { injectable, inject } from 'inversify';
 import { IHttpController } from '../common/types';
@@ -6,9 +6,7 @@ import { CONTAINER_TYPES } from '../common/constants';
 import { ParseQueryOptionsMiddleware } from '../common/middleware/parse-query-options-middleware';
 import { AuthMiddleware } from '../auth/middleware/auth-middleware';
 import { RoleMiddleware } from '../auth/middleware/role-middleware';
-import { StatusCodeEnum, TypeormErrorCodeEnum, UserRoleEnum } from '../common/enums';
-import { EntityNotFoundError, QueryFailedError } from 'typeorm';
-import { HttpError } from '../common/errors';
+import { UserRoleEnum } from '../common/enums';
 
 @injectable()
 export class DoctorRoutes implements IRoutes {
@@ -50,19 +48,6 @@ export class DoctorRoutes implements IRoutes {
 				.checkRole(UserRoleEnum.ADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.PATIENT)
 				.bind(this.roleMiddleware),
 			this.doctorsController.getById.bind(this.doctorsController),
-			(err: Error, req: Request, res: Response, next: NextFunction) => {
-				if (err instanceof EntityNotFoundError) {
-					// потеряю детали ошибки о id доктора
-					throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor not found`);
-				}
-				if (
-					err instanceof QueryFailedError &&
-					err.driverError.code === TypeormErrorCodeEnum.UUID_INVALID_FORMAT
-				) {
-					throw new HttpError(StatusCodeEnum.NOT_FOUND, `Doctor not found`);
-				}
-				next(err);
-			},
 		);
 
 		this._router
