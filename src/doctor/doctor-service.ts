@@ -128,21 +128,6 @@ export class DoctorService {
 		}
 	}
 
-	// TODO: неиспользуемый метод
-	public async getByIdRestrictedToOwnData(id: string, user: UserPayload) {
-		if (user.role === UserRoleEnum.DOCTOR) {
-			const userDoctors = await this.doctorRepository.findOne({
-				where: { user: { id: user.id } },
-				relations: { user: true },
-			});
-
-			if (!userDoctors) {
-				throw new HttpError(StatusCodeEnum.FORBIDDEN, 'Forbidden');
-			}
-		}
-		return this.getById(id);
-	}
-
 	@validateDto
 	public async update(
 		id: string,

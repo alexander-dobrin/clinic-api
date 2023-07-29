@@ -27,13 +27,9 @@ export class PatientController implements IHttpController {
 		}
 	}
 
-	public async getById(
-		req: Request<{ id: string }>,
-		res: Response,
-		next: NextFunction,
-	): Promise<void> {
+	public async getById(req: AuthorizedRequest, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const patient = await this.patientsService.getById(req.params.id);
+			const patient = await this.patientsService.getById(req.params.id, req.user);
 			res.json(patient);
 		} catch (err) {
 			next(err);

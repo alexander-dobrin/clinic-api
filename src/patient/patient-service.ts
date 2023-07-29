@@ -2,13 +2,19 @@ import { Patient } from './patient';
 import { HttpError } from '../common/errors';
 import { CreatePatientDto } from './dto/create-patient-dto';
 import { UpdatePatientDto } from './dto/update-patient-dto';
-import { ErrorMessageEnum, StatusCodeEnum } from '../common/enums';
+import { ErrorMessageEnum, StatusCodeEnum, UserRoleEnum } from '../common/enums';
 import { injectable, inject } from 'inversify';
 import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { DataSource, EntityManager, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
+import {
+	DataSource,
+	EntityManager,
+	EntityNotFoundError,
+	QueryFailedError,
+	Repository,
+} from 'typeorm';
 import { UserService } from '../user/user-service';
 
 @injectable()
@@ -26,7 +32,7 @@ export class PatientService {
 	public async create(
 		@validDto(CreatePatientDto) patientDto: CreatePatientDto,
 		user: UserPayload,
-		transaction?: EntityManager
+		transaction?: EntityManager,
 	): Promise<Patient> {
 		await this.throwIfPhoneTaken(patientDto.phoneNumber);
 
@@ -36,7 +42,7 @@ export class PatientService {
 
 		const patientUser = await this.userService.getById(user.id);
 		const patient = new Patient(patientUser.id, patientDto.phoneNumber);
-				
+
 		return this.patientRepository.save(patient);
 	}
 
@@ -54,13 +60,20 @@ export class PatientService {
 		}
 	}
 
-	public async getById(id: string): Promise<Patient | undefined> {
+	public async getById(id: string, user?: UserPayload): Promise<Patient | undefined> {
 		try {
 			const patient = await this.dataSource.manager
 				.createQueryBuilder(Patient, 'patient')
 				.where('patient.id = :id', { id })
 				.addSelect(['patient.createdAt'])
 				.getOneOrFail();
+
+			if (user?.role === UserRoleEnum.PATIENT) {
+				const isOwnData = patient.userId === user.id;
+				if (!isOwnData) {
+					throw new HttpError(StatusCodeEnum.FORBIDDEN, 'Forbidden');
+				}
+			}
 
 			return patient;
 		} catch (err) {
