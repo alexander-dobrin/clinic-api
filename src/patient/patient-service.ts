@@ -8,7 +8,7 @@ import { GetOptions } from '../common/types';
 import { CONTAINER_TYPES } from '../common/constants';
 import { UserPayload } from '../auth/auth-types';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
-import { DataSource, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, EntityManager, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { UserService } from '../user/user-service';
 
 @injectable()
@@ -26,11 +26,17 @@ export class PatientService {
 	public async create(
 		@validDto(CreatePatientDto) patientDto: CreatePatientDto,
 		user: UserPayload,
+		transaction?: EntityManager
 	): Promise<Patient> {
 		await this.throwIfPhoneTaken(patientDto.phoneNumber);
+
+		if (transaction) {
+			return transaction.save(new Patient(user.id, patientDto.phoneNumber));
+		}
+
 		const patientUser = await this.userService.getById(user.id);
 		const patient = new Patient(patientUser.id, patientDto.phoneNumber);
-		
+				
 		return this.patientRepository.save(patient);
 	}
 

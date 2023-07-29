@@ -1,44 +1,101 @@
 import { inject, injectable } from 'inversify';
 import { CONTAINER_TYPES } from '../common/constants';
 import { HttpError } from '../common/errors';
-import { StatusCodeEnum } from '../common/enums';
+import { StatusCodeEnum, UserRoleEnum } from '../common/enums';
 import bcrypt from 'bcrypt';
 import { UserService } from '../user/user-service';
 import { LoginDto } from './dto/login-dto';
 import { RegisterDto } from './dto/register-dto';
-import { AuthedUser } from './auth-types';
+import { AuthedUser, UserPayload } from './auth-types';
 import { ResetPasswordDto } from './dto/reset-password-dto';
 import { RecoverPasswordDto } from './dto/recover-password-dto';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { TokenService } from '../token/token-service';
 import { v4 } from 'uuid';
 import { MailService } from '../mail/mail-service';
+import { RegisterPatientDto } from './dto/register-patient-dto';
+import { CreateUserDto } from '../user/dto/create-user-dto';
+import { PatientService } from '../patient/patient-service';
+import { CreatePatientDto } from '../patient/dto/create-patient-dto';
+import { DataSource, EntityManager } from 'typeorm';
 
 @injectable()
 export class AuthService {
 	constructor(
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
 		@inject(CONTAINER_TYPES.TOKEN_SERVICE) private readonly tokenService: TokenService,
+		@inject(CONTAINER_TYPES.PATIENT_SERVICE) private readonly patientService: PatientService,
+		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 	) {}
 
 	@validateDto
 	public async register(@validDto(RegisterDto) registerData: RegisterDto): Promise<AuthedUser> {
+		const user = await this.registerUser(registerData);
+		const tokens = this.tokenService.generatePair(user);
+
+		await this.tokenService.create(user.id, tokens.refreshToken);
+
+		return {
+			user,
+			...tokens,
+		};
+	}
+
+	private async registerUser(
+		dto: CreateUserDto,
+		transaction?: EntityManager,
+	): Promise<UserPayload> {
 		const activationLink = v4();
-		registerData.activationLink = activationLink;
-		const createdUser = await this.userService.create(registerData);
+		const createdUser = await this.userService.create(dto, transaction);
 
 		MailService.sendActivationMail(
 			createdUser.email,
 			`${process.env.API_URL}/activate/${activationLink}`,
 		);
 
-		const tokens = this.tokenService.generatePair(createdUser);
-		await this.tokenService.create(createdUser.id, tokens.refreshToken);
-		return {
-			user: { email: createdUser.email, role: createdUser.role, id: createdUser.id },
-			...tokens,
-		};
+		return { email: createdUser.email, id: createdUser.id, role: createdUser.role };
 	}
+
+	public async registerPatient(@validDto(RegisterPatientDto) dto: RegisterPatientDto) {
+		const queryRunner = this.dataSource.createQueryRunner();
+		await queryRunner.startTransaction();
+
+		try {
+			const user = await this.registerUser(
+				{
+					email: dto.email,
+					firstName: dto.firstName,
+					password: dto.password,
+				},
+				queryRunner.manager,
+			);
+			user.role = UserRoleEnum.PATIENT;
+
+			const patient = await this.patientService.create(
+				new CreatePatientDto(dto.phoneNumber),
+				user,
+				queryRunner.manager,
+			);
+
+			await queryRunner.commitTransaction();
+
+			const tokens = this.tokenService.generatePair(user);
+			await this.tokenService.create(user.id, tokens.refreshToken);
+
+			return {
+				user,
+				patient,
+				...tokens,
+			};
+		} catch (err) {
+			throw err;
+		} finally {
+			await queryRunner.release();
+		}
+	}
+
+	// TODO
+	public async registerDoctor() {}
 
 	public async activate(activationLink: string) {
 		await this.userService.activate(activationLink);

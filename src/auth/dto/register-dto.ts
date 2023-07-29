@@ -14,8 +14,4 @@ export class RegisterDto {
 	@IsOptional()
 	@IsEnum(UserRoleEnum)
 	role: UserRoleEnum;
-
-	@IsOptional()
-	@IsNotEmpty()
-	activationLink: string;
 }

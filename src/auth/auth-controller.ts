@@ -7,6 +7,7 @@ import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
 import { ResetPasswordDto } from './dto/reset-password-dto';
 import { RecoverPasswordDto } from './dto/recover-password-dto';
+import { RegisterPatientDto } from './dto/register-patient-dto';
 
 @injectable()
 export class AuthController {
@@ -24,6 +25,23 @@ export class AuthController {
 				httpOnly: true,
 			});
 			res.status(StatusCodeEnum.CREATED).json(registeredUser);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async registerPatient(
+		req: Request<object, object, RegisterPatientDto>,
+		res: Response,
+		next: NextFunction,
+	) {
+		try {
+			const user = await this.authService.registerPatient(req.body);
+			res.cookie(CookieTypesEnum.REFRESH_TOKEN, user.refreshToken, {
+				maxAge: CookieLifetimeEnum.ONE_MONTH,
+				httpOnly: true,
+			});
+			res.status(StatusCodeEnum.CREATED).json(user);
 		} catch (error) {
 			next(error);
 		}

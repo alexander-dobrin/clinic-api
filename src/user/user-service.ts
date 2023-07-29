@@ -8,7 +8,13 @@ import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { validDto, validateDto } from '../common/decorator/validate-dto';
 import { User } from './user';
-import { DataSource, EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
+import {
+	DataSource,
+	EntityManager,
+	EntityNotFoundError,
+	QueryFailedError,
+	Repository,
+} from 'typeorm';
 
 @injectable()
 export class UserService {
@@ -19,7 +25,10 @@ export class UserService {
 	}
 
 	@validateDto
-	public async create(@validDto(CreateUserDto) userDto: CreateUserDto): Promise<User> {
+	public async create(
+		@validDto(CreateUserDto) userDto: CreateUserDto,
+		transaction?: EntityManager,
+	): Promise<User> {
 		const user = this.userRepository.create({
 			email: userDto.email.toLowerCase(),
 			role: userDto.role,
@@ -27,9 +36,14 @@ export class UserService {
 			password: userDto.password,
 			activationLink: userDto.activationLink,
 		});
-		const savedUser = await this.userRepository.save(user);
-		
-	    return this.userRepository.findOneBy({ id: savedUser.id });
+
+		if (transaction) {
+			return transaction.save(user);
+		} else {
+			const savedUser = await this.userRepository.save(user);
+			return this.userRepository.findOneBy({ id: savedUser.id });
+		}
+
 	}
 
 	public async get(options: GetOptions): Promise<User[]> {
