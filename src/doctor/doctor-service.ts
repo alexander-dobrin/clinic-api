@@ -12,6 +12,7 @@ import { UserPayload } from '../auth/auth-types';
 import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
 import { UserService } from '../user/user-service';
 import { Appointment } from '../appointment/appointment';
+import { User } from '../user/user';
 
 @injectable()
 export class DoctorService {
@@ -38,6 +39,32 @@ export class DoctorService {
 		const savedDoctor = await this.doctorRepository.save(doctor);
 
 		return this.doctorRepository.findOneBy({ id: savedDoctor.id });
+	}
+
+	@validateDto
+	public async createWithTransaction(
+		@validDto(CreateDoctorDto) doctorDto: CreateDoctorDto,
+		user: UserPayload,
+		transaction: EntityManager,
+	) {
+		const doctorUser = await transaction
+			.createQueryBuilder(User, 'user')
+			.where('user.id = :id', { id: user.id })
+			.addSelect(['user.createdAt', 'user.activationLink', 'user.password', 'user.resetToken'])
+			.getOne();
+
+		if (!doctorUser) {
+			throw new HttpError(StatusCodeEnum.NOT_FOUND, `User [${user.id}] not found`);
+		}
+
+		const doctor = this.doctorRepository.create({
+			availableSlots: doctorDto.availableSlots.map((s) => DateTime.fromISO(s, { zone: 'utc' })),
+			user: doctorUser,
+			speciality: doctorDto.speciality,
+		});
+		const savedDoctor = await transaction.save(doctor);
+
+		return transaction.findOneBy(Doctor, { id: savedDoctor.id });
 	}
 
 	public async get(options: GetOptions): Promise<Doctor[]> {

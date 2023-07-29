@@ -18,6 +18,9 @@ import { CreateUserDto } from '../user/dto/create-user-dto';
 import { PatientService } from '../patient/patient-service';
 import { CreatePatientDto } from '../patient/dto/create-patient-dto';
 import { DataSource, EntityManager } from 'typeorm';
+import { RegisterDoctortDto } from './dto/register-doctor-dto';
+import { DoctorService } from '../doctor/doctor-service';
+import { CreateDoctorDto } from '../doctor/dto/create-doctor-dto';
 
 @injectable()
 export class AuthService {
@@ -25,6 +28,7 @@ export class AuthService {
 		@inject(CONTAINER_TYPES.USER_SERVICE) private readonly userService: UserService,
 		@inject(CONTAINER_TYPES.TOKEN_SERVICE) private readonly tokenService: TokenService,
 		@inject(CONTAINER_TYPES.PATIENT_SERVICE) private readonly patientService: PatientService,
+		@inject(CONTAINER_TYPES.DOCTOR_SERVICE) private readonly doctorService: DoctorService,
 		@inject(CONTAINER_TYPES.DB_CONNECTION) private readonly dataSource: DataSource,
 	) {}
 
@@ -56,6 +60,7 @@ export class AuthService {
 		return { email: createdUser.email, id: createdUser.id, role: createdUser.role };
 	}
 
+	@validateDto
 	public async registerPatient(@validDto(RegisterPatientDto) dto: RegisterPatientDto) {
 		const queryRunner = this.dataSource.createQueryRunner();
 		await queryRunner.startTransaction();
@@ -88,14 +93,52 @@ export class AuthService {
 				...tokens,
 			};
 		} catch (err) {
+			await queryRunner.rollbackTransaction();
 			throw err;
 		} finally {
 			await queryRunner.release();
 		}
 	}
 
-	// TODO
-	public async registerDoctor() {}
+	@validateDto
+	public async registerDoctor(@validDto(RegisterDoctortDto) dto: RegisterDoctortDto) {
+		const queryRunner = this.dataSource.createQueryRunner();
+		await queryRunner.startTransaction();
+
+		try {
+			const user = await this.registerUser(
+				{
+					email: dto.email,
+					firstName: dto.firstName,
+					password: dto.password,
+				},
+				queryRunner.manager,
+			);
+			user.role = UserRoleEnum.DOCTOR;
+
+			const doctor = await this.doctorService.createWithTransaction(
+				new CreateDoctorDto(dto.speciality, dto.availableSlots),
+				user,
+				queryRunner.manager,
+			);
+
+			await queryRunner.commitTransaction();
+
+			const tokens = this.tokenService.generatePair(user);
+			await this.tokenService.create(user.id, tokens.refreshToken);
+
+			return {
+				user,
+				doctor,
+				...tokens,
+			};
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+			throw err;
+		} finally {
+			await queryRunner.release();
+		}
+	}
 
 	public async activate(activationLink: string) {
 		await this.userService.activate(activationLink);

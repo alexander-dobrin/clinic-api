@@ -37,6 +37,7 @@ export class UserService {
 			activationLink: userDto.activationLink,
 		});
 
+
 		if (transaction) {
 			return transaction.save(user);
 		} else {
